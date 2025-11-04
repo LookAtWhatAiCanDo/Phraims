@@ -30,6 +30,20 @@
 #include <QWebEnginePage>
 #include <QWebEngineProfile>
 #include <QWebEngineView>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QFile>
+#include <QUuid>
+#include <QFileInfo>
+#include <QDateTime>
+#include <QDialog>
+#include <QListWidget>
+#include <QLineEdit>
+#include <QCheckBox>
+#include <QPushButton>
+#include <QHBoxLayout>
+#include <QLabel>
 #include <QWidget>
 
 // Qt6 Widgets Web Brower app that divides the main window into multiple web page frames.
@@ -78,6 +92,377 @@ protected:
     // engine to use the current view for the new window's contents.
     return this;
   }
+};
+
+// --- DOM patch persistence helpers --------------------------------------
+
+static QString domPatchesPath() {
+    const QString root = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir().mkpath(root);
+    const QString path = root + QDir::separator() + QStringLiteral("dom-patches.json");
+    return path;
+}
+
+struct DomPatch {
+  QString id;
+  QString urlPrefix; // match by startsWith
+  QString selector;
+  QString css; // css declarations (e.g., "display: none;")
+  bool enabled = true;
+};
+
+// Whether to print verbose DOM-patch internals (injected JS payloads).
+// Controlled by the environment variable NVK_DOM_PATCH_VERBOSE (1 to enable).
+static bool domPatchesVerbose() {
+  static int cached = -1;
+  if (cached != -1) return cached;
+  const QByteArray e = qgetenv("NVK_DOM_PATCH_VERBOSE");
+  if (!e.isEmpty()) {
+    bool ok = false;
+    const int v = QString::fromUtf8(e).toInt(&ok);
+    cached = (ok && v) ? 1 : 0;
+  } else {
+    cached = 0;
+  }
+  return cached;
+}
+
+static QString escapeForJs(const QString &s) {
+  QString out = s;
+  out.replace("\\", "\\\\");
+  out.replace('\'', "\\'");
+  out.replace('"', "\\\"");
+  out.replace('\n', ' ');
+  out.replace('\r', ' ');
+  return out;
+}
+
+static QList<DomPatch> loadDomPatches() {
+  // Cache patches in-memory to avoid reading the JSON file on every
+  // applyDomPatchesToPage call. The file is re-read only when its
+  // modification time changes.
+  static QList<DomPatch> cache;
+  static QDateTime cacheMtime;
+
+  const QString path = domPatchesPath();
+  QFileInfo fi(path);
+  if (!fi.exists()) {
+    if (!cache.isEmpty()) {
+      cache.clear();
+      cacheMtime = QDateTime();
+      if (domPatchesVerbose()) qDebug() << "loadDomPatches: cleared cache (file removed):" << path;
+    }
+    return cache;
+  }
+
+  const QDateTime mtime = fi.lastModified();
+  if (!cache.isEmpty() && cacheMtime.isValid() && cacheMtime >= mtime) {
+    // cached and up-to-date
+    return cache;
+  }
+
+  QFile f(path);
+  if (!f.open(QIODevice::ReadOnly)) {
+    if (domPatchesVerbose()) qDebug() << "loadDomPatches: cannot open" << path;
+    cache.clear();
+    cacheMtime = QDateTime();
+    return cache;
+  }
+  const QByteArray b = f.readAll();
+  f.close();
+  const QJsonDocument d = QJsonDocument::fromJson(b);
+  if (!d.isArray()) {
+    if (domPatchesVerbose()) qDebug() << "loadDomPatches: file exists but JSON is not an array:" << path;
+    cache.clear();
+    cacheMtime = QDateTime();
+    return cache;
+  }
+
+  const QJsonArray arr = d.array();
+  cache.clear();
+  for (const QJsonValue &v : arr) {
+    if (!v.isObject()) continue;
+    const QJsonObject o = v.toObject();
+    DomPatch p;
+    p.id = o.value("id").toString(QUuid::createUuid().toString());
+    p.urlPrefix = o.value("urlPrefix").toString();
+    p.selector = o.value("selector").toString();
+    p.css = o.value("css").toString();
+    p.enabled = o.value("enabled").toBool(true);
+    cache.push_back(p);
+  }
+  cacheMtime = mtime;
+  if (domPatchesVerbose()) qDebug() << "loadDomPatches: loaded" << cache.size() << "entries from" << path;
+  return cache;
+}
+
+static bool saveDomPatches(const QList<DomPatch> &patches) {
+  QJsonArray arr;
+  for (const DomPatch &p : patches) {
+    QJsonObject o;
+    o["id"] = p.id;
+    o["urlPrefix"] = p.urlPrefix;
+    o["selector"] = p.selector;
+    o["css"] = p.css;
+    o["enabled"] = p.enabled;
+    arr.append(o);
+  }
+  QJsonDocument d(arr);
+  const QString path = domPatchesPath();
+  QFile f(path);
+  if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) return false;
+  f.write(d.toJson(QJsonDocument::Indented));
+  f.close();
+  if (domPatchesVerbose()) qDebug() << "saveDomPatches: wrote" << arr.size() << "entries to" << path;
+  return true;
+}
+
+// Apply patches to the given page immediately (and relies on being called
+// again on subsequent loads). This uses runJavaScript to insert/remove
+// a <style data-dom-patch-id="..."> element scoped to the selector.
+void applyDomPatchesToPage(QWebEnginePage *page) {
+  if (!page) return;
+  const QUrl url = page->url();
+  const QString urlStr = url.toString();
+  const QList<DomPatch> patches = loadDomPatches();
+  // Helper: produce a JSON-quoted JS string for safe embedding
+  auto jsonQuoted = [](const QString &s) {
+    QJsonArray a;
+    a.append(s);
+    QString j = QString::fromUtf8(QJsonDocument(a).toJson(QJsonDocument::Compact));
+    // j looks like ["..."] -- strip the surrounding [ and ]
+    if (j.size() >= 2 && j.front() == '[' && j.back() == ']') return j.mid(1, j.size() - 2);
+    return j; // fallback
+  };
+
+  for (const DomPatch &p : patches) {
+    if (!p.enabled) continue;
+    if (p.urlPrefix.isEmpty() || urlStr.startsWith(p.urlPrefix)) {
+      const QString idQ = jsonQuoted(p.id);
+      const QString selQ = jsonQuoted(p.selector);
+      const QString cssQ = jsonQuoted(p.css);
+
+      const QString js = QString(R"JS(
+(function(){
+  try {
+    var id = %1;
+    var sel = %2;
+    var css = %3;
+
+    // remove any previous style with the same id
+    try {
+      var existing = document.querySelector('style[data-dom-patch-id="' + id + '"]');
+      if (existing) existing.remove();
+    } catch(e) {}
+
+    // insert/update a stylesheet in document head
+    try {
+      var s = document.createElement('style');
+      s.setAttribute('data-dom-patch-id', id);
+      s.textContent = sel + '{' + css + '}';
+      document.head.appendChild(s);
+    } catch(e) {}
+
+    // Try to set an inline style on the first matching element (if present)
+    try {
+      var el = document.querySelector(sel);
+      if (el) {
+        try {
+          var decl = css.replace(/;\s*$/,'');
+          var parts = decl.split(':');
+          if (parts.length >= 2) {
+            var prop = parts[0].trim();
+            var val = parts.slice(1).join(':').trim();
+            el.style.setProperty(prop, val, 'important');
+          } else {
+            el.style.cssText += (' ' + css + ' !important;');
+          }
+        } catch(e) {}
+      }
+    } catch(e) {}
+
+  } catch (e) {
+    var msg = (e && e.name ? (e.name + ': ') : '') + (e && e.message ? e.message : String(e));
+    console.error('dom-patch-inject-error', msg);
+  }
+})();
+
+)JS").arg(idQ).arg(selQ).arg(cssQ);
+
+      // High-level log for every applied patch (always enabled).
+      qDebug() << "applyDomPatchesToPage: applying patch id=" << p.id << " url=" << urlStr << " selector=" << p.selector << " css=" << p.css;
+      // Detailed injected-JS payload logging gated behind NVK_DOM_PATCH_VERBOSE.
+      if (domPatchesVerbose()) {
+        qDebug() << "applyDomPatchesToPage: js=" << js;
+      }
+      page->runJavaScript(js);
+    }
+  }
+}
+
+// Simple modal dialog to manage dom patches (list/add/edit/delete)
+class DomPatchesDialog : public QDialog {
+  Q_OBJECT
+public:
+  DomPatchesDialog(QWidget *parent = nullptr) : QDialog(parent) {
+    setWindowTitle(tr("DOM Patches"));
+    resize(640, 360);
+    auto *lay = new QVBoxLayout(this);
+    list_ = new QListWidget(this);
+    lay->addWidget(list_, 1);
+    auto *btnRow = new QHBoxLayout();
+    auto *add = new QPushButton(tr("Add"), this);
+    auto *edit = new QPushButton(tr("Edit"), this);
+    auto *del = new QPushButton(tr("Delete"), this);
+    auto *close = new QPushButton(tr("Close"), this);
+    btnRow->addWidget(add);
+    btnRow->addWidget(edit);
+    btnRow->addWidget(del);
+    btnRow->addStretch(1);
+    btnRow->addWidget(close);
+    lay->addLayout(btnRow);
+
+    connect(add, &QPushButton::clicked, this, &DomPatchesDialog::onAdd);
+    connect(edit, &QPushButton::clicked, this, &DomPatchesDialog::onEdit);
+    connect(del, &QPushButton::clicked, this, &DomPatchesDialog::onDelete);
+    connect(close, &QPushButton::clicked, this, &QDialog::accept);
+
+    loadList();
+  }
+
+  QList<DomPatch> patches() const { return patches_; }
+
+private slots:
+  void loadList() {
+    patches_ = loadDomPatches();
+    list_->clear();
+    for (const DomPatch &p : patches_) {
+      // show URL prefix, selector and the CSS declarations in the list
+      const QString cssPreview = p.css.isEmpty() ? QStringLiteral("(no style)") : p.css;
+      const QString enabledSuffix = p.enabled ? QString() : QStringLiteral(" (disabled)");
+      QListWidgetItem *it = new QListWidgetItem(
+        QStringLiteral("%1 | %2 | %3%4")
+          .arg(p.urlPrefix)
+          .arg(p.selector)
+          .arg(cssPreview)
+          .arg(enabledSuffix),
+        list_);
+      it->setData(Qt::UserRole, p.id);
+      it->setToolTip(
+        QStringLiteral("Selector: %1\nStyle: %2\nURL prefix: %3")
+          .arg(p.selector)
+          .arg(p.css)
+          .arg(p.urlPrefix)
+        );
+    }
+  }
+
+  void onAdd() {
+    DomPatch p;
+    p.id = QUuid::createUuid().toString();
+    // Show non-modal editor that will append the patch when the user
+    // accepts. The editor works asynchronously so we don't block DevTools.
+    editPatchDialog(p, true);
+  }
+
+  void onEdit() {
+    auto *it = list_->currentItem();
+    if (!it) return;
+    const QString id = it->data(Qt::UserRole).toString();
+    for (DomPatch &p : patches_) {
+      if (p.id == id) {
+        // Show non-modal editor that will update the existing patch
+        // when the user accepts the dialog.
+        editPatchDialog(p, false);
+        break;
+      }
+    }
+  }
+
+  void onDelete() {
+    auto *it = list_->currentItem();
+    if (!it) return;
+    const QString id = it->data(Qt::UserRole).toString();
+    for (int i = 0; i < patches_.size(); ++i) {
+      if (patches_[i].id == id) {
+        patches_.removeAt(i);
+        saveDomPatches(patches_);
+        loadList();
+        return;
+      }
+    }
+  }
+
+  // Non-modal editor for a single patch. When the user accepts the
+  // dialog the patch is either added (isNew==true) or the existing
+  // patch is updated. The dialog is heap-allocated and deleted on close.
+  void editPatchDialog(const DomPatch &p_in, bool isNew) {
+    DomPatch p = p_in; // copy so we don't mutate until user accepts
+    QDialog *d = new QDialog(this);
+    d->setAttribute(Qt::WA_DeleteOnClose);
+    d->setWindowTitle(tr("Edit DOM Patch"));
+    auto *lay = new QVBoxLayout(d);
+    auto *urlLabel = new QLabel(tr("URL prefix (startsWith):"), d);
+    auto *urlEdit = new QLineEdit(p.urlPrefix, d);
+    auto *selLabel = new QLabel(tr("CSS selector:"), d);
+    auto *selEdit = new QLineEdit(p.selector, d);
+    auto *cssLabel = new QLabel(tr("CSS declarations (e.g. display: none;):"), d);
+    auto *cssEdit = new QLineEdit(p.css, d);
+    auto *enabledChk = new QCheckBox(tr("Enabled"), d);
+    enabledChk->setChecked(p.enabled);
+    lay->addWidget(urlLabel);
+    lay->addWidget(urlEdit);
+    lay->addWidget(selLabel);
+    lay->addWidget(selEdit);
+    lay->addWidget(cssLabel);
+    lay->addWidget(cssEdit);
+    lay->addWidget(enabledChk);
+    auto *btnRow = new QHBoxLayout();
+    auto *ok = new QPushButton(tr("OK"), d);
+    auto *cancel = new QPushButton(tr("Cancel"), d);
+    btnRow->addStretch(1);
+    btnRow->addWidget(ok);
+    btnRow->addWidget(cancel);
+    lay->addLayout(btnRow);
+
+    // OK: capture current widget values, persist, refresh list, then close
+    connect(ok, &QPushButton::clicked, this, [this, d, urlEdit, selEdit, cssEdit, enabledChk, p]() mutable {
+      DomPatch newP = p; // start from original id
+      newP.urlPrefix = urlEdit->text();
+      newP.selector = selEdit->text();
+      newP.css = cssEdit->text();
+      newP.enabled = enabledChk->isChecked();
+      if (/*isNew*/ d->property("isNew").toBool()) {
+        // append new patch
+        patches_.push_back(newP);
+      } else {
+        // find and update existing
+        for (DomPatch &q : patches_) {
+          if (q.id == newP.id) {
+            q = newP;
+            break;
+          }
+        }
+      }
+      saveDomPatches(patches_);
+      loadList();
+      d->close();
+    });
+
+    // Cancel just closes the dialog
+    connect(cancel, &QPushButton::clicked, d, &QDialog::close);
+
+    // Mark whether this dialog is creating a new patch so the OK handler
+    // knows whether to append or update. We store it as a dynamic property
+    // on the dialog to keep the OK lambda simple.
+    d->setProperty("isNew", isNew);
+
+    d->show();
+  }
+
+private:
+  QListWidget *list_ = nullptr;
+  QList<DomPatch> patches_;
 };
 
 // A self-contained frame used for each split section. Contains a top
@@ -184,6 +569,9 @@ public:
       address_->setText(s);
       // update nav button states
       updateNavButtons();
+      // re-apply any DOM patches when the URL changes (helps single-page apps)
+      extern void applyDomPatchesToPage(QWebEnginePage *page);
+      if (webview_ && webview_->page()) applyDomPatchesToPage(webview_->page());
       emit addressEdited(this, s);
     });
     connect(webview_, &MyWebEngineView::loadStarted, this, [this]() { refreshBtn_->setEnabled(true); });
@@ -249,6 +637,13 @@ public:
     // assign a fresh page associated with the shared profile
     auto *page = new QWebEnginePage(profile, webview_);
     webview_->setPage(page);
+    // Ensure DOM patches are applied on every load for this page.
+    QObject::connect(page, &QWebEnginePage::loadFinished, page, [page](bool) {
+      // apply patches after each load
+      // forward to helper defined below
+      extern void applyDomPatchesToPage(QWebEnginePage *page);
+      applyDomPatchesToPage(page);
+    });
   }
 
 private:
@@ -341,6 +736,11 @@ public:
     connect(gridAction, &QAction::triggered, this, [this]() { setLayoutMode(Grid); });
     connect(verticalAction, &QAction::triggered, this, [this]() { setLayoutMode(Vertical); });
     connect(horizontalAction, &QAction::triggered, this, [this]() { setLayoutMode(Horizontal); });
+
+    // Tools menu: DOM patches manager
+    auto *toolsMenu = menuBar()->addMenu(tr("Tools"));
+    QAction *domPatchesAction = toolsMenu->addAction(tr("DOM Patches"));
+    connect(domPatchesAction, &QAction::triggered, this, &SplitWindow::showDomPatchesManager);
 
     // central scroll area to allow many sections
     auto *scroll = new QScrollArea();
@@ -764,6 +1164,22 @@ private slots:
         page->setDevToolsPage(sharedDevToolsView_->page());
       }
     }
+  }
+
+  // Open the DOM patches manager dialog
+  void showDomPatchesManager() {
+    // Create the manager as a modeless dialog so the user can interact with
+    // DevTools / frames while editing patches. Reapply patches when the
+    // dialog finishes (accepted or rejected) to ensure changes take effect.
+    DomPatchesDialog *dlg = new DomPatchesDialog(this);
+    dlg->setAttribute(Qt::WA_DeleteOnClose);
+    dlg->show();
+    connect(dlg, &QDialog::finished, this, [this](int) {
+      const QList<SplitFrameWidget *> frames = central_->findChildren<SplitFrameWidget *>();
+      for (SplitFrameWidget *f : frames) {
+        if (auto *p = f->page()) applyDomPatchesToPage(p);
+      }
+    });
   }
 
 private:
