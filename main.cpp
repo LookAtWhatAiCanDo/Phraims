@@ -679,6 +679,8 @@ public:
     setWindowTitle(QCoreApplication::applicationName());
     resize(800, 600);
 
+    QSettings settings;
+
     // No global toolbar; per-frame + / - buttons control sections.
 
     // create a shared persistent QWebEngineProfile for all frames so
@@ -709,6 +711,24 @@ public:
     toggleDevToolsAction->setShortcut(QKeySequence(Qt::Key_F12));
     connect(toggleDevToolsAction, &QAction::triggered, this, &SplitWindow::toggleDevToolsForFocusedFrame);
 
+    // Always-on-top toggle
+    QAction *alwaysOnTopAction = viewMenu->addAction(tr("Always on Top"));
+    alwaysOnTopAction->setCheckable(true);
+    // read persisted value (default: false)
+    {
+      const bool on = settings.value("alwaysOnTop", false).toBool();
+      alwaysOnTopAction->setChecked(on);
+      // apply the window flag; setWindowFlag requires a show() to take effect on some platforms
+      setWindowFlag(Qt::WindowStaysOnTopHint, on);
+      if (on) show();
+    }
+    connect(alwaysOnTopAction, &QAction::toggled, this, [this](bool checked){
+      setWindowFlag(Qt::WindowStaysOnTopHint, checked);
+      if (checked) show();
+      QSettings settings;
+      settings.setValue("alwaysOnTop", checked);
+    });
+
     // Layout menu: Grid, Stack Vertically, Stack Horizontally
     auto *layoutMenu = menuBar()->addMenu(tr("Layout"));
     QActionGroup *layoutGroup = new QActionGroup(this);
@@ -724,7 +744,6 @@ public:
     layoutGroup->addAction(horizontalAction);
 
     // restore persisted layout choice
-    QSettings settings;
     int storedMode = settings.value("layoutMode", (int)Vertical).toInt();
     layoutMode_ = (LayoutMode)storedMode;
     switch (layoutMode_) {
