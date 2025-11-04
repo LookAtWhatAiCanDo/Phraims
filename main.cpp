@@ -69,6 +69,17 @@ class SplitFrameWidget : public QFrame {
     address_->setClearButtonEnabled(true);
     topRow->addWidget(address_, 1);
 
+    // up/down move this frame within the list
+    upBtn_ = new QToolButton(this);
+    upBtn_->setText("\u25B2"); // up triangle
+    upBtn_->setToolTip("Move this section up");
+    topRow->addWidget(upBtn_);
+
+    downBtn_ = new QToolButton(this);
+    downBtn_->setText("\u25BC"); // down triangle
+    downBtn_->setToolTip("Move this section down");
+    topRow->addWidget(downBtn_);
+
     plusBtn_ = new QToolButton(this);
     plusBtn_->setText("+");
     plusBtn_->setToolTip("Insert a new section after this one");
@@ -89,6 +100,8 @@ class SplitFrameWidget : public QFrame {
     // wire internal UI to emit signals and control webview
     connect(plusBtn_, &QToolButton::clicked, this, [this]() { emit plusClicked(this); });
     connect(minusBtn_, &QToolButton::clicked, this, [this]() { emit minusClicked(this); });
+    connect(upBtn_, &QToolButton::clicked, this, [this]() { emit upClicked(this); });
+    connect(downBtn_, &QToolButton::clicked, this, [this]() { emit downClicked(this); });
     connect(address_, &QLineEdit::editingFinished, this, [this]() {
       emit addressEdited(this, address_->text());
       applyAddress(address_->text());
@@ -160,15 +173,21 @@ class SplitFrameWidget : public QFrame {
   }
 
   void setMinusEnabled(bool en) { if (minusBtn_) minusBtn_->setEnabled(en); }
+  void setUpEnabled(bool en) { if (upBtn_) upBtn_->setEnabled(en); }
+  void setDownEnabled(bool en) { if (downBtn_) downBtn_->setEnabled(en); }
 
  signals:
   void plusClicked(SplitFrameWidget *who);
   void minusClicked(SplitFrameWidget *who);
+  void upClicked(SplitFrameWidget *who);
+  void downClicked(SplitFrameWidget *who);
   void addressEdited(SplitFrameWidget *who, const QString &text);
 
  private:
   QLineEdit *address_ = nullptr;
   QWebEngineView *webview_ = nullptr;
+  QToolButton *upBtn_ = nullptr;
+  QToolButton *downBtn_ = nullptr;
   QToolButton *plusBtn_ = nullptr;
   QToolButton *minusBtn_ = nullptr;
   QToolButton *backBtn_ = nullptr;
@@ -242,9 +261,13 @@ class SplitWindow : public QMainWindow {
       connect(frame, &SplitFrameWidget::plusClicked, this, &SplitWindow::onPlusFromFrame);
       connect(frame, &SplitFrameWidget::minusClicked, this, &SplitWindow::onMinusFromFrame);
       connect(frame, &SplitFrameWidget::addressEdited, this, &SplitWindow::onAddressEdited);
+      connect(frame, &SplitFrameWidget::upClicked, this, &SplitWindow::onUpFromFrame);
+      connect(frame, &SplitFrameWidget::downClicked, this, &SplitWindow::onDownFromFrame);
 
-      // enable/disable minus button depending on how many sections
+      // enable/disable minus/up/down buttons depending on how many sections
       frame->setMinusEnabled(n > 1);
+      frame->setUpEnabled(i > 0);
+      frame->setDownEnabled(i < n - 1);
 
       layout_->addWidget(frame, 1); // stretch=1 -> equal share
     }
@@ -277,6 +300,56 @@ class SplitWindow : public QMainWindow {
     for (const auto &a : addresses_) list << a;
     settings.setValue("addresses", list);
     // rebuild UI with the updated addresses_
+    rebuildSections((int)addresses_.size());
+  }
+
+  void onUpFromFrame(SplitFrameWidget *who) {
+    // move this frame up (towards index 0)
+    int pos = -1;
+    int widgetIndex = 0;
+    for (int i = 0; i < layout_->count(); ++i) {
+      QLayoutItem *it = layout_->itemAt(i);
+      QWidget *w = it ? it->widget() : nullptr;
+      if (!w) continue;
+      if (w == who) {
+        pos = widgetIndex;
+        break;
+      }
+      ++widgetIndex;
+    }
+    if (pos <= 0) return; // already at top or not found
+
+    std::swap(addresses_[pos], addresses_[pos - 1]);
+    // persist addresses
+    QSettings settings("NightVsKnight", "LiveStreamMultiChat");
+    QStringList list;
+    for (const auto &a : addresses_) list << a;
+    settings.setValue("addresses", list);
+    rebuildSections((int)addresses_.size());
+  }
+
+  void onDownFromFrame(SplitFrameWidget *who) {
+    // move this frame down (towards larger indices)
+    int pos = -1;
+    int widgetIndex = 0;
+    for (int i = 0; i < layout_->count(); ++i) {
+      QLayoutItem *it = layout_->itemAt(i);
+      QWidget *w = it ? it->widget() : nullptr;
+      if (!w) continue;
+      if (w == who) {
+        pos = widgetIndex;
+        break;
+      }
+      ++widgetIndex;
+    }
+    if (pos < 0 || pos >= (int)addresses_.size() - 1) return; // at bottom or not found
+
+    std::swap(addresses_[pos], addresses_[pos + 1]);
+    // persist addresses
+    QSettings settings("NightVsKnight", "LiveStreamMultiChat");
+    QStringList list;
+    for (const auto &a : addresses_) list << a;
+    settings.setValue("addresses", list);
     rebuildSections((int)addresses_.size());
   }
 
