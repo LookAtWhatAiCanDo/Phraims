@@ -5,6 +5,8 @@
 #include <QHBoxLayout>
 #include <QToolButton>
 #include <QLineEdit>
+#include <QWebEngineView>
+#include <QWebEngineHistory>
 #include <vector>
 #include <QLabel>
 #include <QFrame>
@@ -12,6 +14,7 @@
 #include <QScrollArea>
 #include <QPalette>
 #include <QSettings>
+#include <QMessageBox>
 
 // Simple Qt6 Widgets app that divides the main area into N equal sections.
 // The user controls the number of sections with + / - buttons or the spinbox.
@@ -39,9 +42,27 @@ class SplitFrameWidget : public QFrame {
     v->setContentsMargins(6, 6, 6, 6);
     v->setSpacing(6);
 
-    // top row: address bar + +/- buttons
+    // left: navigation buttons, center: address bar, right: +/- buttons
     auto *topRow = new QHBoxLayout();
     topRow->setSpacing(6);
+
+    backBtn_ = new QToolButton(this);
+    backBtn_->setText("<");
+    backBtn_->setToolTip("Back");
+    backBtn_->setEnabled(false);
+    topRow->addWidget(backBtn_);
+
+    forwardBtn_ = new QToolButton(this);
+    forwardBtn_->setText(">");
+    forwardBtn_->setToolTip("Forward");
+    forwardBtn_->setEnabled(false);
+    topRow->addWidget(forwardBtn_);
+
+    refreshBtn_ = new QToolButton(this);
+    refreshBtn_->setText("\u21BB"); // clockwise open circle arrow
+    refreshBtn_->setToolTip("Refresh");
+    refreshBtn_->setEnabled(false);
+    topRow->addWidget(refreshBtn_);
 
     address_ = new QLineEdit(this);
     address_->setPlaceholderText("Address or URL");
@@ -60,20 +81,83 @@ class SplitFrameWidget : public QFrame {
 
     v->addLayout(topRow);
 
-    contentLabel_ = new QLabel(QString("Section %1").arg(index + 1), this);
-    contentLabel_->setAlignment(Qt::AlignCenter);
-    v->addStretch(1);
-    v->addWidget(contentLabel_);
-    v->addStretch(2);
+    // web view content area
+    webview_ = new QWebEngineView(this);
+    webview_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    v->addWidget(webview_, 1);
 
-    // wire internal UI to emit signals
+    // wire internal UI to emit signals and control webview
     connect(plusBtn_, &QToolButton::clicked, this, [this]() { emit plusClicked(this); });
     connect(minusBtn_, &QToolButton::clicked, this, [this]() { emit minusClicked(this); });
-    connect(address_, &QLineEdit::editingFinished, this, [this]() { emit addressEdited(this, address_->text()); });
+    connect(address_, &QLineEdit::editingFinished, this, [this]() {
+      emit addressEdited(this, address_->text());
+      applyAddress(address_->text());
+    });
+
+    connect(backBtn_, &QToolButton::clicked, this, [this]() { if (webview_) webview_->back(); });
+    connect(forwardBtn_, &QToolButton::clicked, this, [this]() { if (webview_) webview_->forward(); });
+    connect(refreshBtn_, &QToolButton::clicked, this, [this]() { if (webview_) webview_->reload(); });
+
+    connect(webview_, &QWebEngineView::urlChanged, this, [this](const QUrl &url) {
+      // ignore internal data URLs (used for instruction/error HTML) so the
+      // address bar doesn't show the data: URL. Only update the address when
+      // a real navigable URL is loaded.
+      if (url.scheme() == QStringLiteral("data") || url.isEmpty()) {
+        updateNavButtons();
+        return;
+      }
+      const QString s = url.toString();
+      address_->setText(s);
+      // update nav button states
+      updateNavButtons();
+      emit addressEdited(this, s);
+    });
+
+    connect(webview_, &QWebEngineView::loadStarted, this, [this]() { refreshBtn_->setEnabled(true); });
+    connect(webview_, &QWebEngineView::loadFinished, this, [this](bool ok) {
+      Q_UNUSED(ok);
+      updateNavButtons();
+    });
   }
 
   QString address() const { return address_->text(); }
-  void setAddress(const QString &s) { address_->setText(s); }
+  void setAddress(const QString &s) { address_->setText(s); applyAddress(s); }
+
+  void applyAddress(const QString &s) {
+    const QString trimmed = s.trimmed();
+    if (trimmed.isEmpty()) {
+      // show instruction HTML instead of loading
+      const QString html =
+          QStringLiteral("<html><body><div style=\"font-family: sans-serif; color: #666; padding: 20px;\">Enter an address above and press Enter to load a page.</div></body></html>");
+      webview_->setHtml(html);
+      refreshBtn_->setEnabled(false);
+      backBtn_->setEnabled(false);
+      forwardBtn_->setEnabled(false);
+      return;
+    }
+
+    QUrl url = QUrl::fromUserInput(trimmed);
+    if (!url.isValid()) {
+      // show error-instruction
+      const QString html = QStringLiteral("<html><body><div style=\"font-family: sans-serif; color: #900; padding: 20px;\">Invalid address.</div></body></html>");
+      webview_->setHtml(html);
+      refreshBtn_->setEnabled(false);
+      backBtn_->setEnabled(false);
+      forwardBtn_->setEnabled(false);
+      return;
+    }
+
+    webview_->load(url);
+    // nav buttons will be updated on urlChanged / loadFinished
+  }
+
+  void updateNavButtons() {
+    if (!webview_) return;
+    auto hist = webview_->history();
+    backBtn_->setEnabled(hist->canGoBack());
+    forwardBtn_->setEnabled(hist->canGoForward());
+    refreshBtn_->setEnabled(!webview_->url().isEmpty());
+  }
 
   void setMinusEnabled(bool en) { if (minusBtn_) minusBtn_->setEnabled(en); }
 
@@ -84,9 +168,12 @@ class SplitFrameWidget : public QFrame {
 
  private:
   QLineEdit *address_ = nullptr;
-  QLabel *contentLabel_ = nullptr;
+  QWebEngineView *webview_ = nullptr;
   QToolButton *plusBtn_ = nullptr;
   QToolButton *minusBtn_ = nullptr;
+  QToolButton *backBtn_ = nullptr;
+  QToolButton *forwardBtn_ = nullptr;
+  QToolButton *refreshBtn_ = nullptr;
 };
 
 
@@ -111,13 +198,17 @@ class SplitWindow : public QMainWindow {
     layout_->setContentsMargins(4, 4, 4, 4);
     layout_->setSpacing(6);
 
-    // load persisted section count (default 1)
+    // load persisted addresses (if present) otherwise start with one empty
     QSettings settings("NightVsKnight", "LiveStreamMultiChat");
-    int startCount = settings.value("sectionCount", 1).toInt();
-    if (startCount < 1) startCount = 1;
-    addresses_.clear();
-    addresses_.resize(startCount);
-    rebuildSections(startCount);
+    const QStringList saved = settings.value("addresses").toStringList();
+    if (saved.isEmpty()) {
+      addresses_.push_back(QString());
+    } else {
+      for (const QString &s : saved) {
+        addresses_.push_back(s);
+      }
+    }
+    rebuildSections((int)addresses_.size());
   }
 
  private slots:
@@ -180,9 +271,11 @@ class SplitWindow : public QMainWindow {
     if (pos < 0) return;
 
     addresses_.insert(addresses_.begin() + pos + 1, QString());
-    // persist count
+    // persist addresses
     QSettings settings("NightVsKnight", "LiveStreamMultiChat");
-    settings.setValue("sectionCount", (int)addresses_.size());
+    QStringList list;
+    for (const auto &a : addresses_) list << a;
+    settings.setValue("addresses", list);
     // rebuild UI with the updated addresses_
     rebuildSections((int)addresses_.size());
   }
@@ -204,10 +297,18 @@ class SplitWindow : public QMainWindow {
     }
     if (pos < 0) return;
 
+    // confirm with the user before removing
+    const QMessageBox::StandardButton reply = QMessageBox::question(
+      this, tr("Remove section"), tr("Remove this section?"),
+      QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+    if (reply != QMessageBox::Yes) return;
+
     addresses_.erase(addresses_.begin() + pos);
-    // persist count
+    // persist addresses
     QSettings settings("NightVsKnight", "LiveStreamMultiChat");
-    settings.setValue("sectionCount", (int)addresses_.size());
+    QStringList list;
+    for (const auto &a : addresses_) list << a;
+    settings.setValue("addresses", list);
     rebuildSections((int)addresses_.size());
   }
 
@@ -225,13 +326,22 @@ class SplitWindow : public QMainWindow {
       ++widgetIndex;
     }
     if (pos < 0) return;
-    if (pos < (int)addresses_.size()) addresses_[pos] = text;
+    if (pos < (int)addresses_.size()) {
+      addresses_[pos] = text;
+      // persist addresses list
+      QSettings settings("NightVsKnight", "LiveStreamMultiChat");
+      QStringList list;
+      for (const auto &a : addresses_) list << a;
+      settings.setValue("addresses", list);
+    }
   }
 
   void closeEvent(QCloseEvent *event) override {
-    // persist current section count on exit
+    // persist current addresses on exit
     QSettings settings("NightVsKnight", "LiveStreamMultiChat");
-    settings.setValue("sectionCount", (int)addresses_.size());
+    QStringList list;
+    for (const auto &a : addresses_) list << a;
+    settings.setValue("addresses", list);
     QMainWindow::closeEvent(event);
   }
 

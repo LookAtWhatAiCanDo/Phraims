@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 6.2 COMPONENTS Widgets REQUIRED)
+find_package(Qt6 6.2 COMPONENTS Widgets WebEngineWidgets REQUIRED)
 
 qt_add_executable(QtSplitterHello
   main.cpp
@@ -17,6 +17,11 @@ qt_add_executable(QtSplitterHello
 target_link_libraries(QtSplitterHello
   PRIVATE
     Qt6::Widgets
+)
+
+target_link_libraries(QtSplitterHello
+  PRIVATE
+    Qt6::WebEngineWidgets
 )
 
 if(APPLE)
