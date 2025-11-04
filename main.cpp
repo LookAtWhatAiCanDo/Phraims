@@ -14,6 +14,10 @@
 #include <QScrollArea>
 #include <QPalette>
 #include <QSettings>
+#include <QStandardPaths>
+#include <QDir>
+#include <QWebEngineProfile>
+#include <QWebEnginePage>
 #include <QMessageBox>
 
 // Simple Qt6 Widgets app that divides the main area into N equal sections.
@@ -176,6 +180,14 @@ class SplitFrameWidget : public QFrame {
   void setUpEnabled(bool en) { if (upBtn_) upBtn_->setEnabled(en); }
   void setDownEnabled(bool en) { if (downBtn_) downBtn_->setEnabled(en); }
 
+  // assign a QWebEngineProfile by setting a new page for the internal view
+  void setProfile(QWebEngineProfile *profile) {
+    if (!webview_ || !profile) return;
+    // assign a fresh page associated with the shared profile
+    auto *page = new QWebEnginePage(profile, webview_);
+    webview_->setPage(page);
+  }
+
  signals:
   void plusClicked(SplitFrameWidget *who);
   void minusClicked(SplitFrameWidget *who);
@@ -205,6 +217,17 @@ class SplitWindow : public QMainWindow {
     resize(800, 600);
 
     // No global toolbar; per-frame + / - buttons control sections.
+
+    // create a shared persistent QWebEngineProfile for all frames so
+    // cookies/localStorage/session state are persisted across frames and runs
+    const QString dataRoot = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir().mkpath(dataRoot);
+    QDir().mkpath(dataRoot + "/cache");
+    profile_ = new QWebEngineProfile(QStringLiteral("LiveStreamMultiChat"), this);
+    profile_->setPersistentStoragePath(dataRoot);
+    profile_->setCachePath(dataRoot + "/cache");
+    profile_->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
+    profile_->setPersistentCookiesPolicy(QWebEngineProfile::ForcePersistentCookies);
 
     // central scroll area to allow many sections
     auto *scroll = new QScrollArea();
@@ -255,6 +278,7 @@ class SplitWindow : public QMainWindow {
     for (int i = 0; i < n; ++i) {
       auto *frame = new SplitFrameWidget(i);
       // restore saved address if present
+      frame->setProfile(profile_);
       frame->setAddress(addresses_[i]);
 
       // wire signals from the frame to the window handlers
@@ -423,6 +447,7 @@ class SplitWindow : public QMainWindow {
   QVBoxLayout *layout_ = nullptr;
   // QSpinBox removed; per-frame buttons control section count.
   std::vector<QString> addresses_;
+  QWebEngineProfile *profile_ = nullptr;
 };
 
 int main(int argc, char **argv) {
