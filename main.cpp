@@ -6,6 +6,7 @@
 #include <QActionGroup>
 #include <QApplication>
 #include <QContextMenuEvent>
+#include <QDebug>
 #include <QDir>
 #include <QFrame>
 #include <QGridLayout>
@@ -280,7 +281,7 @@ public:
   enum LayoutMode { Vertical = 0, Horizontal = 1, Grid = 2 };
 
   SplitWindow(QWidget *parent = nullptr) : QMainWindow(parent) {
-    setWindowTitle("Qt6 Splitter Hello");
+    setWindowTitle(QCoreApplication::applicationName());
     resize(800, 600);
 
     // No global toolbar; per-frame + / - buttons control sections.
@@ -288,11 +289,17 @@ public:
     // create a shared persistent QWebEngineProfile for all frames so
     // cookies/localStorage/session state are persisted across frames and runs
     const QString dataRoot = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-    QDir().mkpath(dataRoot);
-    QDir().mkpath(dataRoot + "/cache");
-    profile_ = new QWebEngineProfile(QStringLiteral("LiveStreamMultiChat"), this);
-    profile_->setPersistentStoragePath(dataRoot);
-    profile_->setCachePath(dataRoot + "/cache");
+    const QString profilePath = dataRoot;
+    qDebug() << "  WebEngine profilePath:" << profilePath;
+    const QString profileCache = profilePath + "/cache";
+    qDebug() << "  WebEngine profileCache:" << profileCache;
+    QDir().mkpath(profilePath);
+    QDir().mkpath(profileCache);
+    const QString profileName = QCoreApplication::organizationName();
+    qDebug() << "  WebEngine profileName:" << profileName;
+    profile_ = new QWebEngineProfile(profileName, this);
+    profile_->setPersistentStoragePath(profilePath);
+    profile_->setCachePath(profileCache);
     profile_->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
     profile_->setPersistentCookiesPolicy(QWebEngineProfile::ForcePersistentCookies);
 
@@ -322,8 +329,8 @@ public:
     layoutGroup->addAction(horizontalAction);
 
     // restore persisted layout choice
-    QSettings layoutSettings("NightVsKnight", "LiveStreamMultiChat");
-    int storedMode = layoutSettings.value("layoutMode", (int)Vertical).toInt();
+    QSettings settings;
+    int storedMode = settings.value("layoutMode", (int)Vertical).toInt();
     layoutMode_ = (LayoutMode)storedMode;
     switch (layoutMode_) {
       case Grid: gridAction->setChecked(true); break;
@@ -347,7 +354,6 @@ public:
     layout_->setSpacing(6);
 
     // load persisted addresses (if present) otherwise start with one empty
-    QSettings settings("NightVsKnight", "LiveStreamMultiChat");
     const QStringList saved = settings.value("addresses").toStringList();
     if (saved.isEmpty()) {
       addresses_.push_back(QString());
@@ -364,10 +370,9 @@ public:
     restoredOnStartup_ = true;
 
     // restore saved window geometry and window state (position/size/state)
-    QSettings geomSettings("NightVsKnight", "LiveStreamMultiChat");
-    const QByteArray savedGeom = geomSettings.value("windowGeometry").toByteArray();
+    const QByteArray savedGeom = settings.value("windowGeometry").toByteArray();
     if (!savedGeom.isEmpty()) restoreGeometry(savedGeom);
-    const QByteArray savedState = geomSettings.value("windowState").toByteArray();
+    const QByteArray savedState = settings.value("windowState").toByteArray();
     if (!savedState.isEmpty()) restoreState(savedState);
   }
 
@@ -523,7 +528,7 @@ private slots:
     int pos = v.toInt();
     addresses_.insert(addresses_.begin() + pos + 1, QString());
     // persist addresses
-    QSettings settings("NightVsKnight", "LiveStreamMultiChat");
+    QSettings settings;
     QStringList list;
     for (const auto &a : addresses_) list << a;
     settings.setValue("addresses", list);
@@ -539,7 +544,7 @@ private slots:
     if (pos <= 0) return; // already at top or not found
     std::swap(addresses_[pos], addresses_[pos - 1]);
     // persist addresses
-    QSettings settings("NightVsKnight", "LiveStreamMultiChat");
+    QSettings settings;
     QStringList list;
     for (const auto &a : addresses_) list << a;
     settings.setValue("addresses", list);
@@ -554,7 +559,7 @@ private slots:
     if (pos < 0 || pos >= (int)addresses_.size() - 1) return; // at bottom or not found
     std::swap(addresses_[pos], addresses_[pos + 1]);
     // persist addresses
-    QSettings settings("NightVsKnight", "LiveStreamMultiChat");
+    QSettings settings;
     QStringList list;
     for (const auto &a : addresses_) list << a;
     settings.setValue("addresses", list);
@@ -562,11 +567,12 @@ private slots:
   }
 
   void setLayoutMode(LayoutMode m) {
+    QSettings settings;
+
     // If the user re-selects the already-selected layout, treat that as a
     // request to reset splitters to their default sizes. Clear any saved
     // sizes for this layout and rebuild without saving the current sizes.
     if (m == layoutMode_) {
-      QSettings settings("NightVsKnight", "LiveStreamMultiChat");
       const QString base = QStringLiteral("splitterSizes/%1").arg(layoutModeKey(layoutMode_));
       settings.remove(base);
       // rebuild so splitters are reset to defaults
@@ -582,14 +588,12 @@ private slots:
     // switching layouts starts with default splitter positions rather than
     // restoring an older saved configuration for that layout.
     {
-      QSettings settings("NightVsKnight", "LiveStreamMultiChat");
       const QString targetBase = QStringLiteral("splitterSizes/%1").arg(layoutModeKey(m));
       settings.remove(targetBase);
     }
     // Apply the new layout mode and persist it.
     layoutMode_ = m;
-    QSettings layoutSettings("NightVsKnight", "LiveStreamMultiChat");
-    layoutSettings.setValue("layoutMode", (int)layoutMode_);
+    settings.setValue("layoutMode", (int)layoutMode_);
     // Rebuild UI for the new layout (splitter sizes are only restored at startup)
     rebuildSections((int)addresses_.size());
   }
@@ -622,7 +626,7 @@ private slots:
 
     addresses_.erase(addresses_.begin() + pos);
     // persist addresses
-    QSettings settings("NightVsKnight", "LiveStreamMultiChat");
+    QSettings settings;
     QStringList list;
     for (const auto &a : addresses_) list << a;
     settings.setValue("addresses", list);
@@ -637,7 +641,7 @@ private slots:
     if (pos < (int)addresses_.size()) {
       addresses_[pos] = text;
       // persist addresses list
-      QSettings settings("NightVsKnight", "LiveStreamMultiChat");
+      QSettings settings;
       QStringList list;
       for (const auto &a : addresses_) list << a;
       settings.setValue("addresses", list);
@@ -647,7 +651,7 @@ private slots:
   void closeEvent(QCloseEvent *event) override {
     // persist splitter sizes, addresses and window geometry on exit
     saveCurrentSplitterSizes();
-    QSettings settings("NightVsKnight", "LiveStreamMultiChat");
+    QSettings settings;
     QStringList list;
     for (const auto &a : addresses_) list << a;
     settings.setValue("addresses", list);
@@ -669,7 +673,7 @@ private slots:
 
   void saveCurrentSplitterSizes() {
     if (currentSplitters_.empty()) return;
-    QSettings settings("NightVsKnight", "LiveStreamMultiChat");
+    QSettings settings;
     const QString base = QStringLiteral("splitterSizes/%1").arg(layoutModeKey(layoutMode_));
     for (int i = 0; i < (int)currentSplitters_.size(); ++i) {
       QSplitter *s = currentSplitters_[i];
@@ -683,7 +687,7 @@ private slots:
 
   void restoreSplitterSizes() {
     if (currentSplitters_.empty()) return;
-    QSettings settings("NightVsKnight", "LiveStreamMultiChat");
+    QSettings settings;
     const QString base = QStringLiteral("splitterSizes/%1").arg(layoutModeKey(layoutMode_));
     for (int i = 0; i < (int)currentSplitters_.size(); ++i) {
       QSplitter *s = currentSplitters_[i];
@@ -775,7 +779,18 @@ private:
 };
 
 int main(int argc, char **argv) {
+  QCoreApplication::setOrganizationName(QStringLiteral("NightVsKnight"));
+  QCoreApplication::setOrganizationDomain("nightvsknight.com");
+  QCoreApplication::setApplicationName(QStringLiteral("LiveStreamMultiChat"));
+
   QApplication app(argc, argv);
+
+  const QString appDataLocation = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+  qDebug() << "Startup paths:";
+  qDebug() << "  QStandardPaths::AppDataLocation:" << appDataLocation;
+  QSettings settings;
+  qDebug() << "  QSettings - format:" << settings.format() << "-> fileName:" << settings.fileName();
+
   SplitWindow w;
   w.show();
   return app.exec();
