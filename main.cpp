@@ -1,41 +1,90 @@
-#include <QApplication>
-#include <QMainWindow>
-#include <QWidget>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QToolButton>
-#include <QLineEdit>
-#include <QWebEngineView>
-#include <QWebEngineHistory>
-#include <vector>
-#include <QLabel>
-#include <QFrame>
-#include <QLineEdit>
-#include <QScrollArea>
-#include <QPalette>
-#include <QSettings>
-#include <QStandardPaths>
-#include <QDir>
-#include <QWebEngineProfile>
-#include <QWebEnginePage>
-#include <QMenuBar>
-#include <QScreen>
-#include <QGuiApplication>
-#include <QActionGroup>
-#include <QSplitter>
-#include <QGridLayout>
+/**
+ * Qt6 Widgets Web Brower app that divides the main window into multiple web page frames.
+ */
 #include <cmath>
+#include <vector>
+#include <QActionGroup>
+#include <QApplication>
+#include <QContextMenuEvent>
+#include <QDir>
+#include <QFrame>
+#include <QGridLayout>
+#include <QGuiApplication>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <QMainWindow>
+#include <QMenuBar>
 #include <QMessageBox>
+#include <QPalette>
+#include <QPointer>
+#include <QScreen>
+#include <QScrollArea>
+#include <QSettings>
+#include <QSplitter>
+#include <QStandardPaths>
+#include <QToolButton>
+#include <QVBoxLayout>
+#include <QWebEngineHistory>
+#include <QWebEnginePage>
+#include <QWebEngineProfile>
+#include <QWebEngineView>
+#include <QWidget>
 
-// Simple Qt6 Widgets app that divides the main area into N equal sections.
-// The user controls the number of sections with + / - buttons or the spinbox.
+// Qt6 Widgets Web Brower app that divides the main window into multiple web page frames.
+
+/**
+ * QWebEngineView subclass to:
+ * 1. provide default context menu
+ * 2. override createWindow to just navigate to address rather than opening new windows
+ */
+class MyWebEngineView : public QWebEngineView {
+  Q_OBJECT
+public:
+  using QWebEngineView::QWebEngineView;
+
+signals:
+  void devToolsRequested(QWebEnginePage *source, const QPoint &pos);
+
+protected:
+  void contextMenuEvent(QContextMenuEvent *event) override {
+    QMenu menu(this);
+    auto page = this->page();
+
+    // Common navigation actions
+    if (auto *a = page->action(QWebEnginePage::Back))    menu.addAction(a);
+    if (auto *a = page->action(QWebEnginePage::Forward)) menu.addAction(a);
+    if (auto *a = page->action(QWebEnginePage::Reload))  menu.addAction(a);
+    menu.addSeparator();
+    // Edit actions
+    if (auto *a = page->action(QWebEnginePage::Cut))       menu.addAction(a);
+    if (auto *a = page->action(QWebEnginePage::Copy))      menu.addAction(a);
+    if (auto *a = page->action(QWebEnginePage::Paste))     menu.addAction(a);
+    if (auto *a = page->action(QWebEnginePage::SelectAll)) menu.addAction(a);
+    menu.addSeparator();
+    // Inspect...
+    auto inspect = menu.addAction(tr("Inspect…"));
+
+    auto pos = event->pos();
+    if (menu.exec(mapToGlobal(pos)) == inspect) emit devToolsRequested(page, pos);
+    // accept so the default menu doesn't show
+    event->accept();
+  }
+
+  MyWebEngineView *createWindow(QWebEnginePage::WebWindowType type) override {
+    Q_UNUSED(type);
+    // Load popup targets in the same view. Returning 'this' tells the
+    // engine to use the current view for the new window's contents.
+    return this;
+  }
+};
 
 // A self-contained frame used for each split section. Contains a top
 // address bar (QLineEdit) and a simple content area below.
 class SplitFrameWidget : public QFrame {
   Q_OBJECT
 
- public:
+public:
   SplitFrameWidget(int index, QWidget *parent = nullptr) : QFrame(parent) {
     setFrameShape(QFrame::StyledPanel);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -104,7 +153,7 @@ class SplitFrameWidget : public QFrame {
     v->addLayout(topRow);
 
     // web view content area
-    webview_ = new QWebEngineView(this);
+    webview_ = new MyWebEngineView(this);
     webview_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     v->addWidget(webview_, 1);
 
@@ -122,7 +171,7 @@ class SplitFrameWidget : public QFrame {
     connect(forwardBtn_, &QToolButton::clicked, this, [this]() { if (webview_) webview_->forward(); });
     connect(refreshBtn_, &QToolButton::clicked, this, [this]() { if (webview_) webview_->reload(); });
 
-    connect(webview_, &QWebEngineView::urlChanged, this, [this](const QUrl &url) {
+    connect(webview_, &MyWebEngineView::urlChanged, this, [this](const QUrl &url) {
       // ignore internal data URLs (used for instruction/error HTML) so the
       // address bar doesn't show the data: URL. Only update the address when
       // a real navigable URL is loaded.
@@ -136,23 +185,25 @@ class SplitFrameWidget : public QFrame {
       updateNavButtons();
       emit addressEdited(this, s);
     });
-
-    connect(webview_, &QWebEngineView::loadStarted, this, [this]() { refreshBtn_->setEnabled(true); });
-    connect(webview_, &QWebEngineView::loadFinished, this, [this](bool ok) {
+    connect(webview_, &MyWebEngineView::loadStarted, this, [this]() { refreshBtn_->setEnabled(true); });
+    connect(webview_, &MyWebEngineView::loadFinished, this, [this](bool ok) {
       Q_UNUSED(ok);
       updateNavButtons();
+    });
+    connect(webview_, &MyWebEngineView::devToolsRequested, this, [this](QWebEnginePage *page, const QPoint &pos) {
+      emit devToolsRequested(this, page, pos);
     });
   }
 
   QString address() const { return address_->text(); }
   void setAddress(const QString &s) { address_->setText(s); applyAddress(s); }
+  QWebEnginePage *page() const { return webview_ ? webview_->page() : nullptr; }
 
   void applyAddress(const QString &s) {
     const QString trimmed = s.trimmed();
     if (trimmed.isEmpty()) {
       // show instruction HTML instead of loading
-      const QString html =
-          QStringLiteral("<html><body><div style=\"font-family: sans-serif; color: #666; padding: 20px;\">Enter an address above and press Enter to load a page.</div></body></html>");
+      const QString html = QStringLiteral("<html><body><div style=\"font-family: sans-serif; color: #666; padding: 20px;\">Enter an address above and press Enter to load a page.</div></body></html>");
       webview_->setHtml(html);
       refreshBtn_->setEnabled(false);
       backBtn_->setEnabled(false);
@@ -161,6 +212,10 @@ class SplitFrameWidget : public QFrame {
     }
 
     QUrl url = QUrl::fromUserInput(trimmed);
+    // If user typed a bare host without scheme, prefer https
+    if (url.isValid() && url.scheme().isEmpty()) {
+      url.setScheme(QStringLiteral("https"));
+    }
     if (!url.isValid()) {
       // show error-instruction
       const QString html = QStringLiteral("<html><body><div style=\"font-family: sans-serif; color: #900; padding: 20px;\">Invalid address.</div></body></html>");
@@ -195,16 +250,19 @@ class SplitFrameWidget : public QFrame {
     webview_->setPage(page);
   }
 
- signals:
+private:
+  signals:
   void plusClicked(SplitFrameWidget *who);
   void minusClicked(SplitFrameWidget *who);
   void upClicked(SplitFrameWidget *who);
   void downClicked(SplitFrameWidget *who);
   void addressEdited(SplitFrameWidget *who, const QString &text);
+  // Request that the window show/attach a shared DevTools view for this frame
+  void devToolsRequested(SplitFrameWidget *who, QWebEnginePage *page, const QPoint &pos);
 
- private:
+private:
   QLineEdit *address_ = nullptr;
-  QWebEngineView *webview_ = nullptr;
+  MyWebEngineView *webview_ = nullptr;
   QToolButton *upBtn_ = nullptr;
   QToolButton *downBtn_ = nullptr;
   QToolButton *plusBtn_ = nullptr;
@@ -218,7 +276,7 @@ class SplitFrameWidget : public QFrame {
 class SplitWindow : public QMainWindow {
   Q_OBJECT
 
- public:
+public:
   enum LayoutMode { Vertical = 0, Horizontal = 1, Grid = 2 };
 
   SplitWindow(QWidget *parent = nullptr) : QMainWindow(parent) {
@@ -245,6 +303,9 @@ class SplitWindow : public QMainWindow {
     auto *viewMenu = menuBar()->addMenu(tr("View"));
     QAction *setHeightAction = viewMenu->addAction(tr("Set height to screen"));
     connect(setHeightAction, &QAction::triggered, this, &SplitWindow::setHeightToScreen);
+    QAction *toggleDevToolsAction = viewMenu->addAction(tr("Toggle DevTools"));
+    toggleDevToolsAction->setShortcut(QKeySequence(Qt::Key_F12));
+    connect(toggleDevToolsAction, &QAction::triggered, this, &SplitWindow::toggleDevToolsForFocusedFrame);
 
     // Layout menu: Grid, Stack Vertically, Stack Horizontally
     auto *layoutMenu = menuBar()->addMenu(tr("Layout"));
@@ -310,7 +371,7 @@ class SplitWindow : public QMainWindow {
     if (!savedState.isEmpty()) restoreState(savedState);
   }
 
- private slots:
+private slots:
   void rebuildSections(int n) {
 
     // Ensure addresses_ vector matches requested size, preserving existing values.
@@ -343,6 +404,8 @@ class SplitWindow : public QMainWindow {
       currentSplitters_.push_back(split);
       for (int i = 0; i < n; ++i) {
         auto *frame = new SplitFrameWidget(i);
+        // logicalIndex property used for mapping frame -> addresses_ index
+        frame->setProperty("logicalIndex", i);
         frame->setProfile(profile_);
         frame->setAddress(addresses_[i]);
         connect(frame, &SplitFrameWidget::plusClicked, this, &SplitWindow::onPlusFromFrame);
@@ -350,6 +413,7 @@ class SplitWindow : public QMainWindow {
         connect(frame, &SplitFrameWidget::addressEdited, this, &SplitWindow::onAddressEdited);
         connect(frame, &SplitFrameWidget::upClicked, this, &SplitWindow::onUpFromFrame);
         connect(frame, &SplitFrameWidget::downClicked, this, &SplitWindow::onDownFromFrame);
+        connect(frame, &SplitFrameWidget::devToolsRequested, this, &SplitWindow::onFrameDevToolsRequested);
         frame->setMinusEnabled(n > 1);
         frame->setUpEnabled(i > 0);
         frame->setDownEnabled(i < n - 1);
@@ -378,6 +442,8 @@ class SplitWindow : public QMainWindow {
         currentSplitters_.push_back(rowSplit);
         for (int c = 0; c < itemsInRow; ++c) {
           auto *frame = new SplitFrameWidget(idx);
+          // logicalIndex property used for mapping frame -> addresses_ index
+          frame->setProperty("logicalIndex", idx);
           frame->setProfile(profile_);
           frame->setAddress(addresses_[idx]);
           connect(frame, &SplitFrameWidget::plusClicked, this, &SplitWindow::onPlusFromFrame);
@@ -385,6 +451,7 @@ class SplitWindow : public QMainWindow {
           connect(frame, &SplitFrameWidget::addressEdited, this, &SplitWindow::onAddressEdited);
           connect(frame, &SplitFrameWidget::upClicked, this, &SplitWindow::onUpFromFrame);
           connect(frame, &SplitFrameWidget::downClicked, this, &SplitWindow::onDownFromFrame);
+          connect(frame, &SplitFrameWidget::devToolsRequested, this, &SplitWindow::onFrameDevToolsRequested);
           frame->setMinusEnabled(n > 1);
           frame->setUpEnabled(idx > 0);
           frame->setDownEnabled(idx < n - 1);
@@ -418,22 +485,42 @@ class SplitWindow : public QMainWindow {
     central_->update();
   }
 
-  void onPlusFromFrame(SplitFrameWidget *who) {
-    // find index of the emitter within layout
-    int pos = -1;
-    int widgetIndex = 0;
-    for (int i = 0; i < layout_->count(); ++i) {
-      QLayoutItem *it = layout_->itemAt(i);
-      QWidget *w = it ? it->widget() : nullptr;
-      if (!w) continue;
-      if (w == who) {
-        pos = widgetIndex;
+  void toggleDevToolsForFocusedFrame() {
+    // If the shared DevTools view is open, hide it. Otherwise attach it to
+    // the focused frame's page (or the first frame) and show it.
+    if (sharedDevToolsView_ && sharedDevToolsView_->isVisible()) {
+      sharedDevToolsView_->hide();
+      return;
+    }
+
+    QWidget *fw = QApplication::focusWidget();
+    SplitFrameWidget *target = nullptr;
+    while (fw) {
+      if (auto *f = qobject_cast<SplitFrameWidget *>(fw)) {
+        target = f;
         break;
       }
-      ++widgetIndex;
+      fw = fw->parentWidget();
     }
-    if (pos < 0) return;
+    if (!target && central_) target = central_->findChild<SplitFrameWidget *>();
+    if (target) {
+      QWebEnginePage *p = target->page();
+      if (p) {
+        createAndAttachSharedDevToolsForPage(p);
+        if (sharedDevToolsView_) {
+          sharedDevToolsView_->show();
+          sharedDevToolsView_->raise();
+          sharedDevToolsView_->activateWindow();
+        }
+      }
+    }
+  }
 
+  void onPlusFromFrame(SplitFrameWidget *who) {
+    // use logicalIndex property assigned during rebuildSections
+    const QVariant v = who->property("logicalIndex");
+    if (!v.isValid()) return;
+    int pos = v.toInt();
     addresses_.insert(addresses_.begin() + pos + 1, QString());
     // persist addresses
     QSettings settings("NightVsKnight", "LiveStreamMultiChat");
@@ -446,20 +533,10 @@ class SplitWindow : public QMainWindow {
 
   void onUpFromFrame(SplitFrameWidget *who) {
     // move this frame up (towards index 0)
-    int pos = -1;
-    int widgetIndex = 0;
-    for (int i = 0; i < layout_->count(); ++i) {
-      QLayoutItem *it = layout_->itemAt(i);
-      QWidget *w = it ? it->widget() : nullptr;
-      if (!w) continue;
-      if (w == who) {
-        pos = widgetIndex;
-        break;
-      }
-      ++widgetIndex;
-    }
+    const QVariant v = who->property("logicalIndex");
+    if (!v.isValid()) return;
+    int pos = v.toInt();
     if (pos <= 0) return; // already at top or not found
-
     std::swap(addresses_[pos], addresses_[pos - 1]);
     // persist addresses
     QSettings settings("NightVsKnight", "LiveStreamMultiChat");
@@ -471,20 +548,10 @@ class SplitWindow : public QMainWindow {
 
   void onDownFromFrame(SplitFrameWidget *who) {
     // move this frame down (towards larger indices)
-    int pos = -1;
-    int widgetIndex = 0;
-    for (int i = 0; i < layout_->count(); ++i) {
-      QLayoutItem *it = layout_->itemAt(i);
-      QWidget *w = it ? it->widget() : nullptr;
-      if (!w) continue;
-      if (w == who) {
-        pos = widgetIndex;
-        break;
-      }
-      ++widgetIndex;
-    }
+    const QVariant v = who->property("logicalIndex");
+    if (!v.isValid()) return;
+    int pos = v.toInt();
     if (pos < 0 || pos >= (int)addresses_.size() - 1) return; // at bottom or not found
-
     std::swap(addresses_[pos], addresses_[pos + 1]);
     // persist addresses
     QSettings settings("NightVsKnight", "LiveStreamMultiChat");
@@ -542,18 +609,9 @@ class SplitWindow : public QMainWindow {
   void onMinusFromFrame(SplitFrameWidget *who) {
     if (addresses_.size() <= 1) return; // shouldn't remove last
 
-    int pos = -1;
-    int widgetIndex = 0;
-    for (int i = 0; i < layout_->count(); ++i) {
-      QLayoutItem *it = layout_->itemAt(i);
-      QWidget *w = it ? it->widget() : nullptr;
-      if (!w) continue;
-      if (w == who) {
-        pos = widgetIndex;
-        break;
-      }
-      ++widgetIndex;
-    }
+    const QVariant v = who->property("logicalIndex");
+    if (!v.isValid()) return;
+    int pos = v.toInt();
     if (pos < 0) return;
 
     // confirm with the user before removing
@@ -572,18 +630,9 @@ class SplitWindow : public QMainWindow {
   }
 
   void onAddressEdited(SplitFrameWidget *who, const QString &text) {
-    int pos = -1;
-    int widgetIndex = 0;
-    for (int i = 0; i < layout_->count(); ++i) {
-      QLayoutItem *it = layout_->itemAt(i);
-      QWidget *w = it ? it->widget() : nullptr;
-      if (!w) continue;
-      if (w == who) {
-        pos = widgetIndex;
-        break;
-      }
-      ++widgetIndex;
-    }
+    const QVariant v = who->property("logicalIndex");
+    if (!v.isValid()) return;
+    int pos = v.toInt();
     if (pos < 0) return;
     if (pos < (int)addresses_.size()) {
       addresses_[pos] = text;
@@ -650,7 +699,70 @@ class SplitWindow : public QMainWindow {
     }
   }
 
- private:
+  // Slot: a child frame requested DevTools for its page.
+  // Use a single shared DevTools view for the whole window
+  // and attach it to the requested page.
+  void onFrameDevToolsRequested(SplitFrameWidget *who, QWebEnginePage *page, const QPoint &pos) {
+    Q_UNUSED(who);
+    Q_UNUSED(pos);
+    if (!page) return;
+    createAndAttachSharedDevToolsForPage(page);
+    if (sharedDevToolsView_) {
+      sharedDevToolsView_->show();
+      sharedDevToolsView_->raise();
+      sharedDevToolsView_->activateWindow();
+    }
+    page->triggerAction(QWebEnginePage::InspectElement);
+  }
+
+  // Create (if needed) and attach the single shared DevTools view to the
+  // provided inspected page. This mirrors the previous per-frame behavior
+  // but uses a single floating DevTools view for all frames.
+  void createAndAttachSharedDevToolsForPage(QWebEnginePage *page) {
+    if (!page) return;
+    if (!sharedDevToolsView_) {
+      sharedDevToolsView_ = new QWebEngineView(this);
+      sharedDevToolsView_->setWindowFlag(Qt::Tool, true);
+      sharedDevToolsView_->setAttribute(Qt::WA_DeleteOnClose);
+
+      QWebEngineProfile *profile = page->profile();
+      auto *devPage = new QWebEnginePage(profile, sharedDevToolsView_);
+      sharedDevToolsView_->setPage(devPage);
+
+      page->setDevToolsPage(devPage);
+      sharedDevToolsView_->resize(980, 720);
+      sharedDevToolsView_->setWindowTitle(tr("DevTools"));
+
+      // Add a Close action so Cmd/Ctrl+W will hide the DevTools window
+      // rather than destroying it. Hiding preserves the DevTools page
+      // and its localStorage/preferences (e.g., theme choice).
+      QAction *closeAct = new QAction(sharedDevToolsView_);
+      closeAct->setShortcut(QKeySequence::Close);
+      connect(closeAct, &QAction::triggered, sharedDevToolsView_, &QWidget::hide);
+      sharedDevToolsView_->addAction(closeAct);
+
+      // When the shared devtools view is destroyed (app shutdown), only
+      // clear the devToolsPage on the inspected page if it still points
+      // to the dev page we created here. Use QPointer guards so we do
+      // not dereference raw pointers that may already have been deleted
+      // by Qt's shutdown sequence which can cause crashes.
+      {
+        QPointer<QWebEnginePage> pageGuard(page);
+        QPointer<QWebEnginePage> devPageGuard(devPage);
+        connect(sharedDevToolsView_, &QObject::destroyed, this, [this, pageGuard, devPageGuard](QObject *) {
+          if (pageGuard && pageGuard->devToolsPage() == devPageGuard) pageGuard->setDevToolsPage(nullptr);
+          sharedDevToolsView_ = nullptr;
+        });
+      }
+    } else {
+      // reattach the existing shared devtools to the new inspected page
+      if (page->devToolsPage() != sharedDevToolsView_->page()) {
+        page->setDevToolsPage(sharedDevToolsView_->page());
+      }
+    }
+  }
+
+private:
   QWidget *central_ = nullptr;
   QVBoxLayout *layout_ = nullptr;
   // QSpinBox removed; per-frame buttons control section count.
@@ -658,15 +770,14 @@ class SplitWindow : public QMainWindow {
   QWebEngineProfile *profile_ = nullptr;
   LayoutMode layoutMode_ = Vertical;
   std::vector<QSplitter*> currentSplitters_;
+  QWebEngineView *sharedDevToolsView_ = nullptr;
   bool restoredOnStartup_ = false;
 };
 
 int main(int argc, char **argv) {
   QApplication app(argc, argv);
-
   SplitWindow w;
   w.show();
-
   return app.exec();
 }
 
