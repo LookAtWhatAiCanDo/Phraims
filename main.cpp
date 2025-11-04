@@ -513,6 +513,14 @@ public:
     address_ = new QLineEdit(this);
     address_->setPlaceholderText("Address or URL");
     address_->setClearButtonEnabled(true);
+    // show the left-most characters when not being edited and provide
+    // a hover tooltip containing the full URL
+    address_->setToolTip(address_->text());
+    address_->installEventFilter(this);
+    address_->setCursorPosition(0);
+    connect(address_, &QLineEdit::textChanged, this, [this](const QString &t){
+      address_->setToolTip(t);
+    });
     topRow->addWidget(address_, 1);
 
     // up/down move this frame within the list
@@ -567,6 +575,9 @@ public:
       }
       const QString s = url.toString();
       address_->setText(s);
+      // When updating programmatically, ensure unfocused fields show the
+      // left-most characters rather than scrolled to the end.
+      if (!address_->hasFocus()) address_->setCursorPosition(0);
       // update nav button states
       updateNavButtons();
       // re-apply any DOM patches when the URL changes (helps single-page apps)
@@ -584,9 +595,16 @@ public:
     });
   }
 
-  QString address() const { return address_->text(); }
-  void setAddress(const QString &s) { address_->setText(s); applyAddress(s); }
   QWebEnginePage *page() const { return webview_ ? webview_->page() : nullptr; }
+
+  QString address() const { return address_->text(); }
+  void setAddress(const QString &s) {
+      address_->setText(s);
+      // if the user is not actively editing, ensure the left-most
+      // characters are visible by resetting the cursor position
+      if (!address_->hasFocus()) address_->setCursorPosition(0);
+      applyAddress(s);
+  }
 
   void applyAddress(const QString &s) {
     const QString trimmed = s.trimmed();
@@ -625,6 +643,20 @@ public:
     backBtn_->setEnabled(hist->canGoBack());
     forwardBtn_->setEnabled(hist->canGoForward());
     refreshBtn_->setEnabled(!webview_->url().isEmpty());
+  }
+
+  bool eventFilter(QObject *watched, QEvent *event) override {
+    if (watched == address_) {
+      if (event->type() == QEvent::FocusOut) {
+        // When the user finishes editing (or focus leaves), ensure the
+        // displayed portion starts at the left so the left-most characters
+        // are visible.
+        address_->setCursorPosition(0);
+      }
+      // Let the line edit handle the event as well
+      return false;
+    }
+    return QFrame::eventFilter(watched, event);
   }
 
   void setMinusEnabled(bool en) { if (minusBtn_) minusBtn_->setEnabled(en); }
