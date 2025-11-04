@@ -21,6 +21,10 @@
 #include <QMenuBar>
 #include <QScreen>
 #include <QGuiApplication>
+#include <QActionGroup>
+#include <QSplitter>
+#include <QGridLayout>
+#include <cmath>
 #include <QMessageBox>
 
 // Simple Qt6 Widgets app that divides the main area into N equal sections.
@@ -215,6 +219,8 @@ class SplitWindow : public QMainWindow {
   Q_OBJECT
 
  public:
+  enum LayoutMode { Vertical = 0, Horizontal = 1, Grid = 2 };
+
   SplitWindow(QWidget *parent = nullptr) : QMainWindow(parent) {
     setWindowTitle("Qt6 Splitter Hello");
     resize(800, 600);
@@ -242,6 +248,34 @@ class SplitWindow : public QMainWindow {
     auto *viewMenu = menuBar()->addMenu(tr("View"));
     QAction *setHeightAction = viewMenu->addAction(tr("Set height to screen"));
     connect(setHeightAction, &QAction::triggered, this, &SplitWindow::setHeightToScreen);
+
+    // Layout menu: Grid, Stack Vertically, Stack Horizontally
+    auto *layoutMenu = menuBar()->addMenu(tr("Layout"));
+    QActionGroup *layoutGroup = new QActionGroup(this);
+    layoutGroup->setExclusive(true);
+    QAction *gridAction = layoutMenu->addAction(tr("Grid"));
+    gridAction->setCheckable(true);
+    layoutGroup->addAction(gridAction);
+    QAction *verticalAction = layoutMenu->addAction(tr("Stack Vertically"));
+    verticalAction->setCheckable(true);
+    layoutGroup->addAction(verticalAction);
+    QAction *horizontalAction = layoutMenu->addAction(tr("Stack Horizontally"));
+    horizontalAction->setCheckable(true);
+    layoutGroup->addAction(horizontalAction);
+
+    // restore persisted layout choice
+    QSettings layoutSettings("NightVsKnight", "LiveStreamMultiChat");
+    int storedMode = layoutSettings.value("layoutMode", (int)Vertical).toInt();
+    layoutMode_ = (LayoutMode)storedMode;
+    switch (layoutMode_) {
+      case Grid: gridAction->setChecked(true); break;
+      case Horizontal: horizontalAction->setChecked(true); break;
+      case Vertical: default: verticalAction->setChecked(true); break;
+    }
+
+    connect(gridAction, &QAction::triggered, this, [this]() { setLayoutMode(Grid); });
+    connect(verticalAction, &QAction::triggered, this, [this]() { setLayoutMode(Vertical); });
+    connect(horizontalAction, &QAction::triggered, this, [this]() { setLayoutMode(Horizontal); });
 
     // central scroll area to allow many sections
     auto *scroll = new QScrollArea();
@@ -288,26 +322,58 @@ class SplitWindow : public QMainWindow {
       delete child;
     }
 
-    // create n equal sections. Use stretch=1 on each widget so they share space equally.
-    for (int i = 0; i < n; ++i) {
-      auto *frame = new SplitFrameWidget(i);
-      // restore saved address if present
-      frame->setProfile(profile_);
-      frame->setAddress(addresses_[i]);
+    // create n sections according to the selected layout mode.
+    QWidget *container = nullptr;
+    if (layoutMode_ == Vertical || layoutMode_ == Horizontal) {
+      QSplitter *split = new QSplitter(layoutMode_ == Vertical ? Qt::Vertical : Qt::Horizontal);
+      for (int i = 0; i < n; ++i) {
+        auto *frame = new SplitFrameWidget(i);
+        frame->setProfile(profile_);
+        frame->setAddress(addresses_[i]);
+        connect(frame, &SplitFrameWidget::plusClicked, this, &SplitWindow::onPlusFromFrame);
+        connect(frame, &SplitFrameWidget::minusClicked, this, &SplitWindow::onMinusFromFrame);
+        connect(frame, &SplitFrameWidget::addressEdited, this, &SplitWindow::onAddressEdited);
+        connect(frame, &SplitFrameWidget::upClicked, this, &SplitWindow::onUpFromFrame);
+        connect(frame, &SplitFrameWidget::downClicked, this, &SplitWindow::onDownFromFrame);
+        frame->setMinusEnabled(n > 1);
+        frame->setUpEnabled(i > 0);
+        frame->setDownEnabled(i < n - 1);
+        split->addWidget(frame);
+      }
+      container = split;
+    } else { // Grid mode: nested splitters for resizable grid
+      // Create a vertical splitter containing one horizontal splitter per row.
+      QSplitter *outer = new QSplitter(Qt::Vertical);
+      int rows = (int)std::ceil(std::sqrt((double)n));
+      int cols = (n + rows - 1) / rows;
+      int idx = 0;
+      for (int r = 0; r < rows; ++r) {
+        // how many items in this row
+        int itemsInRow = std::min(cols, n - idx);
+        if (itemsInRow <= 0) break;
+        QSplitter *rowSplit = new QSplitter(Qt::Horizontal);
+        for (int c = 0; c < itemsInRow; ++c) {
+          auto *frame = new SplitFrameWidget(idx);
+          frame->setProfile(profile_);
+          frame->setAddress(addresses_[idx]);
+          connect(frame, &SplitFrameWidget::plusClicked, this, &SplitWindow::onPlusFromFrame);
+          connect(frame, &SplitFrameWidget::minusClicked, this, &SplitWindow::onMinusFromFrame);
+          connect(frame, &SplitFrameWidget::addressEdited, this, &SplitWindow::onAddressEdited);
+          connect(frame, &SplitFrameWidget::upClicked, this, &SplitWindow::onUpFromFrame);
+          connect(frame, &SplitFrameWidget::downClicked, this, &SplitWindow::onDownFromFrame);
+          frame->setMinusEnabled(n > 1);
+          frame->setUpEnabled(idx > 0);
+          frame->setDownEnabled(idx < n - 1);
+          rowSplit->addWidget(frame);
+          ++idx;
+        }
+        outer->addWidget(rowSplit);
+      }
+      container = outer;
+    }
 
-      // wire signals from the frame to the window handlers
-      connect(frame, &SplitFrameWidget::plusClicked, this, &SplitWindow::onPlusFromFrame);
-      connect(frame, &SplitFrameWidget::minusClicked, this, &SplitWindow::onMinusFromFrame);
-      connect(frame, &SplitFrameWidget::addressEdited, this, &SplitWindow::onAddressEdited);
-      connect(frame, &SplitFrameWidget::upClicked, this, &SplitWindow::onUpFromFrame);
-      connect(frame, &SplitFrameWidget::downClicked, this, &SplitWindow::onDownFromFrame);
-
-      // enable/disable minus/up/down buttons depending on how many sections
-      frame->setMinusEnabled(n > 1);
-      frame->setUpEnabled(i > 0);
-      frame->setDownEnabled(i < n - 1);
-
-      layout_->addWidget(frame, 1); // stretch=1 -> equal share
+    if (container) {
+      layout_->addWidget(container, 1);
     }
 
     // add a final stretch with zero so that widgets entirely control spacing
@@ -388,6 +454,15 @@ class SplitWindow : public QMainWindow {
     QStringList list;
     for (const auto &a : addresses_) list << a;
     settings.setValue("addresses", list);
+    rebuildSections((int)addresses_.size());
+  }
+
+  void setLayoutMode(LayoutMode m) {
+    // Always apply the layout mode and rebuild. This lets the user re-select
+    // the same layout to reset any splitter sizes or other transient state.
+    layoutMode_ = m;
+    QSettings layoutSettings("NightVsKnight", "LiveStreamMultiChat");
+    layoutSettings.setValue("layoutMode", (int)layoutMode_);
     rebuildSections((int)addresses_.size());
   }
 
@@ -476,6 +551,7 @@ class SplitWindow : public QMainWindow {
   // QSpinBox removed; per-frame buttons control section count.
   std::vector<QString> addresses_;
   QWebEngineProfile *profile_ = nullptr;
+  LayoutMode layoutMode_ = Vertical;
 };
 
 int main(int argc, char **argv) {
