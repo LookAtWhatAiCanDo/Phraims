@@ -238,10 +238,7 @@ class SplitWindow : public QMainWindow {
     profile_->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
     profile_->setPersistentCookiesPolicy(QWebEngineProfile::ForcePersistentCookies);
 
-    // restore saved window geometry (position/size) if present
-    QSettings geomSettings("NightVsKnight", "LiveStreamMultiChat");
-    const QByteArray savedGeom = geomSettings.value("windowGeometry").toByteArray();
-    if (!savedGeom.isEmpty()) restoreGeometry(savedGeom);
+    // (window geometry/state restored later after UI is built)
 
     // add a simple View menu with a helper to set the window height to the
     // screen available height (preserves width and x position)
@@ -298,11 +295,24 @@ class SplitWindow : public QMainWindow {
         addresses_.push_back(s);
       }
     }
+    // build initial UI
     rebuildSections((int)addresses_.size());
+    // restore splitter sizes only once at startup (subsequent layout
+    // selections/rebuilds should reset splitters to defaults)
+    restoreSplitterSizes();
+    restoredOnStartup_ = true;
+
+    // restore saved window geometry and window state (position/size/state)
+    QSettings geomSettings("NightVsKnight", "LiveStreamMultiChat");
+    const QByteArray savedGeom = geomSettings.value("windowGeometry").toByteArray();
+    if (!savedGeom.isEmpty()) restoreGeometry(savedGeom);
+    const QByteArray savedState = geomSettings.value("windowState").toByteArray();
+    if (!savedState.isEmpty()) restoreState(savedState);
   }
 
  private slots:
   void rebuildSections(int n) {
+
     // Ensure addresses_ vector matches requested size, preserving existing values.
     if ((int)addresses_.size() < n) {
       addresses_.resize(n);
@@ -322,10 +332,15 @@ class SplitWindow : public QMainWindow {
       delete child;
     }
 
+    // old splitters are going away; clear tracking vector so we start fresh
+    currentSplitters_.clear();
+
     // create n sections according to the selected layout mode.
     QWidget *container = nullptr;
     if (layoutMode_ == Vertical || layoutMode_ == Horizontal) {
       QSplitter *split = new QSplitter(layoutMode_ == Vertical ? Qt::Vertical : Qt::Horizontal);
+      // track this splitter for state persistence
+      currentSplitters_.push_back(split);
       for (int i = 0; i < n; ++i) {
         auto *frame = new SplitFrameWidget(i);
         frame->setProfile(profile_);
@@ -340,10 +355,18 @@ class SplitWindow : public QMainWindow {
         frame->setDownEnabled(i < n - 1);
         split->addWidget(frame);
       }
+      // distribute sizes evenly across the children so switching layouts
+      // starts with a balanced view
+      if (n > 0) {
+        QList<int> sizes;
+        for (int i = 0; i < n; ++i) sizes << 1;
+        split->setSizes(sizes);
+      }
       container = split;
     } else { // Grid mode: nested splitters for resizable grid
       // Create a vertical splitter containing one horizontal splitter per row.
       QSplitter *outer = new QSplitter(Qt::Vertical);
+      currentSplitters_.push_back(outer);
       int rows = (int)std::ceil(std::sqrt((double)n));
       int cols = (n + rows - 1) / rows;
       int idx = 0;
@@ -352,6 +375,7 @@ class SplitWindow : public QMainWindow {
         int itemsInRow = std::min(cols, n - idx);
         if (itemsInRow <= 0) break;
         QSplitter *rowSplit = new QSplitter(Qt::Horizontal);
+        currentSplitters_.push_back(rowSplit);
         for (int c = 0; c < itemsInRow; ++c) {
           auto *frame = new SplitFrameWidget(idx);
           frame->setProfile(profile_);
@@ -367,7 +391,20 @@ class SplitWindow : public QMainWindow {
           rowSplit->addWidget(frame);
           ++idx;
         }
+        // evenly distribute columns in this row
+        if (itemsInRow > 0) {
+          QList<int> colSizes;
+          for (int i = 0; i < itemsInRow; ++i) colSizes << 1;
+          rowSplit->setSizes(colSizes);
+        }
         outer->addWidget(rowSplit);
+      }
+      // evenly distribute rows in the outer splitter
+      int actualRows = outer->count();
+      if (actualRows > 0) {
+        QList<int> rowSizes;
+        for (int i = 0; i < actualRows; ++i) rowSizes << 1;
+        outer->setSizes(rowSizes);
       }
       container = outer;
     }
@@ -458,11 +495,35 @@ class SplitWindow : public QMainWindow {
   }
 
   void setLayoutMode(LayoutMode m) {
-    // Always apply the layout mode and rebuild. This lets the user re-select
-    // the same layout to reset any splitter sizes or other transient state.
+    // If the user re-selects the already-selected layout, treat that as a
+    // request to reset splitters to their default sizes. Clear any saved
+    // sizes for this layout and rebuild without saving the current sizes.
+    if (m == layoutMode_) {
+      QSettings settings("NightVsKnight", "LiveStreamMultiChat");
+      const QString base = QStringLiteral("splitterSizes/%1").arg(layoutModeKey(layoutMode_));
+      settings.remove(base);
+      // rebuild so splitters are reset to defaults
+      rebuildSections((int)addresses_.size());
+      return;
+    }
+
+    // Note: we do not save splitter sizes during runtime; sizes are only
+    // persisted on application exit. When switching layouts we clear any
+    // saved sizes for the target layout so the new layout starts with
+    // default splitter positions.
+    // Remove any previously-saved sizes for the new target layout so that
+    // switching layouts starts with default splitter positions rather than
+    // restoring an older saved configuration for that layout.
+    {
+      QSettings settings("NightVsKnight", "LiveStreamMultiChat");
+      const QString targetBase = QStringLiteral("splitterSizes/%1").arg(layoutModeKey(m));
+      settings.remove(targetBase);
+    }
+    // Apply the new layout mode and persist it.
     layoutMode_ = m;
     QSettings layoutSettings("NightVsKnight", "LiveStreamMultiChat");
     layoutSettings.setValue("layoutMode", (int)layoutMode_);
+    // Rebuild UI for the new layout (splitter sizes are only restored at startup)
     rebuildSections((int)addresses_.size());
   }
 
@@ -535,14 +596,58 @@ class SplitWindow : public QMainWindow {
   }
 
   void closeEvent(QCloseEvent *event) override {
-    // persist current addresses on exit
+    // persist splitter sizes, addresses and window geometry on exit
+    saveCurrentSplitterSizes();
     QSettings settings("NightVsKnight", "LiveStreamMultiChat");
     QStringList list;
     for (const auto &a : addresses_) list << a;
     settings.setValue("addresses", list);
     // persist window geometry
     settings.setValue("windowGeometry", saveGeometry());
+    // persist window state (toolbars/dock state and maximized/minimized state)
+    settings.setValue("windowState", saveState());
     QMainWindow::closeEvent(event);
+  }
+
+  // Persist sizes for splitters associated with the current layout mode.
+  static QString layoutModeKey(LayoutMode m) {
+    switch (m) {
+      case Vertical: return QStringLiteral("vertical");
+      case Horizontal: return QStringLiteral("horizontal");
+      case Grid: default: return QStringLiteral("grid");
+    }
+  }
+
+  void saveCurrentSplitterSizes() {
+    if (currentSplitters_.empty()) return;
+    QSettings settings("NightVsKnight", "LiveStreamMultiChat");
+    const QString base = QStringLiteral("splitterSizes/%1").arg(layoutModeKey(layoutMode_));
+    for (int i = 0; i < (int)currentSplitters_.size(); ++i) {
+      QSplitter *s = currentSplitters_[i];
+      if (!s) continue;
+      const QList<int> sizes = s->sizes();
+      QVariantList vl;
+      for (int v : sizes) vl << v;
+      settings.setValue(base + QStringLiteral("/%1").arg(i), vl);
+    }
+  }
+
+  void restoreSplitterSizes() {
+    if (currentSplitters_.empty()) return;
+    QSettings settings("NightVsKnight", "LiveStreamMultiChat");
+    const QString base = QStringLiteral("splitterSizes/%1").arg(layoutModeKey(layoutMode_));
+    for (int i = 0; i < (int)currentSplitters_.size(); ++i) {
+      QSplitter *s = currentSplitters_[i];
+      if (!s) continue;
+      const QVariant v = settings.value(base + QStringLiteral("/%1").arg(i));
+      if (!v.isValid()) continue;
+      const QVariantList vl = v.toList();
+      if (vl.isEmpty()) continue;
+      QList<int> sizes;
+      sizes.reserve(vl.size());
+      for (const QVariant &qv : vl) sizes << qv.toInt();
+      if (!sizes.isEmpty()) s->setSizes(sizes);
+    }
   }
 
  private:
@@ -552,6 +657,8 @@ class SplitWindow : public QMainWindow {
   std::vector<QString> addresses_;
   QWebEngineProfile *profile_ = nullptr;
   LayoutMode layoutMode_ = Vertical;
+  std::vector<QSplitter*> currentSplitters_;
+  bool restoredOnStartup_ = false;
 };
 
 int main(int argc, char **argv) {
