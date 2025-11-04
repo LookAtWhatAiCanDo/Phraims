@@ -229,6 +229,11 @@ class SplitWindow : public QMainWindow {
     profile_->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
     profile_->setPersistentCookiesPolicy(QWebEngineProfile::ForcePersistentCookies);
 
+    // restore saved window geometry (position/size) if present
+    QSettings geomSettings("NightVsKnight", "LiveStreamMultiChat");
+    const QByteArray savedGeom = geomSettings.value("windowGeometry").toByteArray();
+    if (!savedGeom.isEmpty()) restoreGeometry(savedGeom);
+
     // central scroll area to allow many sections
     auto *scroll = new QScrollArea();
     scroll->setWidgetResizable(true);
@@ -439,6 +444,8 @@ class SplitWindow : public QMainWindow {
     QStringList list;
     for (const auto &a : addresses_) list << a;
     settings.setValue("addresses", list);
+    // persist window geometry
+    settings.setValue("windowGeometry", saveGeometry());
     QMainWindow::closeEvent(event);
   }
 
