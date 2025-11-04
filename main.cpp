@@ -18,6 +18,9 @@
 #include <QDir>
 #include <QWebEngineProfile>
 #include <QWebEnginePage>
+#include <QMenuBar>
+#include <QScreen>
+#include <QGuiApplication>
 #include <QMessageBox>
 
 // Simple Qt6 Widgets app that divides the main area into N equal sections.
@@ -234,6 +237,12 @@ class SplitWindow : public QMainWindow {
     const QByteArray savedGeom = geomSettings.value("windowGeometry").toByteArray();
     if (!savedGeom.isEmpty()) restoreGeometry(savedGeom);
 
+    // add a simple View menu with a helper to set the window height to the
+    // screen available height (preserves width and x position)
+    auto *viewMenu = menuBar()->addMenu(tr("View"));
+    QAction *setHeightAction = viewMenu->addAction(tr("Set height to screen"));
+    connect(setHeightAction, &QAction::triggered, this, &SplitWindow::setHeightToScreen);
+
     // central scroll area to allow many sections
     auto *scroll = new QScrollArea();
     scroll->setWidgetResizable(true);
@@ -380,6 +389,18 @@ class SplitWindow : public QMainWindow {
     for (const auto &a : addresses_) list << a;
     settings.setValue("addresses", list);
     rebuildSections((int)addresses_.size());
+  }
+
+  void setHeightToScreen() {
+    QScreen *screen = QGuiApplication::primaryScreen();
+    if (!screen) return;
+    const QRect avail = screen->availableGeometry();
+    // preserve current x and width, set y to top of available area and
+    // height to available height
+    const QRect geom = geometry();
+    const int x = geom.x();
+    const int w = geom.width();
+    setGeometry(x, avail.y(), w, avail.height());
   }
 
   void onMinusFromFrame(SplitFrameWidget *who) {
