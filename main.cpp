@@ -5,53 +5,79 @@
 #include <vector>
 #include <QActionGroup>
 #include <QApplication>
+#include <QCheckBox>
 #include <QContextMenuEvent>
+#include <QDialog>
+#include <QDateTime>
 #include <QDebug>
 #include <QDir>
+#include <QFile>
+#include <QFileInfo>
 #include <QFrame>
 #include <QGridLayout>
 #include <QGuiApplication>
 #include <QHBoxLayout>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
+#include <QListWidget>
+#include <QLocalServer>
+#include <QLocalSocket>
 #include <QMainWindow>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QPalette>
 #include <QPointer>
+#include <QPushButton>
 #include <QScreen>
 #include <QScrollArea>
 #include <QSettings>
 #include <QSplitter>
 #include <QStandardPaths>
+#include <QThread>
 #include <QToolButton>
+#include <QUuid>
 #include <QVBoxLayout>
+#include <QWebEngineFullScreenRequest>
 #include <QWebEngineHistory>
 #include <QWebEnginePage>
 #include <QWebEngineProfile>
+#include <QWebEngineSettings>
 #include <QWebEngineView>
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QFile>
-#include <QUuid>
-#include <QFileInfo>
-#include <QDateTime>
-#include <QDialog>
-#include <QListWidget>
-#include <QLineEdit>
-#include <QCheckBox>
-#include <QPushButton>
-#include <QHBoxLayout>
-#include <QLabel>
 #include <QWidget>
 
-// Qt6 Widgets Web Brower app that divides the main window into multiple web page frames.
+// Event filter that catches Escape key presses on the fullscreen host
+// widget and instructs the page to exit fullscreen. Kept minimal and
+// parented to the fullscreen widget so it is deleted with it.
+class EscapeFilter : public QObject {
+  Q_OBJECT
+public:
+  explicit EscapeFilter(QWebEngineView *view, QObject *parent = nullptr) : QObject(parent), view_(view) {}
+protected:
+  bool eventFilter(QObject *watched, QEvent *event) override {
+    if (event->type() == QEvent::KeyPress) {
+      QKeyEvent *ke = static_cast<QKeyEvent*>(event);
+      if (ke && ke->key() == Qt::Key_Escape) {
+        qDebug() << "EscapeFilter: Escape pressed, requesting document.exitFullscreen()";
+        if (view_ && view_->page()) {
+          view_->page()->runJavaScript("if (document.exitFullscreen) { document.exitFullscreen(); } else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }");
+        }
+        return true;
+      }
+    }
+    return QObject::eventFilter(watched, event);
+  }
+private:
+  QPointer<QWebEngineView> view_;
+};
 
 /**
  * QWebEngineView subclass to:
  * 1. provide default context menu
- * 2. override createWindow to just navigate to address rather than opening new windows
+ * 2. override createWindow to just navigate to address rather than opening new window
  */
 class MyWebEngineView : public QWebEngineView {
   Q_OBJECT
@@ -484,9 +510,9 @@ public:
     setAutoFillBackground(true);
     setPalette(pal);
 
-    auto *v = new QVBoxLayout(this);
-    v->setContentsMargins(6, 6, 6, 6);
-    v->setSpacing(6);
+    innerLayout_ = new QVBoxLayout(this);
+    innerLayout_->setContentsMargins(6, 6, 6, 6);
+    innerLayout_->setSpacing(6);
 
     // left: navigation buttons, center: address bar, right: +/- buttons
     auto *topRow = new QHBoxLayout();
@@ -544,12 +570,12 @@ public:
     minusBtn_->setToolTip("Remove this section");
     topRow->addWidget(minusBtn_);
 
-    v->addLayout(topRow);
+    innerLayout_->addLayout(topRow);
 
     // web view content area
     webview_ = new MyWebEngineView(this);
     webview_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    v->addWidget(webview_, 1);
+    innerLayout_->addWidget(webview_, 1);
 
     // wire internal UI to emit signals and control webview
     connect(plusBtn_, &QToolButton::clicked, this, [this]() { emit plusClicked(this); });
@@ -676,7 +702,37 @@ public:
       extern void applyDomPatchesToPage(QWebEnginePage *page);
       applyDomPatchesToPage(page);
     });
+    // Ensure the page has fullscreen support enabled (should be true by default
+    // but being explicit helps diagnose platform differences).
+    page->settings()->setAttribute(QWebEngineSettings::FullScreenSupportEnabled, true);
+    qDebug() << "SplitFrameWidget::setProfile: FullScreenSupportEnabled=" << page->settings()->testAttribute(QWebEngineSettings::FullScreenSupportEnabled);
+
+    // Log and (optionally) auto-grant feature permissions that some players
+    // request when entering fullscreen, like mouse lock. This will help
+    // diagnose permission-denied problems.
+    QObject::connect(page, &QWebEnginePage::featurePermissionRequested, this, [page](const QUrl &securityOrigin, QWebEnginePage::Feature feature){
+      qDebug() << "SplitFrameWidget::featurePermissionRequested: origin=" << securityOrigin << " feature=" << feature;
+      // Auto-grant mouse lock which some fullscreen players use.
+      if (feature == QWebEnginePage::Feature::MouseLock) {
+        page->setFeaturePermission(securityOrigin, feature, QWebEnginePage::PermissionGrantedByUser);
+        qDebug() << "SplitFrameWidget: granted MouseLock for" << securityOrigin;
+        return;
+      }
+      // For other features, leave default (deny) but log.
+      page->setFeaturePermission(securityOrigin, feature, QWebEnginePage::PermissionDeniedByUser);
+    });
+    // Honor HTML5 fullscreen requests (e.g., YouTube fullscreen button).
+    qDebug() << "SplitFrameWidget::setProfile: connecting fullScreenRequested for page" << page << "parent webview=" << webview_;
+    QObject::connect(page, &QWebEnginePage::fullScreenRequested, this, &SplitFrameWidget::handleFullScreenRequested);
+    qDebug() << "SplitFrameWidget::setProfile: connected fullScreenRequested";
   }
+
+private slots:
+  // Handler for HTML5 fullscreen requests from the page (e.g., YouTube
+  // fullscreen button). The QWebEngineFullScreenRequest is accepted and
+  // the internal webview is reparented into a top-level full-screen
+  // window while the request is active.
+  void handleFullScreenRequested(QWebEngineFullScreenRequest request);
 
 private:
   signals:
@@ -689,6 +745,7 @@ private:
   void devToolsRequested(SplitFrameWidget *who, QWebEnginePage *page, const QPoint &pos);
 
 private:
+  QVBoxLayout *innerLayout_ = nullptr;
   QLineEdit *address_ = nullptr;
   MyWebEngineView *webview_ = nullptr;
   QToolButton *upBtn_ = nullptr;
@@ -698,8 +755,185 @@ private:
   QToolButton *backBtn_ = nullptr;
   QToolButton *forwardBtn_ = nullptr;
   QToolButton *refreshBtn_ = nullptr;
+  // When a page requests fullscreen we create a top-level window and
+  // reparent the webview into it. Use QPointer guards to avoid dangling
+  // pointers during teardown.
+  QPointer<QWidget> fullScreenWindow_;
+  QPointer<QWidget> previousParent_;
+  // Event filter used while a frame is fullscreen so we can catch Escape
+  // key presses regardless of which child widget currently has focus.
+  QPointer<EscapeFilter> escapeFilter_;
+  // If true we hid the top-level window when entering fullscreen and
+  // should restore it on exit.
+  bool hidWindowForFullscreen_ = false;
+  // Remember the previous window state of the top-level window so we
+  // can restore it (e.g., exit fullscreen) when leaving page fullscreen.
+  Qt::WindowStates previousTopWindowState_ = Qt::WindowNoState;
 };
 
+// Handle QWebEngineFullScreenRequest for SplitFrameWidget.
+// Reparents the internal webview into a top-level full-screen window
+// while the request is active, and restores it when fullscreen exits.
+void SplitFrameWidget::handleFullScreenRequested(QWebEngineFullScreenRequest request) {
+  qDebug() << "SplitFrameWidget::handleFullScreenRequested: received request toggleOn=" << request.toggleOn() << " origin=" << request.origin().toString();
+  if (request.toggleOn()) {
+    qDebug() << "SplitFrameWidget: entering fullscreen";
+    // Enter fullscreen
+    if (fullScreenWindow_) {
+      qDebug() << "SplitFrameWidget: already in fullscreen, accepting request";
+      request.accept();
+      return;
+    }
+    // Create a dedicated top-level QMainWindow for fullscreen. Using a
+    // full QMainWindow (rather than a child widget) ensures the OS treats
+    // this window as a full application-space fullscreen window so the
+    // whole window/space is switched on macOS when shown fullscreen.
+    QMainWindow *fsw = new QMainWindow(nullptr);
+    fsw->setAttribute(Qt::WA_DeleteOnClose);
+    fsw->setWindowTitle(tr("Fullscreen"));
+    fsw->setWindowState(Qt::WindowFullScreen);
+    fsw->setWindowFlag(Qt::Window, true);
+
+    // reparent the webview into the fullscreen main window
+    previousParent_ = webview_->parentWidget();
+    qDebug() << "SplitFrameWidget: previousParent=" << previousParent_ << " webview=" << webview_;
+    webview_->setParent(fsw);
+    // place the webview as the central widget so it fills the fullscreen window
+    fsw->setCentralWidget(webview_);
+    // Ensure keyboard focus goes to the webview so it (and page JS) can
+    // receive key events, and install an EscapeFilter on both the
+    // fullscreen window and the webview so ESC is caught regardless of
+    // which widget has focus.
+    webview_->setFocus(Qt::OtherFocusReason);
+    auto *ef = new EscapeFilter(webview_, fsw);
+    // keep a guarded pointer so we can remove the filter when exiting
+    // fullscreen to avoid leaving stale filters on the webview.
+    escapeFilter_ = ef;
+    fsw->installEventFilter(ef);
+    if (webview_) webview_->installEventFilter(ef);
+    // Also install as a global application filter so we catch Escape even
+    // if the key event is dispatched at a level the view/window doesn't
+    // receive (some WebEngine content consumes events in the web process).
+    if (qApp) qApp->installEventFilter(ef);
+
+    fullScreenWindow_ = fsw;
+    request.accept();
+    fsw->showFullScreen();
+
+    // Hide the original top-level window so the app chrome doesn't remain
+    // visible on the original desktop/space while the page is fullscreen.
+    hidWindowForFullscreen_ = false;
+    if (QWidget *top = this->window()) {
+      qDebug() << "SplitFrameWidget: hiding top-level window while page is fullscreen";
+      // remember previous window state so we can restore it
+      previousTopWindowState_ = top->windowState();
+      top->hide();
+      hidWindowForFullscreen_ = true;
+    }
+
+    // Ensure that if the fullscreen window is closed externally we
+    // restore the webview back into this frame.
+    QPointer<QWidget> fswGuard(fsw);
+    connect(fsw, &QObject::destroyed, this, [this, fswGuard](QObject *) {
+      qDebug() << "SplitFrameWidget: fullscreen window destroyed, restoring webview";
+      // Remove event filter from the webview if present so we don't leave
+      // a dangling filter installed when the fullscreen helper is gone.
+      if (webview_ && escapeFilter_) {
+        webview_->removeEventFilter(escapeFilter_);
+      }
+      if (qApp && escapeFilter_) {
+        qApp->removeEventFilter(escapeFilter_);
+      }
+      escapeFilter_ = nullptr;
+
+      // Restore visibility of this frame and possibly the top-level
+      // window if we hid it when entering fullscreen.
+      if (hidWindowForFullscreen_) {
+        if (QWidget *top = this->window()) {
+          qDebug() << "SplitFrameWidget: restoring top-level window after fullscreen";
+          top->show();
+          // restore previous window state (ensure we leave fullscreen if it
+          // wasn't previously full-screen).
+          if (previousTopWindowState_ & Qt::WindowFullScreen) {
+            top->setWindowState(previousTopWindowState_);
+          } else {
+            top->showNormal();
+          }
+          top->raise();
+          top->activateWindow();
+        }
+        hidWindowForFullscreen_ = false;
+        previousTopWindowState_ = Qt::WindowNoState;
+      }
+      this->setVisible(true);
+
+      // If the webview is not already parented to this frame, move it back.
+      if (webview_ && webview_->parentWidget() != this) {
+        webview_->setParent(this);
+        if (innerLayout_) innerLayout_->addWidget(webview_, 1);
+      }
+      fullScreenWindow_ = nullptr;
+    });
+    return;
+  }
+
+  qDebug() << "SplitFrameWidget: exiting fullscreen";
+  // Exit fullscreen
+  if (!fullScreenWindow_) {
+    qDebug() << "SplitFrameWidget: no fullscreen window present, accepting request and returning";
+    request.accept();
+    return;
+  }
+
+  // Remove any event filter installed on the webview by the fullscreen
+  // helper before restoring parentage so we don't leave stale filters.
+  if (webview_ && escapeFilter_) {
+    webview_->removeEventFilter(escapeFilter_);
+  }
+  if (qApp && escapeFilter_) {
+    qApp->removeEventFilter(escapeFilter_);
+  }
+  escapeFilter_ = nullptr;
+
+  // Restore visibility of this frame and possibly the top-level window
+  // if we hid it when entering fullscreen.
+  if (hidWindowForFullscreen_) {
+    if (QWidget *top = this->window()) {
+      qDebug() << "SplitFrameWidget: restoring top-level window after fullscreen";
+      top->show();
+      if (previousTopWindowState_ & Qt::WindowFullScreen) {
+        top->setWindowState(previousTopWindowState_);
+      } else {
+        top->showNormal();
+      }
+      top->raise();
+      top->activateWindow();
+    }
+    hidWindowForFullscreen_ = false;
+    previousTopWindowState_ = Qt::WindowNoState;
+  }
+  this->setVisible(true);
+
+  // Reparent the webview back into this frame's layout
+  webview_->setParent(this);
+  if (innerLayout_) innerLayout_->addWidget(webview_, 1);
+
+  // Close the fullscreen window (it will be deleted due to WA_DeleteOnClose)
+  QWidget *w = fullScreenWindow_;
+  fullScreenWindow_ = nullptr;
+  if (w) {
+    qDebug() << "SplitFrameWidget: closing fullscreen window" << w;
+    w->close();
+  }
+  request.accept();
+}
+
+// Forward declare SplitWindow so helper prototype can appear before its use
+class SplitWindow;
+// Declare global windows vector (defined further below)
+extern std::vector<SplitWindow*> g_windows;
+// Prototype for helper used by menu/shortcuts inside SplitWindow
+static void createAndShowWindow(const QString &initialAddress = QString(), const QString &windowId = QString());
 
 class SplitWindow : public QMainWindow {
   Q_OBJECT
