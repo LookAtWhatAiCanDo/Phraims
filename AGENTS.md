@@ -20,3 +20,8 @@ Automated tests are not yet wired in; rely on the acceptance scenarios listed in
 
 ## Commit & Pull Request Guidelines
 Use short, imperative commit subjects (e.g., `Add vertical grid layout preset`) with optional extended bodies for rationale or follow-up TODOs. Reference issues with `Fixes #123` when applicable. Pull requests should summarize UI or behavior changes, list manual test evidence (steps from the acceptance checklist), and provide before/after screenshots when the UI shifts. Confirm that the app builds locally and that existing settings migrate cleanly before requesting review.
+
+## Agent Responsibilities
+- Keep `AGENTS.md` in sync with the current behavior and expectations of the codebase whenever functionality or workflows change.
+- Keep `README.md` up to date with the implemented features, build/run steps, and any relevant operational notes introduced by code changes.
+- Generate a commit message and accompanying description for every set of changes before handing work back to the user.

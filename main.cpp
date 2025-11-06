@@ -42,6 +42,9 @@
 #include <QUuid>
 #include <QVBoxLayout>
 #include <QWebEngineFullScreenRequest>
+#include <QPainter>
+#include <QIcon>
+#include <QPixmap>
 #include <QWebEngineHistory>
 #include <QWebEnginePage>
 #include <QWebEngineProfile>
@@ -49,9 +52,16 @@
 #include <QWebEngineView>
 #include <QWidget>
 
-// Event filter that catches Escape key presses on the fullscreen host
-// widget and instructs the page to exit fullscreen. Kept minimal and
-// parented to the fullscreen widget so it is deleted with it.
+
+// Debug helper: show per-window id in title for debugging.
+static bool DEBUG_SHOW_WINDOW_ID = 0;
+
+
+/**
+ * Event filter that catches Escape key presses on the fullscreen host
+ * widget and instructs the page to exit fullscreen. Kept minimal and
+ * parented to the fullscreen widget so it is deleted with it.
+ */
 class EscapeFilter : public QObject {
   Q_OBJECT
 public:
@@ -129,6 +139,23 @@ static QString domPatchesPath() {
     return path;
 }
 
+/**
+ * RAII helper to begin/end a nested QSettings group path like
+ * "windows/<id>/splitterSizes". Prefer this over manual begin/end
+ * calls to avoid mismatched endGroup() calls on early returns.
+ */
+struct GroupScope {
+  QSettings &s;
+  int depth = 0;
+  GroupScope(QSettings &settings, const QString &path) : s(settings) {
+    const QStringList parts = path.split('/', Qt::SkipEmptyParts);
+    for (const QString &p : parts) { s.beginGroup(p); ++depth; }
+  }
+  ~GroupScope() {
+    for (int i = 0; i < depth; ++i) s.endGroup();
+  }
+};
+
 struct DomPatch {
   QString id;
   QString urlPrefix; // match by startsWith
@@ -137,8 +164,10 @@ struct DomPatch {
   bool enabled = true;
 };
 
-// Whether to print verbose DOM-patch internals (injected JS payloads).
-// Controlled by the environment variable NVK_DOM_PATCH_VERBOSE (1 to enable).
+/**
+ * Whether to print verbose DOM-patch internals (injected JS payloads).
+ * Controlled by the environment variable NVK_DOM_PATCH_VERBOSE (1 to enable).
+ */
 static bool domPatchesVerbose() {
   static int cached = -1;
   if (cached != -1) return cached;
@@ -243,9 +272,11 @@ static bool saveDomPatches(const QList<DomPatch> &patches) {
   return true;
 }
 
-// Apply patches to the given page immediately (and relies on being called
-// again on subsequent loads). This uses runJavaScript to insert/remove
-// a <style data-dom-patch-id="..."> element scoped to the selector.
+/**
+ * Apply patches to the given page immediately (and relies on being called
+ * again on subsequent loads). This uses runJavaScript to insert/remove
+ * a <style data-dom-patch-id="..."> element scoped to the selector.
+ */
 void applyDomPatchesToPage(QWebEnginePage *page) {
   if (!page) return;
   const QUrl url = page->url();
@@ -313,7 +344,7 @@ void applyDomPatchesToPage(QWebEnginePage *page) {
   }
 })();
 
-)JS").arg(idQ).arg(selQ).arg(cssQ);
+)JS").arg(idQ, selQ, cssQ);
 
       // High-level log for every applied patch (always enabled).
       qDebug() << "applyDomPatchesToPage: applying patch id=" << p.id << " url=" << urlStr << " selector=" << p.selector << " css=" << p.css;
@@ -326,7 +357,10 @@ void applyDomPatchesToPage(QWebEnginePage *page) {
   }
 }
 
-// Simple modal dialog to manage dom patches (list/add/edit/delete)
+/**
+ * Modeless dialog to list/add/edit/delete DOM patches.
+ * Shown modelessly via show() in SplitWindow::showDomPatchesManager.
+ */
 class DomPatchesDialog : public QDialog {
   Q_OBJECT
 public:
@@ -362,23 +396,18 @@ private slots:
   void loadList() {
     patches_ = loadDomPatches();
     list_->clear();
-    for (const DomPatch &p : patches_) {
+    for (const DomPatch &p : std::as_const(patches_)) {
       // show URL prefix, selector and the CSS declarations in the list
       const QString cssPreview = p.css.isEmpty() ? QStringLiteral("(no style)") : p.css;
       const QString enabledSuffix = p.enabled ? QString() : QStringLiteral(" (disabled)");
       QListWidgetItem *it = new QListWidgetItem(
         QStringLiteral("%1 | %2 | %3%4")
-          .arg(p.urlPrefix)
-          .arg(p.selector)
-          .arg(cssPreview)
-          .arg(enabledSuffix),
+          .arg(p.urlPrefix, p.selector, cssPreview, enabledSuffix),
         list_);
       it->setData(Qt::UserRole, p.id);
       it->setToolTip(
         QStringLiteral("Selector: %1\nStyle: %2\nURL prefix: %3")
-          .arg(p.selector)
-          .arg(p.css)
-          .arg(p.urlPrefix)
+          .arg(p.selector, p.css, p.urlPrefix)
         );
     }
   }
@@ -419,9 +448,11 @@ private slots:
     }
   }
 
-  // Non-modal editor for a single patch. When the user accepts the
-  // dialog the patch is either added (isNew==true) or the existing
-  // patch is updated. The dialog is heap-allocated and deleted on close.
+  /**
+   * Non-modal editor for a single patch. When the user accepts the
+   * dialog the patch is either added (isNew==true) or the existing
+   * patch is updated. The dialog is heap-allocated and deleted on close.
+   */
   void editPatchDialog(const DomPatch &p_in, bool isNew) {
     DomPatch p = p_in; // copy so we don't mutate until user accepts
     QDialog *d = new QDialog(this);
@@ -491,8 +522,10 @@ private:
   QList<DomPatch> patches_;
 };
 
-// A self-contained frame used for each split section. Contains a top
-// address bar (QLineEdit) and a simple content area below.
+/**
+ * A self-contained frame used for each split section.
+ * Contains controls at its top (ex: back, forward, address, ...) and a simple content area below.
+ */
 class SplitFrameWidget : public QFrame {
   Q_OBJECT
 
@@ -710,16 +743,21 @@ public:
     // Log and (optionally) auto-grant feature permissions that some players
     // request when entering fullscreen, like mouse lock. This will help
     // diagnose permission-denied problems.
-    QObject::connect(page, &QWebEnginePage::featurePermissionRequested, this, [page](const QUrl &securityOrigin, QWebEnginePage::Feature feature){
-      qDebug() << "SplitFrameWidget::featurePermissionRequested: origin=" << securityOrigin << " feature=" << feature;
+    QObject::connect(page, &QWebEnginePage::permissionRequested, this, [page](QWebEnginePermission permissionRequest){
+      auto origin = permissionRequest.origin();
+      auto permissionType = permissionRequest.permissionType();
+      qDebug() << "SplitFrameWidget::featurePermissionRequested: origin=" << origin << " permissionType=" << permissionType;
       // Auto-grant mouse lock which some fullscreen players use.
-      if (feature == QWebEnginePage::Feature::MouseLock) {
-        page->setFeaturePermission(securityOrigin, feature, QWebEnginePage::PermissionGrantedByUser);
-        qDebug() << "SplitFrameWidget: granted MouseLock for" << securityOrigin;
+      if (permissionType == QWebEnginePermission::PermissionType::MouseLock) {
+        qDebug() << "SplitFrameWidget: granting MouseLock for" << origin;
+        permissionRequest.grant();
+        qDebug() << "SplitFrameWidget: granted MouseLock for" << origin;
         return;
       }
-      // For other features, leave default (deny) but log.
-      page->setFeaturePermission(securityOrigin, feature, QWebEnginePage::PermissionDeniedByUser);
+      // For other features, reject the request but log for diagnostics.
+      qDebug() << "SplitFrameWidget: denying" << permissionType << "for" << origin;
+      permissionRequest.deny();
+      qDebug() << "SplitFrameWidget: denied" << permissionType << "for" << origin;
     });
     // Honor HTML5 fullscreen requests (e.g., YouTube fullscreen button).
     qDebug() << "SplitFrameWidget::setProfile: connecting fullScreenRequested for page" << page << "parent webview=" << webview_;
@@ -728,10 +766,12 @@ public:
   }
 
 private slots:
-  // Handler for HTML5 fullscreen requests from the page (e.g., YouTube
-  // fullscreen button). The QWebEngineFullScreenRequest is accepted and
-  // the internal webview is reparented into a top-level full-screen
-  // window while the request is active.
+  /**
+   * Handler for HTML5 fullscreen requests from the page (e.g., YouTube
+   * fullscreen button). The QWebEngineFullScreenRequest is accepted and
+   * the internal webview is reparented into a top-level full-screen
+   * window while the request is active.
+   */
   void handleFullScreenRequested(QWebEngineFullScreenRequest request);
 
 private:
@@ -741,7 +781,9 @@ private:
   void upClicked(SplitFrameWidget *who);
   void downClicked(SplitFrameWidget *who);
   void addressEdited(SplitFrameWidget *who, const QString &text);
-  // Request that the window show/attach a shared DevTools view for this frame
+  /**
+   * Request that the window show/attach a shared DevTools view for this frame
+   */
   void devToolsRequested(SplitFrameWidget *who, QWebEnginePage *page, const QPoint &pos);
 
 private:
@@ -755,6 +797,7 @@ private:
   QToolButton *backBtn_ = nullptr;
   QToolButton *forwardBtn_ = nullptr;
   QToolButton *refreshBtn_ = nullptr;
+
   // When a page requests fullscreen we create a top-level window and
   // reparent the webview into it. Use QPointer guards to avoid dangling
   // pointers during teardown.
@@ -771,9 +814,11 @@ private:
   Qt::WindowStates previousTopWindowState_ = Qt::WindowNoState;
 };
 
-// Handle QWebEngineFullScreenRequest for SplitFrameWidget.
-// Reparents the internal webview into a top-level full-screen window
-// while the request is active, and restores it when fullscreen exits.
+/**
+ * Handle QWebEngineFullScreenRequest for SplitFrameWidget.
+ * Reparents the internal webview into a top-level full-screen window
+ * while the request is active, and restores it when fullscreen exits.
+ */
 void SplitFrameWidget::handleFullScreenRequested(QWebEngineFullScreenRequest request) {
   qDebug() << "SplitFrameWidget::handleFullScreenRequested: received request toggleOn=" << request.toggleOn() << " origin=" << request.origin().toString();
   if (request.toggleOn()) {
@@ -935,17 +980,36 @@ extern std::vector<SplitWindow*> g_windows;
 // Prototype for helper used by menu/shortcuts inside SplitWindow
 static void createAndShowWindow(const QString &initialAddress = QString(), const QString &windowId = QString());
 
+// Forward declare helper so member methods can call it before its definition.
+static void rebuildAllWindowMenus();
+
+// Forward declarations for icons created later in this file. These are
+// defined after the SplitWindow class so provide extern declarations
+// here so member functions can refer to them.
+extern QIcon g_windowDiamondIcon;
+extern QIcon g_windowEmptyIcon;
+extern QIcon g_windowCheckIcon;
+extern QIcon g_windowCheckDiamondIcon;
+
 class SplitWindow : public QMainWindow {
   Q_OBJECT
 
 public:
   enum LayoutMode { Vertical = 0, Horizontal = 1, Grid = 2 };
 
-  SplitWindow(QWidget *parent = nullptr) : QMainWindow(parent) {
+  // Accept an optional windowId (UUID). If provided, the window will
+  // load/save its state under QSettings group "windows/<windowId>".
+  SplitWindow(const QString &windowId = QString(), QWidget *parent = nullptr) : QMainWindow(parent), windowId_(windowId) {
     setWindowTitle(QCoreApplication::applicationName());
     resize(800, 600);
 
     QSettings settings;
+
+    // File menu: New Window (Cmd/Ctrl+N)
+    auto *fileMenu = menuBar()->addMenu(tr("File"));
+    QAction *newWindowAction = fileMenu->addAction(tr("New Window"));
+    newWindowAction->setShortcut(QKeySequence::New);
+    connect(newWindowAction, &QAction::triggered, this, [](bool){ createAndShowWindow(); });
 
     // No global toolbar; per-frame + / - buttons control sections.
 
@@ -1027,6 +1091,17 @@ public:
     QAction *domPatchesAction = toolsMenu->addAction(tr("DOM Patches"));
     connect(domPatchesAction, &QAction::triggered, this, &SplitWindow::showDomPatchesManager);
 
+    // Window menu: per-macOS convention
+    windowMenu_ = menuBar()->addMenu(tr("Window"));
+    // Add standard close/minimize actions
+    QAction *minimizeAct = windowMenu_->addAction(tr("Minimize"));
+    minimizeAct->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_M));
+    connect(minimizeAct, &QAction::triggered, this, &QWidget::showMinimized);
+    QAction *closeAct = windowMenu_->addAction(tr("Close Window"));
+    closeAct->setShortcut(QKeySequence::Close);
+    connect(closeAct, &QAction::triggered, this, &QWidget::close);
+    windowMenu_->addSeparator();
+
     // central scroll area to allow many sections
     auto *scroll = new QScrollArea();
     scroll->setWidgetResizable(true);
@@ -1038,28 +1113,112 @@ public:
     layout_->setContentsMargins(4, 4, 4, 4);
     layout_->setSpacing(6);
 
-    // load persisted addresses (if present) otherwise start with one empty
-    const QStringList saved = settings.value("addresses").toStringList();
-    if (saved.isEmpty()) {
-      addresses_.push_back(QString());
+    // load persisted addresses (per-window if windowId_ present, otherwise global)
+    if (!windowId_.isEmpty()) {
+      QSettings s;
+      {
+        GroupScope _gs(s, QStringLiteral("windows/%1").arg(windowId_));
+        const QStringList saved = s.value("addresses").toStringList();
+        if (saved.isEmpty()) {
+          addresses_.push_back(QString());
+        } else {
+          for (const QString &s2 : saved) addresses_.push_back(s2);
+        }
+        layoutMode_ = (LayoutMode)s.value("layoutMode", (int)layoutMode_).toInt();
+      }
     } else {
-      for (const QString &s : saved) {
-        addresses_.push_back(s);
+      const QStringList saved = settings.value("addresses").toStringList();
+      if (saved.isEmpty()) {
+        addresses_.push_back(QString());
+      } else {
+        for (const QString &s : saved) addresses_.push_back(s);
       }
     }
     // build initial UI
     rebuildSections((int)addresses_.size());
     // restore splitter sizes only once at startup (subsequent layout
     // selections/rebuilds should reset splitters to defaults)
-    restoreSplitterSizes();
+    if (!windowId_.isEmpty()) {
+      restoreSplitterSizes(QStringLiteral("windows/%1/splitterSizes").arg(windowId_));
+    } else {
+      restoreSplitterSizes();
+    }
     restoredOnStartup_ = true;
 
     // restore saved window geometry and window state (position/size/state)
-    const QByteArray savedGeom = settings.value("windowGeometry").toByteArray();
-    if (!savedGeom.isEmpty()) restoreGeometry(savedGeom);
-    const QByteArray savedState = settings.value("windowState").toByteArray();
-    if (!savedState.isEmpty()) restoreState(savedState);
+    if (!windowId_.isEmpty()) {
+      QSettings s;
+      {
+        GroupScope _gs(s, QStringLiteral("windows/%1").arg(windowId_));
+        const QByteArray savedGeom = s.value("windowGeometry").toByteArray();
+        if (!savedGeom.isEmpty()) restoreGeometry(savedGeom);
+        const QByteArray savedState = s.value("windowState").toByteArray();
+        if (!savedState.isEmpty()) restoreState(savedState);
+      }
+    } else {
+      const QByteArray savedGeom = settings.value("windowGeometry").toByteArray();
+      if (!savedGeom.isEmpty()) restoreGeometry(savedGeom);
+      const QByteArray savedState = settings.value("windowState").toByteArray();
+      if (!savedState.isEmpty()) restoreState(savedState);
+    }
   }
+
+public:
+  /**
+   * Persist this window's addresses, layout, geometry, state and splitter sizes
+   * into QSettings under group "windows/<id>". If this window did not have
+   * an id, a new one will be generated and used so the window will be
+   * restorable on next launch.
+   */
+  void savePersistentStateToSettings() {
+    QSettings s;
+    QString id = windowId_;
+    if (id.isEmpty()) id = QUuid::createUuid().toString();
+    qDebug() << "savePersistentStateToSettings: saving window id=" << id << " addresses.count=" << addresses_.size() << " layoutMode=" << (int)layoutMode_;
+    {
+      GroupScope _gs(s, QStringLiteral("windows/%1").arg(id));
+      QStringList list;
+      for (const auto &a : addresses_) list << a;
+      s.setValue("addresses", list);
+      s.setValue("layoutMode", (int)layoutMode_);
+      s.setValue("windowGeometry", saveGeometry());
+      s.setValue("windowState", saveState());
+    }
+    s.sync();
+    // persist splitter sizes under windows/<id>/splitterSizes/<index>
+    saveCurrentSplitterSizes(QStringLiteral("windows/%1/splitterSizes").arg(id));
+  }
+
+public slots:
+  // Reset this window to a single empty section (used for New Window behavior)
+  void resetToSingleEmptySection() {
+    addresses_.clear();
+    addresses_.push_back(QString());
+    rebuildSections(1);
+    // Do not persist immediately; keep in-memory until user changes or window closes.
+    // After rebuilding, focus the address field so the user can start typing
+    // immediately. Use a queued invoke so focus is set after layout/stacking
+    // completes.
+    QMetaObject::invokeMethod(this, "focusFirstAddress", Qt::QueuedConnection);
+  }
+
+  /**
+   * Public wrapper to refresh the Window menu. Keeps updateWindowMenu() private.
+   */
+  void refreshWindowMenu() { updateWindowMenu(); }
+
+  /**
+   * Focus the first frame's address QLineEdit so the user can start typing.
+   */
+  void focusFirstAddress();
+
+public:
+  /**
+   * Update this window's title to the form "Group X (N)" where X is the
+   * 1-based index of this window in the global windows list and N is the
+   * number of frames (sections) currently in the window.
+   */
+  void updateWindowTitle();
 
 private slots:
   void rebuildSections(int n) {
@@ -1173,6 +1332,10 @@ private slots:
     // add a final stretch with zero so that widgets entirely control spacing
     layout_->addStretch(0);
     central_->update();
+    // Update this window's title now that the number of frames may have changed
+    // and ensure the Window menus across the app reflect the new title.
+    updateWindowTitle();
+    rebuildAllWindowMenus();
   }
 
   void toggleDevToolsForFocusedFrame() {
@@ -1251,7 +1414,7 @@ private slots:
     rebuildSections((int)addresses_.size());
   }
 
-  void setLayoutMode(LayoutMode m) {
+  void setLayoutMode(SplitWindow::LayoutMode m) {
     QSettings settings;
 
     // If the user re-selects the already-selected layout, treat that as a
@@ -1334,21 +1497,78 @@ private slots:
   }
 
   void closeEvent(QCloseEvent *event) override {
-    // persist splitter sizes, addresses and window geometry on exit
-    saveCurrentSplitterSizes();
-    QSettings settings;
-    QStringList list;
-    for (const auto &a : addresses_) list << a;
-    settings.setValue("addresses", list);
-    // persist window geometry
-    settings.setValue("windowGeometry", saveGeometry());
-    // persist window state (toolbars/dock state and maximized/minimized state)
-    settings.setValue("windowState", saveState());
+    // Persist splitter sizes and either save or remove per-window restore data.
+    // If this window has a persistent windowId_ it means it was part of the
+    // saved session; when the user explicitly closes the window we remove
+    // that saved group so the window will NOT be restored on next launch.
+    if (!windowId_.isEmpty()) {
+      // If the application is shutting down, persist this window's state so
+      // it will be restored on next launch. If the user explicitly closed
+      // the window during a running session, remove its saved group so it
+      // does not get restored.
+      if (qApp && qApp->closingDown()) {
+        // During shutdown: save (do not remove) so session is preserved.
+        QSettings s;
+        {
+          GroupScope _gs(s, QStringLiteral("windows/%1").arg(windowId_));
+          QStringList list;
+          for (const auto &a : addresses_) list << a;
+          s.setValue("addresses", list);
+          s.setValue("layoutMode", (int)layoutMode_);
+          s.setValue("windowGeometry", saveGeometry());
+          s.setValue("windowState", saveState());
+        }
+        // Ensure these shutdown-time writes are flushed to the backend.
+        s.sync();
+        saveCurrentSplitterSizes(QStringLiteral("windows/%1/splitterSizes").arg(windowId_));
+      } else {
+        // If other windows exist, remove this window's saved group now.
+        // If this is the last window, preserve the saved group so it
+        // reopens on next launch.
+        saveCurrentSplitterSizes(QStringLiteral("windows/%1/splitterSizes").arg(windowId_));
+        const size_t windowsCount = g_windows.size();
+        qDebug() << "SplitWindow::closeEvent: g_windows.count (including this)=" << windowsCount;
+        if (windowsCount > 1) {
+          QSettings s;
+          s.beginGroup(QStringLiteral("windows"));
+          const QStringList before = s.childGroups();
+          if (before.contains(windowId_)) {
+            qDebug() << "SplitWindow::closeEvent: removing stored group for" << windowId_;
+            s.remove(windowId_);
+            s.sync();
+          } else {
+            qDebug() << "SplitWindow::closeEvent: no stored group for" << windowId_;
+          }
+          s.endGroup();
+        } else {
+          qDebug() << "SplitWindow::closeEvent: single window or quitting; preserving stored group for" << windowId_;
+        }
+
+        // Schedule deletion; the destroyed() handler will prune g_windows
+        // and update menus.
+        this->deleteLater();
+      }
+    } else {
+      // no per-window id: persist as legacy/global keys
+      saveCurrentSplitterSizes();
+      QSettings settings;
+      QStringList list;
+      for (const auto &a : addresses_) list << a;
+      settings.setValue("addresses", list);
+      // persist window geometry
+      settings.setValue("windowGeometry", saveGeometry());
+      // persist window state (toolbars/dock state and maximized/minimized state)
+      settings.setValue("windowState", saveState());
+    }
+    // Refresh all Window menus immediately when this window is closed
+    // so other windows reflect the removal without waiting for object
+    // destruction. This keeps the Window menu in sync across the app.
+    rebuildAllWindowMenus();
     QMainWindow::closeEvent(event);
   }
 
   // Persist sizes for splitters associated with the current layout mode.
-  static QString layoutModeKey(LayoutMode m) {
+  static QString layoutModeKey(SplitWindow::LayoutMode m) {
     switch (m) {
       case Vertical: return QStringLiteral("vertical");
       case Horizontal: return QStringLiteral("horizontal");
@@ -1357,34 +1577,85 @@ private slots:
   }
 
   void saveCurrentSplitterSizes() {
+    saveCurrentSplitterSizes(QString());
+  }
+
+  void saveCurrentSplitterSizes(const QString &groupPrefix) {
     if (currentSplitters_.empty()) return;
     QSettings settings;
-    const QString base = QStringLiteral("splitterSizes/%1").arg(layoutModeKey(layoutMode_));
-    for (int i = 0; i < (int)currentSplitters_.size(); ++i) {
-      QSplitter *s = currentSplitters_[i];
-      if (!s) continue;
-      const QList<int> sizes = s->sizes();
-      QVariantList vl;
-      for (int v : sizes) vl << v;
-      settings.setValue(base + QStringLiteral("/%1").arg(i), vl);
+    // If no groupPrefix provided, store under splitterSizes/<layout>/<index>
+    if (groupPrefix.isEmpty()) {
+      settings.beginGroup(QStringLiteral("splitterSizes"));
+      settings.beginGroup(layoutModeKey(layoutMode_));
+      for (int i = 0; i < (int)currentSplitters_.size(); ++i) {
+        QSplitter *s = currentSplitters_[i];
+        if (!s) continue;
+        const QList<int> sizes = s->sizes();
+        QVariantList vl;
+        for (int v : sizes) vl << v;
+        settings.setValue(QString::number(i), vl);
+      }
+      settings.endGroup();
+      settings.endGroup();
+    } else {
+      // Create nested groups for the provided prefix (e.g., windows/<id>/splitterSizes)
+      {
+        GroupScope _gs(settings, groupPrefix);
+        settings.beginGroup(layoutModeKey(layoutMode_));
+        for (int i = 0; i < (int)currentSplitters_.size(); ++i) {
+          QSplitter *s = currentSplitters_[i];
+          if (!s) continue;
+          const QList<int> sizes = s->sizes();
+          QVariantList vl;
+          for (int v : sizes) vl << v;
+          settings.setValue(QString::number(i), vl);
+        }
+        settings.endGroup();
+      }
     }
   }
 
-  void restoreSplitterSizes() {
+  void restoreSplitterSizes() { restoreSplitterSizes(QString()); }
+
+  void restoreSplitterSizes(const QString &groupPrefix) {
     if (currentSplitters_.empty()) return;
     QSettings settings;
-    const QString base = QStringLiteral("splitterSizes/%1").arg(layoutModeKey(layoutMode_));
-    for (int i = 0; i < (int)currentSplitters_.size(); ++i) {
-      QSplitter *s = currentSplitters_[i];
-      if (!s) continue;
-      const QVariant v = settings.value(base + QStringLiteral("/%1").arg(i));
-      if (!v.isValid()) continue;
-      const QVariantList vl = v.toList();
-      if (vl.isEmpty()) continue;
-      QList<int> sizes;
-      sizes.reserve(vl.size());
-      for (const QVariant &qv : vl) sizes << qv.toInt();
-      if (!sizes.isEmpty()) s->setSizes(sizes);
+    // If no groupPrefix provided, read from splitterSizes/<layout>/<index>
+    if (groupPrefix.isEmpty()) {
+      settings.beginGroup(QStringLiteral("splitterSizes"));
+      settings.beginGroup(layoutModeKey(layoutMode_));
+      for (int i = 0; i < (int)currentSplitters_.size(); ++i) {
+        QSplitter *s = currentSplitters_[i];
+        if (!s) continue;
+        const QVariant v = settings.value(QString::number(i));
+        if (!v.isValid()) continue;
+        const QVariantList vl = v.toList();
+        if (vl.isEmpty()) continue;
+        QList<int> sizes;
+        sizes.reserve(vl.size());
+        for (const QVariant &qv : vl) sizes << qv.toInt();
+        if (!sizes.isEmpty()) s->setSizes(sizes);
+      }
+      settings.endGroup();
+      settings.endGroup();
+    } else {
+      {
+        GroupScope _gs(settings, groupPrefix);
+        settings.beginGroup(layoutModeKey(layoutMode_));
+        for (int i = 0; i < (int)currentSplitters_.size(); ++i) {
+          QSplitter *s = currentSplitters_[i];
+          if (!s) continue;
+          const QVariant v = settings.value(QString::number(i));
+          if (!v.isValid()) continue;
+          const QVariantList vl = v.toList();
+          if (vl.isEmpty()) continue;
+          QList<int> sizes;
+          sizes.reserve(vl.size());
+          for (const QVariant &qv : vl) sizes << qv.toInt();
+          if (!sizes.isEmpty()) s->setSizes(sizes);
+        }
+        settings.endGroup();
+      }
     }
   }
 
@@ -1451,7 +1722,6 @@ private slots:
     }
   }
 
-  // Open the DOM patches manager dialog
   void showDomPatchesManager() {
     // Create the manager as a modeless dialog so the user can interact with
     // DevTools / frames while editing patches. Reapply patches when the
@@ -1467,6 +1737,79 @@ private slots:
     });
   }
 
+  /**
+   * Update this window's Window menu to list all open windows
+   */
+  void updateWindowMenu() {
+    if (!windowMenu_) return;
+    windowMenu_->clear();
+    QAction *minimizeAct = windowMenu_->addAction(tr("Minimize"));
+    minimizeAct->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_M));
+    connect(minimizeAct, &QAction::triggered, this, &QWidget::showMinimized);
+    QAction *closeAct = windowMenu_->addAction(tr("Close Window"));
+    closeAct->setShortcut(QKeySequence::Close);
+    connect(closeAct, &QAction::triggered, this, &QWidget::close);
+    windowMenu_->addSeparator();
+
+    // Use the pre-created icons (created once at app startup) so we don't
+    // redraw the icon pixmaps on every menu update.
+
+    // List all windows
+    int idx = 1;
+    for (SplitWindow *w : g_windows) {
+      if (!w) continue;
+
+      // Build the visible title (no prefix); icon column will show diamond.
+      QString title = w->windowTitle();
+      if (title.isEmpty()) title = QStringLiteral("Window %1").arg(idx);
+
+      const bool minimized = (w->windowState() & Qt::WindowMinimized) || w->isMinimized();
+      const bool active = w->isActiveWindow();
+
+      // Use the title as-is; the icon column displays the minimized
+      // indicator (diamond) so we don't need a text-prefix fallback.
+      QAction *a = windowMenu_->addAction(title);
+
+      // Use our own icons instead of the platform check column so the
+      // diamond and active indicator share the same icon column.
+      a->setCheckable(false);
+
+      QIcon useIcon = g_windowEmptyIcon;
+      if (active && minimized) useIcon = g_windowCheckDiamondIcon;
+      else if (active) useIcon = g_windowCheckIcon;
+      else if (minimized) useIcon = g_windowDiamondIcon;
+      a->setIcon(useIcon);
+      a->setIconVisibleInMenu(true);
+
+      connect(a, &QAction::triggered, this, [w]() {
+        if (!w) return;
+        // Ensure the target window is visible and not minimized before
+        // attempting to raise/activate it. On macOS simply calling
+        // raise()/activateWindow() may not be sufficient when a window
+        // is hidden or minimized.
+        if (!w->isVisible()) w->show();
+        if (w->isMinimized()) w->showNormal();
+        w->raise();
+        w->activateWindow();
+      });
+      ++idx;
+    }
+  }
+
+protected:
+  /**
+   * Catch window state changes (minimize/restore) so we can refresh the
+   * Window menu indicators immediately when the user minimizes or restores
+   * a window. This avoids waiting for focus changes or other signals.
+   */
+  void changeEvent(QEvent *event) override {
+    if (event && event->type() == QEvent::WindowStateChange) {
+      // Refresh menus so the minimized/active indicators update.
+      rebuildAllWindowMenus();
+    }
+    QMainWindow::changeEvent(event);
+  }
+
 private:
   QWidget *central_ = nullptr;
   QVBoxLayout *layout_ = nullptr;
@@ -1477,14 +1820,356 @@ private:
   std::vector<QSplitter*> currentSplitters_;
   QWebEngineView *sharedDevToolsView_ = nullptr;
   bool restoredOnStartup_ = false;
+  QString windowId_;
+  QMenu *windowMenu_ = nullptr;
 };
+
+/**
+ * Global windows list for single-instance multiple-window support
+ */
+std::vector<SplitWindow*> g_windows;
+
+// Pre-created icons used by the Window menu so we don't draw them on every
+// menu rebuild. Created once after QApplication is initialized.
+QIcon g_windowDiamondIcon;
+QIcon g_windowEmptyIcon;
+QIcon g_windowCheckIcon; // checkmark for active window
+QIcon g_windowCheckDiamondIcon; // composite check + diamond for active+minimized
+
+static void createWindowMenuIcons() {
+  QPixmap emptyPix(16, 16);
+  emptyPix.fill(Qt::transparent);
+  g_windowEmptyIcon = QIcon(emptyPix);
+
+  QPixmap diamondPix(16, 16);
+  diamondPix.fill(Qt::transparent);
+  QPainter p(&diamondPix);
+  p.setRenderHint(QPainter::Antialiasing);
+  QPen pen(QApplication::palette().color(QPalette::WindowText));
+  pen.setWidthF(1.25);
+  p.setPen(pen);
+  p.setBrush(Qt::NoBrush);
+  const QPoint center(8, 8);
+  const int s = 4;
+  QPolygon poly;
+  poly << QPoint(center.x(), center.y() - s)
+       << QPoint(center.x() + s, center.y())
+       << QPoint(center.x(), center.y() + s)
+       << QPoint(center.x() - s, center.y());
+  p.drawPolygon(poly);
+  p.end();
+  g_windowDiamondIcon = QIcon(diamondPix);
+
+  // Draw a simple checkmark icon for the active window indicator.
+  QPixmap checkPix(16, 16);
+  checkPix.fill(Qt::transparent);
+  {
+    QPainter pc(&checkPix);
+    pc.setRenderHint(QPainter::Antialiasing);
+    QPen penCheck(QApplication::palette().color(QPalette::WindowText));
+    penCheck.setWidthF(1.6);
+    penCheck.setCapStyle(Qt::RoundCap);
+    penCheck.setJoinStyle(Qt::RoundJoin);
+    pc.setPen(penCheck);
+    // Simple two-segment check mark
+    const QPointF p1(4.0, 8.5);
+    const QPointF p2(7.0, 11.5);
+    const QPointF p3(12.0, 5.0);
+    pc.drawLine(p1, p2);
+    pc.drawLine(p2, p3);
+    pc.end();
+  }
+  g_windowCheckIcon = QIcon(checkPix);
+
+  // Composite: check on left, diamond on right so both indicators can
+  // appear in a single icon column when the window is active and minimized.
+  QPixmap comboPix(16, 16);
+  comboPix.fill(Qt::transparent);
+  {
+    QPainter p2(&comboPix);
+    p2.setRenderHint(QPainter::Antialiasing);
+    // draw check (left side) reusing the check pen
+    QPen penCheck(QApplication::palette().color(QPalette::WindowText));
+    penCheck.setWidthF(1.6);
+    penCheck.setCapStyle(Qt::RoundCap);
+    penCheck.setJoinStyle(Qt::RoundJoin);
+    p2.setPen(penCheck);
+    p2.drawLine(QPointF(3.0, 8.5), QPointF(6.5, 11.5));
+    p2.drawLine(QPointF(6.5, 11.5), QPointF(10.5, 5.0));
+
+    // draw diamond on right (slightly smaller to fit)
+    QPen penDiamond(QApplication::palette().color(QPalette::WindowText));
+    penDiamond.setWidthF(1.25);
+    p2.setPen(penDiamond);
+    p2.setBrush(Qt::NoBrush);
+    const QPoint center(12, 8);
+    const int s = 3;
+    QPolygon poly2;
+    poly2 << QPoint(center.x(), center.y() - s)
+          << QPoint(center.x() + s, center.y())
+          << QPoint(center.x(), center.y() + s)
+          << QPoint(center.x() - s, center.y());
+    p2.drawPolygon(poly2);
+    p2.end();
+  }
+  g_windowCheckDiamondIcon = QIcon(comboPix);
+}
+
+static void rebuildAllWindowMenus() {
+  for (SplitWindow *w : g_windows) {
+    if (w) {
+      // Ensure window titles reflect current ordering and counts before
+      // rebuilding each window's Window menu.
+      w->updateWindowTitle();
+      w->refreshWindowMenu();
+    }
+  }
+}
+
+/**
+ * Atomically migrate legacy global keys into a per-window group. This
+ * function is idempotent and writes a persistent marker "migrationDone"
+ * so it only runs once. It also writes a "migratedWindowIds" index so
+ * startups on platforms where nested childGroups() may be unreliable can
+ * still discover migrated windows.
+ */
+static void performLegacyMigration() {
+  QSettings settings;
+  // Fast path: if we've already completed migration, skip. We check both
+  // a QSettings marker and a filesystem marker to avoid relying solely on
+  // the native settings backend which on some platforms can behave
+  // unexpectedly during early startup.
+  const QString markerPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + QDir::separator() + QStringLiteral("migration_done_v1");
+  if (QFile::exists(markerPath) || settings.value(QStringLiteral("migrationDone"), false).toBool()) return;
+
+  // Detect legacy presence
+  const QStringList legacyAddresses = settings.value("addresses").toStringList();
+  const bool hasLegacy = !legacyAddresses.isEmpty() || settings.contains("windowGeometry") || settings.contains("windowState");
+  if (!hasLegacy) {
+    // mark migration as done so we don't repeatedly check
+    settings.setValue("migrationDone", true);
+    settings.sync();
+    return;
+  }
+
+  // Repair pass: some older code wrote literal keys with slashes (e.g.
+  // "windows/<id>/addresses") which won't appear as childGroups() and
+  // therefore confuse detection. Move any such slash-containing keys
+  // into proper nested groups before proceeding.
+  const QStringList allKeys = settings.allKeys();
+  QStringList collectedWindowIds;
+  for (const QString &fullKey : allKeys) {
+    if (!fullKey.startsWith(QStringLiteral("windows/"))) continue;
+    // Example fullKey: "windows/<id>/addresses" or "windows/<id>/splitterSizes/vertical/0"
+    const QStringList parts = fullKey.split('/', Qt::SkipEmptyParts);
+    if (parts.size() < 2) continue; // malformed
+    // last element is the actual key name
+    const QString last = parts.last();
+    QString groupPath = parts.mid(0, parts.size() - 1).join('/'); // "windows/<id>"
+    QVariant val = settings.value(fullKey);
+    QSettings tmp;
+    {
+      GroupScope _gs(tmp, groupPath);
+      tmp.setValue(last, val);
+    }
+    tmp.sync();
+    qDebug() << "performLegacyMigration: moved literal key into group:" << fullKey << "->" << groupPath << "/" << last;
+    // remove the flattened key
+    settings.remove(fullKey);
+    // remember any ids we repaired
+    const QStringList gpParts = groupPath.split('/', Qt::SkipEmptyParts);
+    if (gpParts.size() >= 2) collectedWindowIds << gpParts[1];
+  }
+
+  // If we repaired any windows from literal keys, write them into the
+  // migratedWindowIds index so startup can discover them even if
+  // childGroups() behaves oddly on this platform.
+  if (!collectedWindowIds.isEmpty()) {
+    // deduplicate
+    std::sort(collectedWindowIds.begin(), collectedWindowIds.end());
+    collectedWindowIds.erase(std::unique(collectedWindowIds.begin(), collectedWindowIds.end()), collectedWindowIds.end());
+    settings.setValue("migratedWindowIds", collectedWindowIds);
+  }
+
+  // Re-check presence of per-window groups now that we've repaired any
+  // flattened keys. If windows exist, we don't need to copy the legacy
+  // global keys into a new group — they were already restored above.
+  {
+    QSettings probe;
+    probe.beginGroup(QStringLiteral("windows"));
+    const QStringList ids = probe.childGroups();
+    probe.endGroup();
+    if (!ids.isEmpty()) {
+      qDebug() << "performLegacyMigration: found existing window groups after repair:" << ids;
+      settings.setValue("migrationDone", true);
+      settings.sync();
+      // create filesystem marker as a durable guard
+      QFile f(markerPath);
+      if (f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        f.write(QDateTime::currentDateTimeUtc().toString(Qt::ISODate).toUtf8());
+        f.close();
+      }
+      return;
+    }
+  }
+
+  // If we still have legacy top-level values (addresses/windowGeometry/windowState)
+  // migrate them into a newly-created per-window group and index it.
+  const QStringList legacyKeys = { QStringLiteral("addresses"), QStringLiteral("layoutMode"), QStringLiteral("windowGeometry"), QStringLiteral("windowState") };
+  const QStringList legacyAddressesList = settings.value("addresses").toStringList();
+  const bool stillHasLegacy = !legacyAddressesList.isEmpty() || settings.contains("windowGeometry") || settings.contains("windowState");
+  if (stillHasLegacy) {
+    const QString newId = QUuid::createUuid().toString();
+    QSettings dst;
+    {
+      GroupScope _gs(dst, QStringLiteral("windows/%1").arg(newId));
+      dst.setValue("addresses", legacyAddressesList);
+      dst.setValue("layoutMode", settings.value("layoutMode"));
+      if (settings.contains("windowGeometry")) dst.setValue("windowGeometry", settings.value("windowGeometry"));
+      if (settings.contains("windowState")) dst.setValue("windowState", settings.value("windowState"));
+    }
+    dst.sync();
+    qDebug() << "performLegacyMigration: migrated legacy keys into window id=" << newId;
+
+    // Remove legacy top-level keys
+    for (const QString &k : legacyKeys) {
+      if (settings.contains(k)) {
+        settings.remove(k);
+        qDebug() << "performLegacyMigration: removed legacy key:" << k;
+      }
+    }
+
+    // Update migrated index to include the new id
+    QStringList existing = settings.value("migratedWindowIds").toStringList();
+    existing << newId;
+    settings.setValue("migratedWindowIds", existing);
+  }
+
+  // Mark migration done both in QSettings and with the filesystem marker.
+  settings.setValue("migrationDone", true);
+  settings.sync();
+  QFile mf(markerPath);
+  if (mf.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+    mf.write(QDateTime::currentDateTimeUtc().toString(Qt::ISODate).toUtf8());
+    mf.close();
+  }
+}
+
+
+/**
+ * Update this window's title to the form "Group X (N)".
+ */
+void SplitWindow::updateWindowTitle() {
+  // Determine 1-based index in g_windows
+  int idx = 0;
+  for (size_t i = 0; i < g_windows.size(); ++i) {
+    if (g_windows[i] == this) { idx = (int)i + 1; break; }
+  }
+  const int count = (int)addresses_.size();
+  QString title = QStringLiteral("Group %1 (%2)").arg(idx).arg(count);
+  if (DEBUG_SHOW_WINDOW_ID && !windowId_.isEmpty()) {
+      title += QStringLiteral(" [%1]").arg(windowId_);//_.left(8));
+  }
+  setWindowTitle(title);
+}
+
+void SplitWindow::focusFirstAddress() {
+  if (!central_) return;
+  // Find the first SplitFrameWidget and its QLineEdit child
+  SplitFrameWidget *frame = central_->findChild<SplitFrameWidget *>();
+  if (!frame) return;
+  QLineEdit *le = frame->findChild<QLineEdit *>();
+  if (!le) return;
+  le->setFocus(Qt::OtherFocusReason);
+  // select all so typing replaces existing content
+  le->selectAll();
+}
+
+/**
+ * Helper to create and show a new SplitWindow; keeps ownership in g_windows.
+ */
+static void createAndShowWindow(const QString &initialAddress, const QString &windowId) {
+  QString id = windowId;
+  if (id.isEmpty()) id = QUuid::createUuid().toString();
+  // Construct the window with an id. The SplitWindow constructor will
+  // attempt to restore saved per-window addresses/layout if the id exists.
+  SplitWindow *w = new SplitWindow(id);
+  qDebug() << "createAndShowWindow: created window id=" << id << " initialAddress=" << (initialAddress.isEmpty() ? QString("(none)") : initialAddress);
+  w->show();
+  if (!windowId.isEmpty()) {
+    // This is a restored window: the constructor already loaded addresses
+    // and rebuilt sections. Do not reset or override addresses here.
+  } else if (!initialAddress.isEmpty()) {
+    // New ephemeral window requested with an initial address: set it.
+    QMetaObject::invokeMethod(w, [w, initialAddress]() {
+      SplitFrameWidget *frame = w->findChild<SplitFrameWidget *>();
+      if (frame) frame->setAddress(initialAddress);
+    }, Qt::QueuedConnection);
+  } else {
+    // New window without an initial address: ensure a single empty section.
+    QMetaObject::invokeMethod(w, "resetToSingleEmptySection", Qt::QueuedConnection);
+  }
+  // Track the window and remove it from the list when destroyed so we don't keep dangling pointers.
+  g_windows.push_back(w);
+  qDebug() << "createAndShowWindow: tracked window id=" << id << " g_windows.count=" << g_windows.size();
+  // Update the new window's title now that it is tracked in g_windows.
+  w->updateWindowTitle();
+  QObject::connect(w, &QObject::destroyed, qApp, [w]() {
+    g_windows.erase(std::remove_if(g_windows.begin(), g_windows.end(), [w](SplitWindow *x){ return x == w; }), g_windows.end());
+    rebuildAllWindowMenus();
+  });
+
+  // Ensure all Window menus show the latest list
+  rebuildAllWindowMenus();
+}
 
 int main(int argc, char **argv) {
   QCoreApplication::setOrganizationName(QStringLiteral("NightVsKnight"));
   QCoreApplication::setOrganizationDomain("nightvsknight.com");
   QCoreApplication::setApplicationName(QStringLiteral("LiveStreamMultiChat"));
 
+  // Single-instance guard (activation-only): if another process is already
+  // running, ask it to activate/focus itself and exit. We do NOT forward
+  // command-line args in this simplified mode -- we only request activation.
+  const QString serverName = QStringLiteral("NightVsKnight_LiveStreamMultiChat_server");
+  {
+    QLocalSocket probe;
+    const int maxAttempts = 6;
+    bool connected = false;
+    for (int attempt = 0; attempt < maxAttempts; ++attempt) {
+      probe.connectToServer(serverName);
+      if (probe.waitForConnected(250)) { connected = true; break; }
+      // give the primary a moment to finish starting up
+      QThread::msleep(100);
+    }
+    if (connected) {
+      // Send a tiny activation message (server will ignore payload content).
+      const QByteArray msg = QByteArrayLiteral("ACT");
+      probe.write(msg);
+      probe.flush();
+      probe.waitForBytesWritten(200);
+      return 0; // exit second instance
+    }
+  }
+
   QApplication app(argc, argv);
+
+  // Ensure menu action icons are shown on platforms (like macOS) where
+  // the Qt default may hide icons in menus.
+  app.setAttribute(Qt::AA_DontShowIconsInMenus, false);
+
+  // Refresh Window menus when application focus or state changes so the
+  // active/minimized indicators remain accurate across platforms.
+  QObject::connect(&app, &QApplication::focusChanged, [](QObject *, QObject *) {
+    rebuildAllWindowMenus();
+  });
+  QObject::connect(qApp, &QGuiApplication::applicationStateChanged, [](Qt::ApplicationState) {
+    rebuildAllWindowMenus();
+  });
+
+  // Create the small icons used by the Window menu once here (after the
+  // QApplication exists so palette colors are available).
+  createWindowMenuIcons();
 
   const QString appDataLocation = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
   qDebug() << "Startup paths:";
@@ -1492,8 +2177,86 @@ int main(int argc, char **argv) {
   QSettings settings;
   qDebug() << "  QSettings - format:" << settings.format() << "-> fileName:" << settings.fileName();
 
-  SplitWindow w;
-  w.show();
+  // Perform idempotent legacy migration if required. This centralizes
+  // migration behavior (atomic, logged, and only runs once).
+  performLegacyMigration();
+
+  // Restore saved windows from last session if present. We store per-window
+  // data under QSettings group "windows/<id>".
+  {
+    QSettings s;
+    s.beginGroup(QStringLiteral("windows"));
+    QStringList ids = s.childGroups();
+    s.endGroup();
+    qDebug() << "Startup: persisted window ids:" << ids;
+    if (ids.isEmpty()) {
+      // Fallback: check explicit migrated index (written during migration)
+      const QStringList fallback = settings.value("migratedWindowIds").toStringList();
+      if (!fallback.isEmpty()) {
+        qDebug() << "Startup: using migratedWindowIds fallback:" << fallback;
+        for (const QString &id : fallback) createAndShowWindow(QString(), id);
+      } else {
+        createAndShowWindow();
+      }
+    } else {
+      for (const QString &id : std::as_const(ids)) {
+        qDebug() << "Startup: restoring window id=" << id;
+        createAndShowWindow(QString(), id);
+      }
+    }
+  }
+
+  // Create and start the QLocalServer for subsequent instances to connect
+  // and ask this process to open windows/URLs.
+  QLocalServer *localServer = new QLocalServer(&app);
+  // Remove any stale server socket before listening
+  QLocalServer::removeServer(serverName);
+  if (!localServer->listen(serverName)) {
+    qWarning() << "Failed to listen on local server:" << localServer->errorString();
+  } else {
+    QObject::connect(localServer, &QLocalServer::newConnection, &app, [localServer]() {
+      QLocalSocket *client = localServer->nextPendingConnection();
+      if (!client) return;
+      QObject::connect(client, &QLocalSocket::disconnected, client, &QLocalSocket::deleteLater);
+      QObject::connect(client, &QLocalSocket::readyRead, client, [client]() {
+        // Activation-only: ignore any payload content and just raise/activate
+        // an existing window in this process.
+        QMetaObject::invokeMethod(qApp, []() {
+          if (!g_windows.empty()) {
+            SplitWindow *best = nullptr;
+            // prefer an already-active window, otherwise first available
+            for (SplitWindow *w : g_windows) {
+              if (!w) continue;
+              if (w->isActiveWindow()) { best = w; break; }
+              if (!best) best = w;
+            }
+            if (best) {
+              if (!best->isVisible()) best->show();
+              if (best->isMinimized()) best->showNormal();
+              best->raise();
+              best->activateWindow();
+            }
+          }
+        }, Qt::QueuedConnection);
+        client->disconnectFromServer();
+      });
+    });
+  }
+
+  // Before quitting, persist state for all open windows so the session
+  // (window geometry, layout, addresses and splitter sizes) is restored
+  // on next launch. This will create per-window groups for windows that
+  // did not previously have a persistent id.
+  QObject::connect(&app, &QCoreApplication::aboutToQuit, []() {
+    QSettings s;
+    qDebug() << "aboutToQuit: saving" << g_windows.size() << "windows to QSettings";
+    for (SplitWindow *w : g_windows) {
+      if (!w) continue;
+      // Use the new public helper to save each window's persistent state.
+      w->savePersistentStateToSettings();
+    }
+  });
+
   return app.exec();
 }
 
