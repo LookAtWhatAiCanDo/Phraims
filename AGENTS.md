@@ -1,13 +1,13 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-The Qt GUI lives entirely in `main.cpp`, anchored by `SplitWindow` and nested `SplitFrameWidget` classes that manage splitter layouts, navigation chrome, and persistence. `CMakeLists.txt` configures one executable target, `QtSplitterHello`, and wires in the Qt Widgets and WebEngine modules. Generated binaries and intermediates belong in `build/`; feel free to create parallel out-of-source build directories (`build-debug`, `build-release`) to keep artifacts separated. User preferences persist through `QSettings` under the `NightVsKnight/LiveStreamMultiChat` domain, so evolve keys carefully to avoid breaking stored layouts or address lists.
+The Qt GUI lives entirely in `main.cpp`, anchored by `SplitWindow` and nested `SplitFrameWidget` classes that manage splitter layouts, navigation chrome, and persistence. `CMakeLists.txt` configures one executable target, `Phraim`, and wires in the Qt Widgets and WebEngine modules. Generated binaries and intermediates belong in `build/`; feel free to create parallel out-of-source build directories (`build-debug`, `build-release`) to keep artifacts separated. User preferences persist through `QSettings` under the `swooby/Phraim` domain, so evolve keys carefully to avoid breaking stored layouts or address lists.
 
 ## Build, Test, and Development Commands
 ```bash
 cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/Qt        # configure; point to Qt6 if not on PATH
-cmake --build build --config Release                       # compile the QtSplitterHello executable
-./build/QtSplitterHello                                    # launch the multi-chat splitter UI
+cmake --build build --config Release                       # compile the Phraim executable
+./build/Phraim                                             # launch the multi-chat splitter UI
 cmake --build build --target clean                         # remove compiled objects when needed
 ```
 Use the same `build` tree for iterative work; regenerate only when toggling build options or Qt installs.

@@ -1,16 +1,23 @@
-Qt6 Splitter Hello
-==================
+Phraim
+======
 
-Simple Qt6 Widgets demo that divides the main area into N equal sections.
+Phraim is a web browser that divides each window into multiple resizable frames.
+
+Settings are stored at:
+- macOS:
+  - Preferences: /Users/pv/Library/Preferences/com.swooby.Phraim.plist
+  - Profile: /Users/pv/Library/Application Support/swooby/Phraim
+- Windows: TBD
+- Linux: TBD
 
 Build (requires Qt6 development libraries and a working CMake):
 
 ```bash
 # from repository root
-mkdir -p prototypes/qt-splitter/build && cd prototypes/qt-splitter/build
+mkdir -p build && cd build
 cmake ..
 cmake --build . --config Release
-./QtSplitterHello
+./Phraim
 ```
 
 Controls:
@@ -62,8 +69,9 @@ Privacy & safety
 - Patches run only locally in this application. They are not synced or sent anywhere.
 
 ## TODOs
-- NAME AND ICON!
 - AI based Window titles based on content
+- Command-T to "Open New Tab" (really "Phraim")
+- On new frame, focus cursor to address bar edit
 - Improve Menu
   - Make similar to Chrome, VSCode, OBS, etc.
   - GOOD GRIEF LOTS OF OPTIONS!  

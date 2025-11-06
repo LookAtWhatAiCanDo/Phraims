@@ -2124,14 +2124,14 @@ static void createAndShowWindow(const QString &initialAddress, const QString &wi
 }
 
 int main(int argc, char **argv) {
-  QCoreApplication::setOrganizationName(QStringLiteral("NightVsKnight"));
-  QCoreApplication::setOrganizationDomain("nightvsknight.com");
-  QCoreApplication::setApplicationName(QStringLiteral("LiveStreamMultiChat"));
+  QCoreApplication::setOrganizationName(QStringLiteral("swooby"));
+  QCoreApplication::setOrganizationDomain("swooby.com");
+  QCoreApplication::setApplicationName(QStringLiteral("Phraim"));
 
   // Single-instance guard (activation-only): if another process is already
   // running, ask it to activate/focus itself and exit. We do NOT forward
   // command-line args in this simplified mode -- we only request activation.
-  const QString serverName = QStringLiteral("NightVsKnight_LiveStreamMultiChat_server");
+  const QString serverName = QStringLiteral("swooby_Phraim_server");
   {
     QLocalSocket probe;
     const int maxAttempts = 6;
@@ -2153,6 +2153,7 @@ int main(int argc, char **argv) {
   }
 
   QApplication app(argc, argv);
+  app.setWindowIcon(QIcon(QStringLiteral(":/icons/phraim.ico")));
 
   // Ensure menu action icons are shown on platforms (like macOS) where
   // the Qt default may hide icons in menus.

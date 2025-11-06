@@ -1,4 +1,5 @@
 
 .qtcreator/
-
 build/
+
+.DS_Store
