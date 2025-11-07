@@ -34,11 +34,22 @@ cmake --build . --config Release
 ./Phraim
 ```
 
-Controls:
-- Use the + / - toolbar buttons to change the number of sections.
-- Each section is equally sized using layout stretch factors.
+## Controls and Shortcuts
+
+### Frame Management
+- **New Frame**: Click the `+` button on any frame or press `⌘T` (Command-T on macOS) or `Ctrl+T` (other platforms) to add a new frame after the currently focused frame.  
+  When adding a new frame the address bar is automatically focused so you can start typing immediately.
+- **Remove Frame**: Click the `-` button on any frame to remove it (confirmation required)
+- **Reorder Frames**: Use the `↑` and `↓` buttons to move frames up or down
 - **Double-click any splitter handle** to instantly resize the two adjacent panes to equal sizes (50/50 split).
-- When adding a new frame with the + button, the address bar is automatically focused so you can start typing immediately.
+
+### Window Management
+- **New Window**: Press `⌘N` (Command-N on macOS) or `Ctrl+N` (other platforms)
+- **Toggle DevTools**: Press `F12` to toggle developer tools for the focused frame
+
+### Other Controls
+- Each section is equally sized using layout stretch factors
+- Use the Layout menu to switch between Grid, Vertical, and Horizontal arrangements
 
 ## DOM Patches
 

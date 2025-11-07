@@ -21,6 +21,7 @@
 #include <QSettings>
 #include <QSplitter>
 #include <QStandardPaths>
+#include <QTimer>
 #include <QUuid>
 #include <QVBoxLayout>
 #include <QWebEngineProfile>
@@ -36,11 +37,15 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
 
   QSettings settings;
 
-  // File menu: New Window (Cmd/Ctrl+N)
+  // File menu: New Window (Cmd/Ctrl+N), New Frame (Cmd/Ctrl+T)
   auto *fileMenu = menuBar()->addMenu(tr("File"));
   QAction *newWindowAction = fileMenu->addAction(tr("New Window"));
   newWindowAction->setShortcut(QKeySequence::New);
   connect(newWindowAction, &QAction::triggered, this, [](bool){ createAndShowWindow(); });
+  
+  QAction *newFrameAction = fileMenu->addAction(tr("New Frame"));
+  newFrameAction->setShortcut(QKeySequence::AddTab);  // Command-T on macOS, Ctrl+T elsewhere
+  connect(newFrameAction, &QAction::triggered, this, &SplitWindow::onNewFrameShortcut);
 
   // No global toolbar; per-frame + / - buttons control sections.
 
@@ -418,6 +423,64 @@ void SplitWindow::toggleDevToolsForFocusedFrame() {
       }
     }
   }
+}
+
+void SplitWindow::onNewFrameShortcut() {
+  // Find the currently focused frame (similar to toggleDevToolsForFocusedFrame)
+  QWidget *fw = QApplication::focusWidget();
+  SplitFrameWidget *target = nullptr;
+  while (fw) {
+    if (auto *f = qobject_cast<SplitFrameWidget *>(fw)) {
+      target = f;
+      break;
+    }
+    fw = fw->parentWidget();
+  }
+  // If no frame is focused, use the first frame
+  if (!target && central_) target = central_->findChild<SplitFrameWidget *>();
+  
+  if (!target) {
+    qDebug() << "onNewFrameShortcut: no target frame found";
+    return;
+  }
+  
+  // Get the logical index of the focused frame
+  const QVariant v = target->property("logicalIndex");
+  if (!v.isValid()) {
+    qDebug() << "onNewFrameShortcut: target has no logicalIndex property";
+    return;
+  }
+  int pos = v.toInt();
+  
+  // Insert a new empty frame after the focused frame
+  addresses_.insert(addresses_.begin() + pos + 1, QString());
+  
+  // Persist addresses
+  QSettings settings;
+  QStringList list;
+  for (const auto &a : addresses_) list << a;
+  settings.setValue("addresses", list);
+  
+  // Rebuild UI with the updated addresses_
+  rebuildSections((int)addresses_.size());
+  
+  // Provide a visual cue by briefly flashing the divider handle
+  // Find the splitter that contains the newly added frame
+  if (!currentSplitters_.empty()) {
+    for (QSplitter *splitter : currentSplitters_) {
+      if (!splitter) continue;
+      // Flash effect: briefly change the handle width to make it visible
+      QTimer::singleShot(0, this, [splitter]() {
+        const int origWidth = splitter->handleWidth();
+        splitter->setHandleWidth(origWidth + 4);
+        QTimer::singleShot(150, [splitter, origWidth]() {
+          splitter->setHandleWidth(origWidth);
+        });
+      });
+    }
+  }
+  
+  qDebug() << "onNewFrameShortcut: added new frame after position" << pos;
 }
 
 void SplitWindow::onPlusFromFrame(SplitFrameWidget *who) {
