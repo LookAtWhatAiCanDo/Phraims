@@ -1,7 +1,7 @@
 # Modularization Summary
 
 ## Overview
-This refactoring extracted classes from a single 2,265-line `main.cpp` file into dedicated header files (with separate .cpp files for larger implementations), improving code organization and maintainability.
+This refactoring extracted classes from a single 2,265-line `main.cpp` file into dedicated header files for simpler implementations and separate .h/.cpp files for larger implementations, improving code organization and maintainability.
 
 ## File Structure
 
