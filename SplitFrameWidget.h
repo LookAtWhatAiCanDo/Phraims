@@ -2,6 +2,7 @@
 
 #include <QFrame>
 #include <QPointer>
+#include <QWebEngineFullScreenRequest>
 
 class QVBoxLayout;
 class QLineEdit;

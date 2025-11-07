@@ -12,7 +12,6 @@
 #include <QToolButton>
 #include <QUrl>
 #include <QVBoxLayout>
-#include <QWebEngineFullScreenRequest>
 #include <QWebEngineHistory>
 #include <QWebEnginePage>
 #include <QWebEngineProfile>
