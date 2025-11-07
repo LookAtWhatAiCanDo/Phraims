@@ -16,6 +16,7 @@
 #include <QLineEdit>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QPointer>
 #include <QScreen>
 #include <QScrollArea>
 #include <QSettings>
@@ -470,11 +471,16 @@ void SplitWindow::onNewFrameShortcut() {
     for (QSplitter *splitter : currentSplitters_) {
       if (!splitter) continue;
       // Flash effect: briefly change the handle width to make it visible
-      QTimer::singleShot(0, this, [splitter]() {
-        const int origWidth = splitter->handleWidth();
-        splitter->setHandleWidth(origWidth + 4);
-        QTimer::singleShot(150, [splitter, origWidth]() {
-          splitter->setHandleWidth(origWidth);
+      // Use QPointer to ensure splitter is still valid when timer fires
+      QPointer<QSplitter> splitterGuard(splitter);
+      QTimer::singleShot(0, this, [splitterGuard]() {
+        if (!splitterGuard) return;
+        const int origWidth = splitterGuard->handleWidth();
+        splitterGuard->setHandleWidth(origWidth + 4);
+        QTimer::singleShot(150, [splitterGuard, origWidth]() {
+          if (splitterGuard) {
+            splitterGuard->setHandleWidth(origWidth);
+          }
         });
       });
     }
