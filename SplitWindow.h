@@ -121,6 +121,15 @@ private slots:
   void toggleDevToolsForFocusedFrame();
   
   /**
+   * @brief Adds a new frame after the currently focused frame.
+   *
+   * Finds the focused frame (or uses the first frame if none focused) and
+   * inserts a new empty frame immediately after it. Provides a brief visual
+   * cue by flashing the splitter handle. This is triggered by Command-T/Ctrl+T.
+   */
+  void onNewFrameShortcut();
+  
+  /**
    * @brief Handles the plus button click from a frame.
    * @param who The frame that emitted the signal
    *
@@ -213,6 +222,14 @@ private slots:
    * indicators (checkmark for active, diamond for minimized).
    */
   void updateWindowMenu();
+
+  /**
+   * @brief Handles the global Close (Cmd/Ctrl+W) shortcut.
+   *
+   * If multiple frames are present, this will close the last (end) frame.
+   * If only one frame remains, it will close the window.
+   */
+  void onCloseShortcut();
 
 protected:
   /**

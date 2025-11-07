@@ -32,6 +32,24 @@ Use the same `build` tree for iterative work; regenerate only when toggling buil
 ## Coding Style & Naming Conventions
 Follow the existing C++17 + Qt style: two-space indentation, opening braces on the same line, and `PascalCase` for classes (`SplitFrameWidget`). Member variables carry a trailing underscore (`backBtn_`), free/static helpers use `camelCase`, and enums stay scoped within their owning classes. Prefer Qt containers and utilities over STL when interacting with Qt APIs, and keep comments focused on non-obvious behavior (signals, persistence, or ownership nuances).
 
+## Keyboard Shortcuts & Navigation
+The application implements standard keyboard shortcuts for common operations:
+
+### Frame Management Shortcuts
+- **Command-T** (macOS) / **Ctrl+T** (other platforms): Add new frame after the currently focused frame
+- **Command-N** (macOS) / **Ctrl+N** (other platforms): Open a new window
+- **F12**: Toggle DevTools for the focused frame
+- **Command-W** (macOS) / **Ctrl+W** (other platforms): Close window
+- **Command-M** (macOS) / **Ctrl+M** (other platforms): Minimize window
+
+### Shortcut Implementation Guidelines
+When adding new keyboard shortcuts:
+- Use `QKeySequence` standard key sequences when available (e.g., `QKeySequence::AddTab` for Command-T)
+- Register shortcuts in the appropriate menu (File, View, Layout, Tools, Window) for discoverability
+- Provide visual feedback when shortcuts are triggered (e.g., brief animation or status message)
+- Ensure shortcuts don't interfere with text input fields by using the main window context
+- Document new shortcuts in both `README.md` and this file
+
 ## Documentation & Code Comments
 All code should be thoroughly documented using Doxygen-style comments:
 

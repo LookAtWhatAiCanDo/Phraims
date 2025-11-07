@@ -16,11 +16,13 @@
 #include <QLineEdit>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QPointer>
 #include <QScreen>
 #include <QScrollArea>
 #include <QSettings>
 #include <QSplitter>
 #include <QStandardPaths>
+#include <QTimer>
 #include <QUuid>
 #include <QVBoxLayout>
 #include <QWebEngineProfile>
@@ -30,17 +32,28 @@
 
 bool DEBUG_SHOW_WINDOW_ID = 0;
 
+// Visual feedback constants for the frame addition flash effect
+namespace {
+  constexpr int FLASH_HANDLE_WIDTH_INCREASE = 4;  // pixels to increase splitter handle width
+  constexpr int FLASH_DURATION_MS = 150;          // milliseconds to show the flash
+}
+
+
 SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow(parent), windowId_(windowId) {
   setWindowTitle(QCoreApplication::applicationName());
   resize(800, 600);
 
   QSettings settings;
 
-  // File menu: New Window (Cmd/Ctrl+N)
+  // File menu: New Window (Cmd/Ctrl+N), New Frame (Cmd/Ctrl+T)
   auto *fileMenu = menuBar()->addMenu(tr("File"));
   QAction *newWindowAction = fileMenu->addAction(tr("New Window"));
   newWindowAction->setShortcut(QKeySequence::New);
   connect(newWindowAction, &QAction::triggered, this, [](bool){ createAndShowWindow(); });
+  
+  QAction *newFrameAction = fileMenu->addAction(tr("New Frame"));
+  newFrameAction->setShortcut(QKeySequence::AddTab);  // Command-T on macOS, Ctrl+T elsewhere
+  connect(newFrameAction, &QAction::triggered, this, &SplitWindow::onNewFrameShortcut);
 
   // No global toolbar; per-frame + / - buttons control sections.
 
@@ -130,7 +143,7 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
   connect(minimizeAct, &QAction::triggered, this, &QWidget::showMinimized);
   QAction *closeAct = windowMenu_->addAction(tr("Close Window"));
   closeAct->setShortcut(QKeySequence::Close);
-  connect(closeAct, &QAction::triggered, this, &QWidget::close);
+  connect(closeAct, &QAction::triggered, this, &SplitWindow::onCloseShortcut);
   windowMenu_->addSeparator();
 
   // central scroll area to allow many sections
@@ -418,6 +431,69 @@ void SplitWindow::toggleDevToolsForFocusedFrame() {
       }
     }
   }
+}
+
+void SplitWindow::onNewFrameShortcut() {
+  // Find the currently focused frame (similar to toggleDevToolsForFocusedFrame)
+  QWidget *fw = QApplication::focusWidget();
+  SplitFrameWidget *target = nullptr;
+  while (fw) {
+    if (auto *f = qobject_cast<SplitFrameWidget *>(fw)) {
+      target = f;
+      break;
+    }
+    fw = fw->parentWidget();
+  }
+  // If no frame is focused, use the first frame
+  if (!target && central_) target = central_->findChild<SplitFrameWidget *>();
+  
+  if (!target) {
+    qDebug() << "onNewFrameShortcut: no target frame found";
+    return;
+  }
+  
+  // Get the logical index of the focused frame
+  const QVariant v = target->property("logicalIndex");
+  if (!v.isValid()) {
+    qDebug() << "onNewFrameShortcut: target has no logicalIndex property";
+    return;
+  }
+  int pos = v.toInt();
+  
+  // Insert a new empty frame after the focused frame
+  addresses_.insert(addresses_.begin() + pos + 1, QString());
+  
+  // Persist addresses
+  QSettings settings;
+  QStringList list;
+  for (const auto &a : addresses_) list << a;
+  settings.setValue("addresses", list);
+  
+  // Rebuild UI with the updated addresses_
+  rebuildSections((int)addresses_.size());
+  
+  // Provide a visual cue by briefly flashing the divider handle
+  // Find the splitter that contains the newly added frame
+  if (!currentSplitters_.empty()) {
+    for (QSplitter *splitter : currentSplitters_) {
+      if (!splitter) continue;
+      // Flash effect: briefly change the handle width to make it visible
+      // Use QPointer to ensure splitter is still valid when timer fires
+      QPointer<QSplitter> splitterGuard(splitter);
+      QTimer::singleShot(0, this, [splitterGuard]() {
+        if (!splitterGuard) return;
+        const int origWidth = splitterGuard->handleWidth();
+        splitterGuard->setHandleWidth(origWidth + FLASH_HANDLE_WIDTH_INCREASE);
+        QTimer::singleShot(FLASH_DURATION_MS, [splitterGuard, origWidth]() {
+          if (splitterGuard) {
+            splitterGuard->setHandleWidth(origWidth);
+          }
+        });
+      });
+    }
+  }
+  
+  qDebug() << "onNewFrameShortcut: added new frame after position" << pos;
 }
 
 void SplitWindow::onPlusFromFrame(SplitFrameWidget *who) {
@@ -806,6 +882,24 @@ void SplitWindow::showDomPatchesManager() {
   });
 }
 
+void SplitWindow::onCloseShortcut() {
+  // If more than one frame exists, close the last/end frame instead of the window.
+  if ((int)addresses_.size() > 1) {
+    qDebug() << "onCloseShortcut: removing last frame (Cmd-W pressed)";
+    // Remove the last address and rebuild UI. Persist the addresses.
+    addresses_.pop_back();
+    QSettings settings;
+    QStringList list;
+    for (const auto &a : addresses_) list << a;
+    settings.setValue("addresses", list);
+    rebuildSections((int)addresses_.size());
+  } else {
+    // Only one frame remains: close the window as normal.
+    qDebug() << "onCloseShortcut: single frame, closing window";
+    this->close();
+  }
+}
+
 void SplitWindow::updateWindowMenu() {
   if (!windowMenu_) return;
   windowMenu_->clear();
@@ -814,7 +908,7 @@ void SplitWindow::updateWindowMenu() {
   connect(minimizeAct, &QAction::triggered, this, &QWidget::showMinimized);
   QAction *closeAct = windowMenu_->addAction(tr("Close Window"));
   closeAct->setShortcut(QKeySequence::Close);
-  connect(closeAct, &QAction::triggered, this, &QWidget::close);
+  connect(closeAct, &QAction::triggered, this, &SplitWindow::onCloseShortcut);
   windowMenu_->addSeparator();
 
   // Use the pre-created icons (created once at app startup) so we don't
