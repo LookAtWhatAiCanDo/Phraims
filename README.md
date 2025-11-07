@@ -3,6 +3,18 @@ Phraim
 
 Phraim is a web browser that divides each window into multiple resizable frames.
 
+## Code Organization
+
+The codebase is organized into modular components for better maintainability:
+
+- **main.cpp** - Application entry point and initialization
+- **SplitWindow** - Main window class with menu bar and splitter management
+- **SplitFrameWidget** - Individual web view frame with navigation controls
+- **MyWebEngineView** - Custom QWebEngineView with context menu support
+- **DomPatch** - DOM patching system for CSS customizations
+- **EscapeFilter** - Fullscreen escape key handler
+- **Utils** - Shared utilities and helper functions
+
 Settings are stored at:
 - macOS:
   - Preferences: /Users/pv/Library/Preferences/com.swooby.Phraim.plist
