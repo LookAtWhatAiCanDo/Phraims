@@ -45,17 +45,25 @@ For simple, small classes (`EscapeFilter` and `MyWebEngineView`), implementation
 - Signal/slot connections preserved exactly as before
 
 ### Build System
-CMakeLists.txt updated to compile source files (header-only classes don't need compilation):
+CMakeLists.txt updated to explicitly list all header and source files for better IDE integration:
 ```cmake
 qt_add_executable(Phraim
   main.cpp
+  Utils.h
   Utils.cpp
+  EscapeFilter.h
+  MyWebEngineView.h
+  DomPatch.h
   DomPatch.cpp
+  SplitFrameWidget.h
   SplitFrameWidget.cpp
+  SplitWindow.h
   SplitWindow.cpp
   ${app_icon_macos}  # macOS only
 )
 ```
+
+Note: While AUTOMOC automatically finds headers with Q_OBJECT, explicitly listing them provides better IDE support and makes dependencies clear.
 
 ## Verification Checklist
 
@@ -88,22 +96,24 @@ qt_add_executable(Phraim
 
 ## Rollback Plan
 
-If issues are discovered, the original monolithic implementation is preserved in `main_old.cpp`:
+If issues are discovered during testing, you can revert to the original state using git:
 
 ```bash
-# Rollback steps:
-mv main.cpp main_modular.cpp
-mv main_old.cpp main.cpp
-# Update CMakeLists.txt to use only main.cpp
-# Remove new .h/.cpp files from CMakeLists.txt
+# Rollback steps (revert all modularization commits):
+git revert <commit-range>
+# Or reset to the commit before modularization:
+git reset --hard <pre-modularization-commit>
+# Then rebuild:
 cmake --build build --clean-first
 ```
+
+Note: The original monolithic `main.cpp` (2,265 lines) has been replaced with the modular structure. Git history preserves the complete original implementation if needed.
 
 ## Documentation Updates
 
 - **AGENTS.md**: Updated with new module structure
 - **README.md**: Added code organization section
-- **.gitignore**: Excludes main_old.cpp backup
+- **CMakeLists.txt**: Lists all header and source files explicitly
 
 ## Benefits
 
