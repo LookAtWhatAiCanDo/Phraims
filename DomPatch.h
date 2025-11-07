@@ -7,6 +7,9 @@
 class QListWidget;
 class QWebEnginePage;
 
+/** @brief Debug flag to enable verbose DOM patch logging */
+extern bool DEBUG_DOM_PATCH_VERBOSE;
+
 /**
  * @brief Represents a DOM patch that applies CSS rules to matching web pages.
  *
@@ -26,9 +29,6 @@ struct DomPatch {
  * @return Absolute path to dom-patches.json in the app data directory
  */
 QString domPatchesPath();
-
-/** @brief Debug flag to enable verbose DOM patch logging */
-extern bool DEBUG_DOM_PATCH_VERBOSE;
 
 /**
  * @brief Escapes a string for safe embedding in JavaScript code.
