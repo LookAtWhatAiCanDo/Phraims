@@ -12,50 +12,54 @@ on:
 jobs:
   build-macos:
     runs-on: macos-latest
-    
+
     permissions:
       contents: read
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
-      
+
       - name: Install Qt6
         uses: jurplel/install-qt-action@v4.3.0
         with:
           version: '6.10.0'
           host: 'mac'
           target: 'desktop'
-          arch: 'clang_64'
+          #arch: 'universal'
           modules: 'qtpositioning qtwebchannel qtwebengine'
           cache: false
-      
-      - name: Configure CMake
+
+      - name: Create universal build directory
+        run: mkdir build_universal
+
+      - name: Configure CMake for Universal Binary
+        shell: bash
         run: |
-          cmake -S . -B build \
+          cmake -S . -B build_universal \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH=$Qt6_DIR
-      
+            -DCMAKE_PREFIX_PATH=$Qt6_DIR \
+            -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" \
+            -G "Ninja"
+
       - name: Build
-        run: cmake --build build --config Release
-      
-      - name: Prepare artifacts
+        run: cmake --build build_universal --config Release
+
+      - name: Create app bundle
         run: |
-          mkdir -p artifacts
-          # CMake may place the app in build/ or build/Release/ depending on generator
-          if [ -d "build/Phraim.app" ]; then
-            cp -r build/Phraim.app artifacts/
-          elif [ -d "build/Release/Phraim.app" ]; then
-            cp -r build/Release/Phraim.app artifacts/
-          else
-            echo "Error: Could not find Phraim.app"
-            find build -name "Phraim.app" -type d
-            exit 1
-          fi
+          export PATH=$Qt6_DIR/bin:$PATH
+          macdeployqt build_universal/Phraim.app -dmg
       
-      - name: Upload macOS app bundle
+      # - name: Upload macOS app
+      #   uses: actions/upload-artifact@v5
+      #   with:
+      #     name: Phraim-macOS-universal
+      #     path: build_universal/Phraim.app
+      #     retention-days: 90
+
+      - name: Upload macOS dmg
         uses: actions/upload-artifact@v5
         with:
-          name: Phraim-macOS
-          path: artifacts/Phraim.app
+          name: Phraim-macOS-universal
+          path: build_universal/Phraim.dmg
           retention-days: 90
