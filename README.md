@@ -100,6 +100,7 @@ Privacy & safety
 The web view context menu provides quick access to common actions:
 - **Navigation**: Back, Forward, Reload
 - **Editing**: Cut, Copy, Paste, Select All
+- **Copy Link Address**: Copies the fully encoded hyperlink under the cursor to the clipboard
 - **Translate…**: Translate selected text or the entire page using Google Translate
   - If text is selected, opens translation of the selected text
   - If no text is selected, opens full page translation

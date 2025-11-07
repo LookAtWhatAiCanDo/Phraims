@@ -1,8 +1,10 @@
 #pragma once
 
+#include <QClipboard>
 #include <QContextMenuEvent>
-#include <QMenu>
 #include <QDebug>
+#include <QGuiApplication>
+#include <QMenu>
 #include <QUrl>
 #include <QUrlQuery>
 #include <QWebEngineView>
@@ -49,6 +51,11 @@ protected:
     QMenu *menu = new QMenu(this);
     auto page = this->page();
 
+    // TODO: Place all of the below menu items in a better order...
+
+    QAction *translate = nullptr;
+    QAction *copyLink = nullptr;
+
     // Common navigation actions
     if (page) {
       if (auto *a = page->action(QWebEnginePage::Back))    menu->addAction(a);
@@ -64,10 +71,9 @@ protected:
       // If no page, still provide basic menu entries (empty placeholders)
     }
     menu->addSeparator();
-    // Translate action
-    auto translate = menu->addAction(tr("Translate…"));
+    translate = menu->addAction(tr("Translate…"));
+    copyLink = menu->addAction(tr("Copy Link Address"));
     menu->addSeparator();
-    // Inspect...
     auto inspect = menu->addAction(tr("Inspect…"));
 
     // Show the menu after we try to select a contiguous run of characters
@@ -128,32 +134,98 @@ protected:
     if(!r) {
       // As a last resort, try elementFromPoint and locate a nearby text node
       var el = document.elementFromPoint(x,y);
-      if(!el) return '';
-      var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
-      var node = null;
-      while(walker.nextNode()){
-        node = walker.currentNode;
-        var rng = document.createRange();
-        rng.selectNodeContents(node);
-        var b = rng.getBoundingClientRect();
-        if(x >= b.left && x <= b.right && y >= b.top && y <= b.bottom){
-          r = document.createRange();
-          r.setStart(node, 0);
-          r.setEnd(node, 0);
-          break;
-        }
+      if(!el) return ['',''];
+      // Prefer selecting a sensible ancestor element that contains text
+      // (e.g., <a>, <div>, <span>). Walk up from the element at the point
+      // and pick the first ancestor with non-empty text content and a
+      // bounding box that's not effectively the whole page. This avoids
+      // selecting the entire document while still selecting meaningful
+      // element text when right-clicking inside elements.
+      var pick = null;
+      var n = el;
+      while(n && n !== document.body){
+        try{
+          var t = (n.textContent || '').trim();
+          if(t.length > 0){
+            var br = n.getBoundingClientRect();
+            if(br.width > 0 && br.height > 0 && br.width < window.innerWidth * 0.9 && br.height < window.innerHeight * 0.9){
+              pick = n;
+              break;
+            }
+          }
+        }catch(e){ /* ignore */ }
+        n = n.parentElement;
       }
-      if(!r) return '';
+      if (pick) {
+        r = document.createRange();
+        r.selectNodeContents(pick);
+      } else {
+        var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
+        var node = null;
+        while(walker.nextNode()){
+          node = walker.currentNode;
+          var rng = document.createRange();
+          rng.selectNodeContents(node);
+          var b = rng.getBoundingClientRect();
+          if(x >= b.left && x <= b.right && y >= b.top && y <= b.bottom){
+            r = document.createRange();
+            r.setStart(node, 0);
+            r.setEnd(node, 0);
+            break;
+          }
+        }
+        if(!r) return ['',''];
+      }
     }
 
     var node = r.startContainer;
     var offset = r.startOffset;
+
+    // If the caret landed inside a TEXT_NODE whose parent element contains
+    // only text (no element children), prefer selecting the full parent
+    // element's contents. This makes right-clicking inside inline spans
+    // (like the YouTube title span) select the whole span text instead of
+    // only a single word.
+    if (node.nodeType === Node.TEXT_NODE) {
+      var pElem = node.parentElement;
+      if (pElem && pElem.childElementCount === 0) {
+        try {
+          var rangeElem = document.createRange();
+          rangeElem.selectNodeContents(pElem);
+          var selElem = window.getSelection();
+          selElem.removeAllRanges();
+          selElem.addRange(rangeElem);
+          var hrefElem = (pElem.closest ? pElem.closest('a') : (function(n){ while(n){ if(n.tagName && n.tagName.toLowerCase()=='a') return n; n=n.parentElement;} return null; })(pElem));
+          var hrefVal = hrefElem && hrefElem.href ? hrefElem.href : '';
+          return [selElem.toString(), hrefVal];
+        } catch(e) { /* fall through to regular logic */ }
+      }
+    }
     if(node.nodeType !== Node.TEXT_NODE){
+      // If the startContainer is an element that contains text, prefer
+      // selecting that element's full text (avoids partial selection).
+      if (node.nodeType === Node.ELEMENT_NODE){
+        var cand = node;
+        try{
+          var t2 = (cand.textContent || '').trim();
+          var br2 = cand.getBoundingClientRect();
+          if (t2.length > 0 && br2.width > 0 && br2.width < window.innerWidth * 0.9 && br2.height < window.innerHeight * 0.9){
+            var rangeElem = document.createRange();
+            rangeElem.selectNodeContents(cand);
+            var selElem = window.getSelection();
+            selElem.removeAllRanges();
+            selElem.addRange(rangeElem);
+            var hrefElem = (cand.closest ? cand.closest('a') : null);
+            var hrefVal = hrefElem && hrefElem.href ? hrefElem.href : '';
+            return [selElem.toString(), hrefVal];
+          }
+        }catch(e){ /* ignore and fall back */ }
+      }
       // walk up to find a text node child
       var found = null;
       var walker2 = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, null, false);
       if(walker2.nextNode()) found = walker2.currentNode;
-      if(!found) return '';
+      if(!found) return ['',''];
       node = found;
       offset = 0;
     }
@@ -172,30 +244,99 @@ protected:
     var sel = window.getSelection();
     sel.removeAllRanges();
     sel.addRange(range2);
-    return sel.toString();
-  }catch(e){ return ''; }
+    // Also detect an enclosing link at the point so the host can enable
+    // or hide the "Copy Link Address" action.
+    var elAt = document.elementFromPoint(x,y);
+    var a = null;
+    if (elAt) {
+      a = elAt.closest ? elAt.closest('a') : (function(n){ while(n){ if(n.tagName && n.tagName.toLowerCase()=='a') return n; n=n.parentElement;} return null; })(elAt);
+    }
+    var href = (a && a.href) ? a.href : '';
+    return [sel.toString(), href];
+  }catch(e){ return ['','']; }
 })(%1, %2);
 )JS").arg(QString::number(docPos.x())).arg(QString::number(docPos.y()));
 
     // Run the JS and then show the menu so the selection is visible when the
     // user sees the context menu.
     qDebug() << "MyWebEngineView::contextMenuEvent: executing JS to expand selection (truncated)";
-    page->runJavaScript(js, [this, menu, globalPos, widgetPos, inspect, translate](const QVariant &result){
-      qDebug() << "MyWebEngineView::contextMenuEvent: JS result selection='" << result.toString() << "'";
-      QAction *selected = menu->exec(globalPos);
-      if (selected == inspect) {
-        qDebug() << "MyWebEngineView::contextMenuEvent: inspect selected";
-        // devToolsRequested expects the QWebEnginePage and local pos
-        emit devToolsRequested(this->page(), widgetPos);
-      } else if (selected == translate) {
-        qDebug() << "MyWebEngineView::contextMenuEvent: translate selected";
-        handleTranslateAction();
-      } else if (!selected) {
-        qDebug() << "MyWebEngineView::contextMenuEvent: menu dismissed (no selection)";
+    page->runJavaScript(js, [this, page, menu, globalPos, widgetPos, inspect, translate, copyLink](const QVariant &result){
+      // Expecting an array: [selectionString, hrefString]
+      QString selText;
+      QString foundHref;
+      if (result.type() == QVariant::List) {
+        auto list = result.toList();
+        if (list.size() >= 1) selText = list.value(0).toString();
+        if (list.size() >= 2) foundHref = list.value(1).toString();
       } else {
-        qDebug() << "MyWebEngineView::contextMenuEvent: other action selected";
+        // older fallback: single string
+        selText = result.toString();
       }
-      menu->deleteLater();
+      qDebug() << "MyWebEngineView::contextMenuEvent: JS result selection='" << selText << "' href='" << foundHref << "'";
+
+      // Hide the Copy Link action if no href was found at the click point.
+      if (foundHref.isEmpty()) {
+        copyLink->setVisible(false);
+      } else {
+        copyLink->setVisible(true);
+      }
+
+      // To avoid the underlying page receiving mouse events while the
+      // context menu is open (which can cause accidental navigation or
+      // refresh on some pages), create a temporary overlay that absorbs
+      // pointer events. Remove it after the menu is dismissed.
+      QString overlayCreate = QString::fromUtf8(R"JS((function(){
+        try{
+          if(window.__copilot_ctx_overlay) return '';
+          var d = document.createElement('div');
+          d.id = '__copilot_ctx_overlay';
+          d.style.position = 'fixed';
+          d.style.top = '0'; d.style.left = '0';
+          d.style.width = '100%'; d.style.height = '100%';
+          d.style.zIndex = 2147483647;
+          d.style.background = 'transparent';
+          d.style.pointerEvents = 'auto';
+          document.body.appendChild(d);
+        }catch(e){}
+        return '';
+      })();)JS");
+      QString overlayRemove = QString::fromUtf8(R"JS((function(){
+        try{ var d = document.getElementById('__copilot_ctx_overlay'); if(d && d.parentNode) d.parentNode.removeChild(d); }catch(e){}
+      })();)JS");
+
+      page->runJavaScript(overlayCreate, [this, page, menu, globalPos, widgetPos, inspect, translate, copyLink, selText, foundHref, overlayRemove](const QVariant &){
+        qDebug() << "MyWebEngineView::contextMenuEvent: overlay injected";
+        QAction *selected = menu->exec(globalPos);
+        // remove overlay after menu dismissed
+        page->runJavaScript(overlayRemove, [this](const QVariant &){ qDebug() << "MyWebEngineView::contextMenuEvent: overlay removed"; });
+        if (selected == inspect) {
+          qDebug() << "MyWebEngineView::contextMenuEvent: inspect selected";
+          emit devToolsRequested(this->page(), widgetPos);
+        } else if (selected == translate) {
+          qDebug() << "MyWebEngineView::contextMenuEvent: translate selected (selText='" << selText << "')";
+          if (!selText.isEmpty()) {
+            QUrl translateUrl;
+            QUrlQuery query;
+            query.addQueryItem("text", selText);
+            query.addQueryItem("op", "translate");
+            translateUrl.setUrl("https://translate.google.com/");
+            translateUrl.setQuery(query);
+            if (translateUrl.isValid()) {
+              emit translateRequested(translateUrl);
+            }
+          } else {
+            handleTranslateAction();
+          }
+        } else if (selected == copyLink) {
+          qDebug() << "MyWebEngineView::contextMenuEvent: copyLink selected, href='" << foundHref << "'";
+          if (!foundHref.isEmpty()) copyLinkAddress(QUrl(foundHref));
+        } else if (!selected) {
+          qDebug() << "MyWebEngineView::contextMenuEvent: menu dismissed (no selection)";
+        } else {
+          qDebug() << "MyWebEngineView::contextMenuEvent: other action selected";
+        }
+        menu->deleteLater();
+      });
     });
 
     // accept so the default menu doesn't show
@@ -253,5 +394,16 @@ private:
     if (translateUrl.isValid()) {
       emit translateRequested(translateUrl);
     }
+  }
+
+  /**
+   * @brief Copies the provided link URL to the system clipboard.
+   * @param linkUrl The hyperlink to copy.
+   */
+  void copyLinkAddress(const QUrl &linkUrl) const {
+    if (!linkUrl.isValid()) return;
+    QClipboard *clipboard = QGuiApplication::clipboard();
+    if (!clipboard) return;
+    clipboard->setText(linkUrl.toString(QUrl::FullyEncoded));
   }
 };
