@@ -69,75 +69,25 @@ Privacy & safety
 - Patches run only locally in this application. They are not synced or sent anywhere.
 
 ## TODOs
-- AI based Window titles based on content
-- Command-T to "Open New Tab" (really "Phraim")
-- On new frame, focus cursor to address bar edit
 - Improve Menu
   - Make similar to Chrome, VSCode, OBS, etc.
   - GOOD GRIEF LOTS OF OPTIONS!  
     Is there a cross-platform design guideline for what an app should have?!?!
-  - Menu
-    - ...
-    - Window
-      - Minimize Cmd-M
-      - Zoom
-      - Fill Control-Globe-F
-      - Center Control-Globe-C
-      - ---
-      - Move & Resize
-        - Halves
-          - Left Control-Globe-Left
-          - Right Control-Globe-Right
-          - Top Control-Globe-Top
-          - Bottom Control-Globe-Bottom
-        - Quarters
-          - Top Left
-          - Top Right
-          - Bottom Left
-          - Bottom Right
-        - Arrange
-          - Left & Right Control-Shift-Globe-Left
-          - Right & Left Control-Shift-Globe-Right
-          - Top & Bottom Control-Shift-Globe-Up
-          - Bottom & Top Control-Shift-Globe-Down
-          - Quarters
-        - Return to Previous Size Control-Globe-R
-      - Full Screen Tile
-        - Left of Screen
-        - Right of Screen
-      - ---
-      - Remove Window from Set
-      - ---
-      - Switch Window...
-      - ---
-      - Bring All to Front
-      - ---
-      - ✓ Group 1
-      - ...
-      - ♢ Group N
-- Per-window Always On Top; app's multi-window always on top does not make much sense
 - Support multiple instances  
   Chromium may not support multiple instances **of a single profile**.
 - Add pre-set collections that can be quickly recalled  
   aka: Bookmarks/Groups
-- Address History
-  - Drop down history
-  - Auto-complete address from history
-- Proper popup support (window, tab [create new frame], dialog, "background"?)
-- Ability to drag windows together to frame up
-- Ability to drag frames around to reorganize/dock them?
 - Make a serious browser
   - Popup Menu
     - ...
     - Copy Link Address
     - ...
-  - Browse History
+    - Translate
+    - ...
+  - Browser History
   - Bookmarks
   - Passkeys!!
   - Downloads Shift-Command-J
-  - Extensions
+  - Extensions ([GitHub Issue #9](https://github.com/swooby/Phraim/issues/9))
   - Settings
   - ...; all expected things from a browser!
-
-### BUGs
-- App can play YouTube vids but not Kick or Twitch?
