@@ -223,6 +223,14 @@ private slots:
    */
   void updateWindowMenu();
 
+  /**
+   * @brief Handles the global Close (Cmd/Ctrl+W) shortcut.
+   *
+   * If multiple frames are present, this will close the last (end) frame.
+   * If only one frame remains, it will close the window.
+   */
+  void onCloseShortcut();
+
 protected:
   /**
    * @brief Handles window close events.

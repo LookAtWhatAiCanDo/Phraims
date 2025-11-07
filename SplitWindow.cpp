@@ -143,7 +143,7 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
   connect(minimizeAct, &QAction::triggered, this, &QWidget::showMinimized);
   QAction *closeAct = windowMenu_->addAction(tr("Close Window"));
   closeAct->setShortcut(QKeySequence::Close);
-  connect(closeAct, &QAction::triggered, this, &QWidget::close);
+  connect(closeAct, &QAction::triggered, this, &SplitWindow::onCloseShortcut);
   windowMenu_->addSeparator();
 
   // central scroll area to allow many sections
@@ -882,6 +882,24 @@ void SplitWindow::showDomPatchesManager() {
   });
 }
 
+void SplitWindow::onCloseShortcut() {
+  // If more than one frame exists, close the last/end frame instead of the window.
+  if ((int)addresses_.size() > 1) {
+    qDebug() << "onCloseShortcut: removing last frame (Cmd-W pressed)";
+    // Remove the last address and rebuild UI. Persist the addresses.
+    addresses_.pop_back();
+    QSettings settings;
+    QStringList list;
+    for (const auto &a : addresses_) list << a;
+    settings.setValue("addresses", list);
+    rebuildSections((int)addresses_.size());
+  } else {
+    // Only one frame remains: close the window as normal.
+    qDebug() << "onCloseShortcut: single frame, closing window";
+    this->close();
+  }
+}
+
 void SplitWindow::updateWindowMenu() {
   if (!windowMenu_) return;
   windowMenu_->clear();
@@ -890,7 +908,7 @@ void SplitWindow::updateWindowMenu() {
   connect(minimizeAct, &QAction::triggered, this, &QWidget::showMinimized);
   QAction *closeAct = windowMenu_->addAction(tr("Close Window"));
   closeAct->setShortcut(QKeySequence::Close);
-  connect(closeAct, &QAction::triggered, this, &QWidget::close);
+  connect(closeAct, &QAction::triggered, this, &SplitWindow::onCloseShortcut);
   windowMenu_->addSeparator();
 
   // Use the pre-created icons (created once at app startup) so we don't
