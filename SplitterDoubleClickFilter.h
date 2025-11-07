@@ -60,7 +60,8 @@ protected:
           }
         }
 
-        if (widgetIndex >= 0 && widgetIndex < splitter_->count() - 1) {
+        // Ensure we have valid adjacent widgets to resize
+        if (widgetIndex >= 0 && widgetIndex + 1 < splitter_->count()) {
           // Get the current sizes of all widgets
           QList<int> sizes = splitter_->sizes();
           
