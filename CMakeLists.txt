@@ -62,6 +62,22 @@ elseif(WIN32)
     SplitWindow.cpp
   )
 
+else()
+  # On Linux and other platforms
+  qt_add_executable(Phraim
+    main.cpp
+    Utils.h
+    Utils.cpp
+    EscapeFilter.h
+    MyWebEngineView.h
+    DomPatch.h
+    DomPatch.cpp
+    SplitFrameWidget.h
+    SplitFrameWidget.cpp
+    SplitWindow.h
+    SplitWindow.cpp
+  )
+
 endif()
 
 target_link_libraries(Phraim

@@ -235,6 +235,8 @@ void SplitFrameWidget::setProfile(QWebEngineProfile *profile) {
   // Log and (optionally) auto-grant feature permissions that some players
   // request when entering fullscreen, like mouse lock. This will help
   // diagnose permission-denied problems.
+  // Note: QWebEnginePermission API requires Qt 6.5+, commented out for compatibility with Qt 6.4
+  /*
   QObject::connect(page, &QWebEnginePage::permissionRequested, this, [page](QWebEnginePermission permissionRequest){
     auto origin = permissionRequest.origin();
     auto permissionType = permissionRequest.permissionType();
@@ -251,6 +253,7 @@ void SplitFrameWidget::setProfile(QWebEngineProfile *profile) {
     permissionRequest.deny();
     qDebug() << "SplitFrameWidget: denied" << permissionType << "for" << origin;
   });
+  */
   // Honor HTML5 fullscreen requests (e.g., YouTube fullscreen button).
   qDebug() << "SplitFrameWidget::setProfile: connecting fullScreenRequested for page" << page << "parent webview=" << webview_;
   QObject::connect(page, &QWebEnginePage::fullScreenRequested, this, &SplitFrameWidget::handleFullScreenRequested);
