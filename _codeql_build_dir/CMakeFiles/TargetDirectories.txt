@@ -1,6 +1,0 @@
-/home/runner/work/Phraim/Phraim/_codeql_build_dir/CMakeFiles/Phraim.dir
-/home/runner/work/Phraim/Phraim/_codeql_build_dir/CMakeFiles/Phraim_qmlimportscan.dir
-/home/runner/work/Phraim/Phraim/_codeql_build_dir/CMakeFiles/edit_cache.dir
-/home/runner/work/Phraim/Phraim/_codeql_build_dir/CMakeFiles/rebuild_cache.dir
-/home/runner/work/Phraim/Phraim/_codeql_build_dir/CMakeFiles/Phraim_autogen_timestamp_deps.dir
-/home/runner/work/Phraim/Phraim/_codeql_build_dir/CMakeFiles/Phraim_autogen.dir
