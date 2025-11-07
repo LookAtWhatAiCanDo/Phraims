@@ -1,7 +1,17 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-The Qt GUI lives entirely in `main.cpp`, anchored by `SplitWindow` and nested `SplitFrameWidget` classes that manage splitter layouts, navigation chrome, and persistence. `CMakeLists.txt` configures one executable target, `Phraim`, and wires in the Qt Widgets and WebEngine modules. Generated binaries and intermediates belong in `build/`; feel free to create parallel out-of-source build directories (`build-debug`, `build-release`) to keep artifacts separated. User preferences persist through `QSettings` under the `swooby/Phraim` domain, so evolve keys carefully to avoid breaking stored layouts or address lists.
+The codebase follows a modular structure with classes separated into dedicated header/source files:
+
+- **main.cpp** - Application entry point with QApplication initialization, single-instance guard, and window restoration logic
+- **SplitWindow.h/.cpp** - Main window class managing splitter layouts, menus, persistence, and multi-window coordination
+- **SplitFrameWidget.h/.cpp** - Individual frame widget for each split section with navigation controls and WebEngine view
+- **MyWebEngineView.h/.cpp** - Custom QWebEngineView subclass providing context menus and window creation behavior
+- **DomPatch.h/.cpp** - DOM patch structures, JSON persistence helpers, and patch management dialog
+- **EscapeFilter.h/.cpp** - Event filter for handling Escape key during fullscreen mode
+- **Utils.h/.cpp** - Shared utilities including GroupScope RAII helper, window menu icons, global window tracking, and legacy migration logic
+
+`CMakeLists.txt` configures the `Phraim` executable target and links Qt Widgets and WebEngine modules. Generated binaries and intermediates belong in `build/`; feel free to create parallel out-of-source build directories (`build-debug`, `build-release`) to keep artifacts separated. User preferences persist through `QSettings` under the `swooby/Phraim` domain, so evolve keys carefully to avoid breaking stored layouts or address lists.
 
 ## Build, Test, and Development Commands
 ```bash

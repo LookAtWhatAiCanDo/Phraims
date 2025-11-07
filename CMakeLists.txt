@@ -26,7 +26,7 @@ if(APPLE)
 
   qt_add_executable(Phraim
     MACOSX_BUNDLE
-    main_new.cpp
+    main.cpp
     Utils.cpp
     EscapeFilter.cpp
     MyWebEngineView.cpp
@@ -43,7 +43,7 @@ elseif(WIN32)
   set_target_properties(Phraim PROPERTIES WIN32_EXECUTABLE TRUE)
 
   qt_add_executable(Phraim
-    main_new.cpp
+    main.cpp
     Utils.cpp
     EscapeFilter.cpp
     MyWebEngineView.cpp
