@@ -1,0 +1,9 @@
+-rootPath
+/home/runner/work/Phraim/Phraim
+-cmake-output
+-output-file
+/home/runner/work/Phraim/Phraim/_codeql_build_dir/.qt_plugins/Qt6_QmlPlugins_Imports_Phraim.cmake
+-importPath
+/home/runner/work/Phraim/Phraim/_codeql_build_dir
+-importPath
+/usr/lib/x86_64-linux-gnu/qt6/qml
