@@ -37,6 +37,7 @@ cmake --build . --config Release
 Controls:
 - Use the + / - toolbar buttons or the spinbox to change the number of sections.
 - Each section is equally sized using layout stretch factors.
+- **Double-click any splitter handle** to instantly resize the two adjacent panes to equal sizes (50/50 split).
 
 ## DOM Patches
 

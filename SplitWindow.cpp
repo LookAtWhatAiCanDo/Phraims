@@ -2,6 +2,7 @@
 #include "SplitFrameWidget.h"
 #include "DomPatch.h"
 #include "Utils.h"
+#include "SplitterDoubleClickFilter.h"
 #include <cmath>
 #include <QActionGroup>
 #include <QApplication>
@@ -310,6 +311,11 @@ void SplitWindow::rebuildSections(int n) {
       for (int i = 0; i < n; ++i) sizes << 1;
       split->setSizes(sizes);
     }
+    // Install double-click handler for equal sizing after widgets/handles exist
+    {
+      SplitterDoubleClickFilter *filter = new SplitterDoubleClickFilter(split, this);
+      connect(filter, &SplitterDoubleClickFilter::splitterResized, this, &SplitWindow::onSplitterDoubleClickResized);
+    }
     container = split;
   } else { // Grid mode: nested splitters for resizable grid
     // Create a vertical splitter containing one horizontal splitter per row.
@@ -347,6 +353,11 @@ void SplitWindow::rebuildSections(int n) {
         QList<int> colSizes;
         for (int i = 0; i < itemsInRow; ++i) colSizes << 1;
         rowSplit->setSizes(colSizes);
+        // Install rowFilter now that the rowSplit and its handles exist
+        {
+          SplitterDoubleClickFilter *rowFilter = new SplitterDoubleClickFilter(rowSplit, this);
+          connect(rowFilter, &SplitterDoubleClickFilter::splitterResized, this, &SplitWindow::onSplitterDoubleClickResized);
+        }
       }
       outer->addWidget(rowSplit);
     }
@@ -356,6 +367,11 @@ void SplitWindow::rebuildSections(int n) {
       QList<int> rowSizes;
       for (int i = 0; i < actualRows; ++i) rowSizes << 1;
       outer->setSizes(rowSizes);
+    }
+    // Install outerFilter now that outer and its handles exist
+    {
+      SplitterDoubleClickFilter *outerFilter = new SplitterDoubleClickFilter(outer, this);
+      connect(outerFilter, &SplitterDoubleClickFilter::splitterResized, this, &SplitWindow::onSplitterDoubleClickResized);
     }
     container = outer;
   }
@@ -690,6 +706,15 @@ void SplitWindow::restoreSplitterSizes(const QString &groupPrefix) {
       }
       settings.endGroup();
     }
+  }
+}
+
+void SplitWindow::onSplitterDoubleClickResized() {
+  // Save splitter sizes after double-click resize
+  if (!windowId_.isEmpty()) {
+    saveCurrentSplitterSizes(QStringLiteral("windows/%1/splitterSizes").arg(windowId_));
+  } else {
+    saveCurrentSplitterSizes();
   }
 }
 
