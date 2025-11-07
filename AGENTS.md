@@ -11,7 +11,11 @@ The codebase follows a modular structure with classes separated into dedicated h
 - **EscapeFilter.h/.cpp** - Event filter for handling Escape key during fullscreen mode
 - **Utils.h/.cpp** - Shared utilities including GroupScope RAII helper, window menu icons, global window tracking, and legacy migration logic
 
-`CMakeLists.txt` configures the `Phraim` executable target and links Qt Widgets and WebEngine modules. Generated binaries and intermediates belong in `build/`; feel free to create parallel out-of-source build directories (`build-debug`, `build-release`) to keep artifacts separated. User preferences persist through `QSettings` under the `swooby/Phraim` domain, so evolve keys carefully to avoid breaking stored layouts or address lists.
+`CMakeLists.txt` configures the `Phraim` executable target and links Qt Widgets and WebEngine modules.
+Generated binaries and intermediates belong in `build/`; feel free to create
+parallel out-of-source build directories (`build-debug`, `build-release`) to keep artifacts separated.
+User preferences persist through `QSettings` under the `swooby/Phraim` domain,
+so evolve keys carefully to avoid breaking stored layouts or address lists.
 
 ## Build, Test, and Development Commands
 ```bash
