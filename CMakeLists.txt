@@ -31,6 +31,7 @@ if(APPLE)
     Utils.cpp
     EscapeFilter.h
     MyWebEngineView.h
+    SplitterDoubleClickFilter.h
     DomPatch.h
     DomPatch.cpp
     SplitFrameWidget.h
@@ -52,6 +53,7 @@ elseif(WIN32)
     Utils.cpp
     EscapeFilter.h
     MyWebEngineView.h
+    SplitterDoubleClickFilter.h
     DomPatch.h
     DomPatch.cpp
     SplitFrameWidget.h

@@ -9,9 +9,10 @@ The codebase follows a modular structure with classes separated into dedicated f
 - **MyWebEngineView.h** (header-only) - Custom QWebEngineView subclass providing context menus and window creation behavior
 - **DomPatch.h/.cpp** - DOM patch structures, JSON persistence helpers, and patch management dialog
 - **EscapeFilter.h** (header-only) - Event filter for handling Escape key during fullscreen mode
+- **SplitterDoubleClickFilter.h** (header-only) - Event filter for handling double-clicks on splitter handles to resize panes equally
 - **Utils.h/.cpp** - Shared utilities including GroupScope RAII helper, window menu icons, global window tracking, and legacy migration logic
 
-For simple classes like `EscapeFilter` and `MyWebEngineView`, implementations are kept in the header as inline methods to reduce file count and keep code/comments together.
+For simple classes like `EscapeFilter`, `MyWebEngineView`, and `SplitterDoubleClickFilter`, implementations are kept in the header as inline methods to reduce file count and keep code/comments together.
 
 `CMakeLists.txt` configures the `Phraim` executable target and links Qt Widgets and WebEngine modules.
 Generated binaries and intermediates belong in `build/`; feel free to create

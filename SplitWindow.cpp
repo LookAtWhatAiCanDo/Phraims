@@ -2,6 +2,7 @@
 #include "SplitFrameWidget.h"
 #include "DomPatch.h"
 #include "Utils.h"
+#include "SplitterDoubleClickFilter.h"
 #include <cmath>
 #include <QActionGroup>
 #include <QApplication>
@@ -286,6 +287,17 @@ void SplitWindow::rebuildSections(int n) {
     QSplitter *split = new QSplitter(layoutMode_ == Vertical ? Qt::Vertical : Qt::Horizontal);
     // track this splitter for state persistence
     currentSplitters_.push_back(split);
+    // Install double-click handler for equal sizing
+    SplitterDoubleClickFilter *filter = new SplitterDoubleClickFilter(split);
+    split->installEventFilter(filter);
+    connect(filter, &SplitterDoubleClickFilter::splitterResized, this, [this]() {
+      // Save splitter sizes after double-click resize
+      if (!windowId_.isEmpty()) {
+        saveCurrentSplitterSizes(QStringLiteral("windows/%1/splitterSizes").arg(windowId_));
+      } else {
+        saveCurrentSplitterSizes();
+      }
+    });
     for (int i = 0; i < n; ++i) {
       auto *frame = new SplitFrameWidget(i);
       // logicalIndex property used for mapping frame -> addresses_ index
@@ -315,6 +327,16 @@ void SplitWindow::rebuildSections(int n) {
     // Create a vertical splitter containing one horizontal splitter per row.
     QSplitter *outer = new QSplitter(Qt::Vertical);
     currentSplitters_.push_back(outer);
+    // Install double-click handler for equal sizing on outer splitter
+    SplitterDoubleClickFilter *outerFilter = new SplitterDoubleClickFilter(outer);
+    outer->installEventFilter(outerFilter);
+    connect(outerFilter, &SplitterDoubleClickFilter::splitterResized, this, [this]() {
+      if (!windowId_.isEmpty()) {
+        saveCurrentSplitterSizes(QStringLiteral("windows/%1/splitterSizes").arg(windowId_));
+      } else {
+        saveCurrentSplitterSizes();
+      }
+    });
     int rows = (int)std::ceil(std::sqrt((double)n));
     int cols = (n + rows - 1) / rows;
     int idx = 0;
@@ -324,6 +346,16 @@ void SplitWindow::rebuildSections(int n) {
       if (itemsInRow <= 0) break;
       QSplitter *rowSplit = new QSplitter(Qt::Horizontal);
       currentSplitters_.push_back(rowSplit);
+      // Install double-click handler for equal sizing on row splitters
+      SplitterDoubleClickFilter *rowFilter = new SplitterDoubleClickFilter(rowSplit);
+      rowSplit->installEventFilter(rowFilter);
+      connect(rowFilter, &SplitterDoubleClickFilter::splitterResized, this, [this]() {
+        if (!windowId_.isEmpty()) {
+          saveCurrentSplitterSizes(QStringLiteral("windows/%1/splitterSizes").arg(windowId_));
+        } else {
+          saveCurrentSplitterSizes();
+        }
+      });
       for (int c = 0; c < itemsInRow; ++c) {
         auto *frame = new SplitFrameWidget(idx);
         // logicalIndex property used for mapping frame -> addresses_ index

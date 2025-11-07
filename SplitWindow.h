@@ -13,6 +13,7 @@ class QWebEnginePage;
 class QSplitter;
 class QMenu;
 class SplitFrameWidget;
+class SplitterDoubleClickFilter;
 
 /** @brief Debug flag to show per-window UUID in title for debugging */
 extern bool DEBUG_SHOW_WINDOW_ID;
