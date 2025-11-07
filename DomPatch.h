@@ -27,14 +27,8 @@ struct DomPatch {
  */
 QString domPatchesPath();
 
-/**
- * @brief Checks if verbose DOM patch logging is enabled.
- * @return true if NVK_DOM_PATCH_VERBOSE environment variable is set to 1
- *
- * When enabled, prints injected JavaScript payloads for debugging.
- * Controlled by the environment variable NVK_DOM_PATCH_VERBOSE.
- */
-bool domPatchesVerbose();
+/** @brief Debug flag to enable verbose DOM patch logging (set via NVK_DOM_PATCH_VERBOSE env var) */
+extern bool DEBUG_DOM_PATCH_VERBOSE;
 
 /**
  * @brief Escapes a string for safe embedding in JavaScript code.

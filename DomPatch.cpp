@@ -19,25 +19,21 @@
 #include <QVBoxLayout>
 #include <QWebEnginePage>
 
+bool DEBUG_DOM_PATCH_VERBOSE = []() {
+  const QByteArray e = qgetenv("NVK_DOM_PATCH_VERBOSE");
+  if (!e.isEmpty()) {
+    bool ok = false;
+    const int v = QString::fromUtf8(e).toInt(&ok);
+    return ok && v;
+  }
+  return false;
+}();
+
 QString domPatchesPath() {
     const QString root = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     QDir().mkpath(root);
     const QString path = root + QDir::separator() + QStringLiteral("dom-patches.json");
     return path;
-}
-
-bool domPatchesVerbose() {
-  static int cached = -1;
-  if (cached != -1) return cached;
-  const QByteArray e = qgetenv("NVK_DOM_PATCH_VERBOSE");
-  if (!e.isEmpty()) {
-    bool ok = false;
-    const int v = QString::fromUtf8(e).toInt(&ok);
-    cached = (ok && v) ? 1 : 0;
-  } else {
-    cached = 0;
-  }
-  return cached;
 }
 
 QString escapeForJs(const QString &s) {
@@ -63,7 +59,7 @@ QList<DomPatch> loadDomPatches() {
     if (!cache.isEmpty()) {
       cache.clear();
       cacheMtime = QDateTime();
-      if (domPatchesVerbose()) qDebug() << "loadDomPatches: cleared cache (file removed):" << path;
+      if (DEBUG_DOM_PATCH_VERBOSE) qDebug() << "loadDomPatches: cleared cache (file removed):" << path;
     }
     return cache;
   }
@@ -76,7 +72,7 @@ QList<DomPatch> loadDomPatches() {
 
   QFile f(path);
   if (!f.open(QIODevice::ReadOnly)) {
-    if (domPatchesVerbose()) qDebug() << "loadDomPatches: cannot open" << path;
+    if (DEBUG_DOM_PATCH_VERBOSE) qDebug() << "loadDomPatches: cannot open" << path;
     cache.clear();
     cacheMtime = QDateTime();
     return cache;
@@ -85,7 +81,7 @@ QList<DomPatch> loadDomPatches() {
   f.close();
   const QJsonDocument d = QJsonDocument::fromJson(b);
   if (!d.isArray()) {
-    if (domPatchesVerbose()) qDebug() << "loadDomPatches: file exists but JSON is not an array:" << path;
+    if (DEBUG_DOM_PATCH_VERBOSE) qDebug() << "loadDomPatches: file exists but JSON is not an array:" << path;
     cache.clear();
     cacheMtime = QDateTime();
     return cache;
@@ -105,7 +101,7 @@ QList<DomPatch> loadDomPatches() {
     cache.push_back(p);
   }
   cacheMtime = mtime;
-  if (domPatchesVerbose()) qDebug() << "loadDomPatches: loaded" << cache.size() << "entries from" << path;
+  if (DEBUG_DOM_PATCH_VERBOSE) qDebug() << "loadDomPatches: loaded" << cache.size() << "entries from" << path;
   return cache;
 }
 
@@ -126,7 +122,7 @@ bool saveDomPatches(const QList<DomPatch> &patches) {
   if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) return false;
   f.write(d.toJson(QJsonDocument::Indented));
   f.close();
-  if (domPatchesVerbose()) qDebug() << "saveDomPatches: wrote" << arr.size() << "entries to" << path;
+  if (DEBUG_DOM_PATCH_VERBOSE) qDebug() << "saveDomPatches: wrote" << arr.size() << "entries to" << path;
   return true;
 }
 
@@ -202,7 +198,7 @@ void applyDomPatchesToPage(QWebEnginePage *page) {
       // High-level log for every applied patch (always enabled).
       qDebug() << "applyDomPatchesToPage: applying patch id=" << p.id << " url=" << urlStr << " selector=" << p.selector << " css=" << p.css;
       // Detailed injected-JS payload logging gated behind NVK_DOM_PATCH_VERBOSE.
-      if (domPatchesVerbose()) {
+      if (DEBUG_DOM_PATCH_VERBOSE) {
         qDebug() << "applyDomPatchesToPage: js=" << js;
       }
       page->runJavaScript(js);
