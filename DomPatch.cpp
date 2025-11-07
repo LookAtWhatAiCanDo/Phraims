@@ -19,15 +19,7 @@
 #include <QVBoxLayout>
 #include <QWebEnginePage>
 
-bool DEBUG_DOM_PATCH_VERBOSE = []() {
-  const QByteArray e = qgetenv("NVK_DOM_PATCH_VERBOSE");
-  if (!e.isEmpty()) {
-    bool ok = false;
-    const int v = QString::fromUtf8(e).toInt(&ok);
-    return ok && v;
-  }
-  return false;
-}();
+bool DEBUG_DOM_PATCH_VERBOSE = 0;
 
 QString domPatchesPath() {
     const QString root = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);

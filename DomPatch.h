@@ -27,7 +27,7 @@ struct DomPatch {
  */
 QString domPatchesPath();
 
-/** @brief Debug flag to enable verbose DOM patch logging (set via NVK_DOM_PATCH_VERBOSE env var) */
+/** @brief Debug flag to enable verbose DOM patch logging */
 extern bool DEBUG_DOM_PATCH_VERBOSE;
 
 /**
