@@ -199,6 +199,15 @@ private slots:
   void onFrameDevToolsRequested(SplitFrameWidget *who, QWebEnginePage *page, const QPoint &pos);
   
   /**
+   * @brief Handles translation request from a frame.
+   * @param who The frame that emitted the signal
+   * @param translateUrl The Google Translate URL to open
+   *
+   * Opens the translation URL in a new SplitWindow.
+   */
+  void onFrameTranslateRequested(SplitFrameWidget *who, const QUrl &translateUrl);
+  
+  /**
    * @brief Creates and attaches the shared DevTools view to a page.
    * @param page The QWebEnginePage to inspect
    *

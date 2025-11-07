@@ -312,6 +312,7 @@ void SplitWindow::rebuildSections(int n) {
       connect(frame, &SplitFrameWidget::upClicked, this, &SplitWindow::onUpFromFrame);
       connect(frame, &SplitFrameWidget::downClicked, this, &SplitWindow::onDownFromFrame);
       connect(frame, &SplitFrameWidget::devToolsRequested, this, &SplitWindow::onFrameDevToolsRequested);
+      connect(frame, &SplitFrameWidget::translateRequested, this, &SplitWindow::onFrameTranslateRequested);
       frame->setMinusEnabled(n > 1);
       frame->setUpEnabled(i > 0);
       frame->setDownEnabled(i < n - 1);
@@ -355,6 +356,7 @@ void SplitWindow::rebuildSections(int n) {
         connect(frame, &SplitFrameWidget::upClicked, this, &SplitWindow::onUpFromFrame);
         connect(frame, &SplitFrameWidget::downClicked, this, &SplitWindow::onDownFromFrame);
         connect(frame, &SplitFrameWidget::devToolsRequested, this, &SplitWindow::onFrameDevToolsRequested);
+        connect(frame, &SplitFrameWidget::translateRequested, this, &SplitWindow::onFrameTranslateRequested);
         frame->setMinusEnabled(n > 1);
         frame->setUpEnabled(idx > 0);
         frame->setDownEnabled(idx < n - 1);
@@ -821,6 +823,13 @@ void SplitWindow::onFrameDevToolsRequested(SplitFrameWidget *who, QWebEnginePage
     sharedDevToolsView_->activateWindow();
   }
   page->triggerAction(QWebEnginePage::InspectElement);
+}
+
+void SplitWindow::onFrameTranslateRequested(SplitFrameWidget *who, const QUrl &translateUrl) {
+  Q_UNUSED(who);
+  if (!translateUrl.isValid()) return;
+  // Open the translation URL in a new Phraim window
+  createAndShowWindow(translateUrl.toString());
 }
 
 void SplitWindow::createAndAttachSharedDevToolsForPage(QWebEnginePage *page) {
