@@ -50,26 +50,27 @@ protected:
     if (event->type() == QEvent::MouseButtonDblClick) {
       QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
       if (mouseEvent->button() == Qt::LeftButton && splitter_) {
-        // Find which handle was double-clicked
-        int handleIndex = -1;
-        for (int i = 0; i < splitter_->count() - 1; ++i) {
-          if (splitter_->handle(i + 1) == obj) {
-            handleIndex = i;
+        // Find which handle was double-clicked.
+        // QSplitter handles are indexed from 1, where handle(i) separates widgets i-1 and i.
+        int widgetIndex = -1;
+        for (int i = 1; i < splitter_->count(); ++i) {
+          if (splitter_->handle(i) == obj) {
+            widgetIndex = i - 1;  // Widget index for the left/top widget of this handle
             break;
           }
         }
 
-        if (handleIndex >= 0 && handleIndex < splitter_->count() - 1) {
+        if (widgetIndex >= 0 && widgetIndex < splitter_->count() - 1) {
           // Get the current sizes of all widgets
           QList<int> sizes = splitter_->sizes();
           
           // Calculate the total space for the two adjacent widgets
-          int totalSize = sizes[handleIndex] + sizes[handleIndex + 1];
+          int totalSize = sizes[widgetIndex] + sizes[widgetIndex + 1];
           
           // Distribute equally
           int halfSize = totalSize / 2;
-          sizes[handleIndex] = halfSize;
-          sizes[handleIndex + 1] = totalSize - halfSize;  // Use remainder to avoid rounding issues
+          sizes[widgetIndex] = halfSize;
+          sizes[widgetIndex + 1] = totalSize - halfSize;  // Use remainder to avoid rounding issues
           
           // Apply the new sizes
           splitter_->setSizes(sizes);
@@ -99,12 +100,13 @@ private:
    * @brief Installs the event filter on all splitter handles.
    *
    * This method is called during construction to attach the event filter
-   * to each handle widget in the splitter.
+   * to each handle widget in the splitter. Note that QSplitter handles
+   * are indexed starting from 1, where handle(i) separates widgets i-1 and i.
    */
   void installOnHandles() {
     if (!splitter_) return;
-    for (int i = 0; i < splitter_->count() - 1; ++i) {
-      QSplitterHandle *handle = splitter_->handle(i + 1);
+    for (int i = 1; i < splitter_->count(); ++i) {
+      QSplitterHandle *handle = splitter_->handle(i);
       if (handle) {
         handle->installEventFilter(this);
       }
@@ -113,5 +115,3 @@ private:
 
   QSplitter *splitter_ = nullptr;  ///< The splitter being monitored
 };
-
-#include "SplitterDoubleClickFilter.moc"
