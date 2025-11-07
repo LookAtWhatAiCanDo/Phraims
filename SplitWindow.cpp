@@ -287,9 +287,6 @@ void SplitWindow::rebuildSections(int n) {
     QSplitter *split = new QSplitter(layoutMode_ == Vertical ? Qt::Vertical : Qt::Horizontal);
     // track this splitter for state persistence
     currentSplitters_.push_back(split);
-    // Install double-click handler for equal sizing
-    SplitterDoubleClickFilter *filter = new SplitterDoubleClickFilter(split, this);
-    connect(filter, &SplitterDoubleClickFilter::splitterResized, this, &SplitWindow::onSplitterDoubleClickResized);
     for (int i = 0; i < n; ++i) {
       auto *frame = new SplitFrameWidget(i);
       // logicalIndex property used for mapping frame -> addresses_ index
@@ -314,14 +311,16 @@ void SplitWindow::rebuildSections(int n) {
       for (int i = 0; i < n; ++i) sizes << 1;
       split->setSizes(sizes);
     }
+    // Install double-click handler for equal sizing after widgets/handles exist
+    {
+      SplitterDoubleClickFilter *filter = new SplitterDoubleClickFilter(split, this);
+      connect(filter, &SplitterDoubleClickFilter::splitterResized, this, &SplitWindow::onSplitterDoubleClickResized);
+    }
     container = split;
   } else { // Grid mode: nested splitters for resizable grid
     // Create a vertical splitter containing one horizontal splitter per row.
     QSplitter *outer = new QSplitter(Qt::Vertical);
     currentSplitters_.push_back(outer);
-    // Install double-click handler for equal sizing on outer splitter
-    SplitterDoubleClickFilter *outerFilter = new SplitterDoubleClickFilter(outer, this);
-    connect(outerFilter, &SplitterDoubleClickFilter::splitterResized, this, &SplitWindow::onSplitterDoubleClickResized);
     int rows = (int)std::ceil(std::sqrt((double)n));
     int cols = (n + rows - 1) / rows;
     int idx = 0;
@@ -331,9 +330,6 @@ void SplitWindow::rebuildSections(int n) {
       if (itemsInRow <= 0) break;
       QSplitter *rowSplit = new QSplitter(Qt::Horizontal);
       currentSplitters_.push_back(rowSplit);
-      // Install double-click handler for equal sizing on row splitters
-      SplitterDoubleClickFilter *rowFilter = new SplitterDoubleClickFilter(rowSplit, this);
-      connect(rowFilter, &SplitterDoubleClickFilter::splitterResized, this, &SplitWindow::onSplitterDoubleClickResized);
       for (int c = 0; c < itemsInRow; ++c) {
         auto *frame = new SplitFrameWidget(idx);
         // logicalIndex property used for mapping frame -> addresses_ index
@@ -357,6 +353,11 @@ void SplitWindow::rebuildSections(int n) {
         QList<int> colSizes;
         for (int i = 0; i < itemsInRow; ++i) colSizes << 1;
         rowSplit->setSizes(colSizes);
+        // Install rowFilter now that the rowSplit and its handles exist
+        {
+          SplitterDoubleClickFilter *rowFilter = new SplitterDoubleClickFilter(rowSplit, this);
+          connect(rowFilter, &SplitterDoubleClickFilter::splitterResized, this, &SplitWindow::onSplitterDoubleClickResized);
+        }
       }
       outer->addWidget(rowSplit);
     }
@@ -366,6 +367,11 @@ void SplitWindow::rebuildSections(int n) {
       QList<int> rowSizes;
       for (int i = 0; i < actualRows; ++i) rowSizes << 1;
       outer->setSizes(rowSizes);
+    }
+    // Install outerFilter now that outer and its handles exist
+    {
+      SplitterDoubleClickFilter *outerFilter = new SplitterDoubleClickFilter(outer, this);
+      connect(outerFilter, &SplitterDoubleClickFilter::splitterResized, this, &SplitWindow::onSplitterDoubleClickResized);
     }
     container = outer;
   }

@@ -4,6 +4,7 @@
 #include <QEvent>
 #include <QMouseEvent>
 #include <QSplitter>
+#include <QSplitterHandle>
 
 /**
  * @brief Event filter to handle double-click on splitter handles for equal resizing.
