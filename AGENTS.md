@@ -1,7 +1,23 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-The Qt GUI lives entirely in `main.cpp`, anchored by `SplitWindow` and nested `SplitFrameWidget` classes that manage splitter layouts, navigation chrome, and persistence. `CMakeLists.txt` configures one executable target, `Phraim`, and wires in the Qt Widgets and WebEngine modules. Generated binaries and intermediates belong in `build/`; feel free to create parallel out-of-source build directories (`build-debug`, `build-release`) to keep artifacts separated. User preferences persist through `QSettings` under the `swooby/Phraim` domain, so evolve keys carefully to avoid breaking stored layouts or address lists.
+The codebase follows a modular structure with classes separated into dedicated files:
+
+- **main.cpp** - Application entry point with QApplication initialization, single-instance guard, and window restoration logic
+- **SplitWindow.h/.cpp** - Main window class managing splitter layouts, menus, persistence, and multi-window coordination
+- **SplitFrameWidget.h/.cpp** - Individual frame widget for each split section with navigation controls and WebEngine view
+- **MyWebEngineView.h** (header-only) - Custom QWebEngineView subclass providing context menus and window creation behavior
+- **DomPatch.h/.cpp** - DOM patch structures, JSON persistence helpers, and patch management dialog
+- **EscapeFilter.h** (header-only) - Event filter for handling Escape key during fullscreen mode
+- **Utils.h/.cpp** - Shared utilities including GroupScope RAII helper, window menu icons, global window tracking, and legacy migration logic
+
+For simple classes like `EscapeFilter` and `MyWebEngineView`, implementations are kept in the header as inline methods to reduce file count and keep code/comments together.
+
+`CMakeLists.txt` configures the `Phraim` executable target and links Qt Widgets and WebEngine modules.
+Generated binaries and intermediates belong in `build/`; feel free to create
+parallel out-of-source build directories (`build-debug`, `build-release`) to keep artifacts separated.
+User preferences persist through `QSettings` under the `swooby/Phraim` domain,
+so evolve keys carefully to avoid breaking stored layouts or address lists.
 
 ## Build, Test, and Development Commands
 ```bash
@@ -15,6 +31,42 @@ Use the same `build` tree for iterative work; regenerate only when toggling buil
 ## Coding Style & Naming Conventions
 Follow the existing C++17 + Qt style: two-space indentation, opening braces on the same line, and `PascalCase` for classes (`SplitFrameWidget`). Member variables carry a trailing underscore (`backBtn_`), free/static helpers use `camelCase`, and enums stay scoped within their owning classes. Prefer Qt containers and utilities over STL when interacting with Qt APIs, and keep comments focused on non-obvious behavior (signals, persistence, or ownership nuances).
 
+## Documentation & Code Comments
+All code should be thoroughly documented using Doxygen-style comments:
+
+### Header Files (.h)
+- Use `/** */` multi-line comment blocks for all classes, methods, and functions
+- Include `@brief` to describe purpose
+- Add `@param` for each parameter with description
+- Add `@return` for methods that return values
+- Use `///<` inline comments for member variables
+- Document signals with what triggers them and what data they provide
+
+### Implementation Files (.cpp)
+- Add comments for complex algorithms or non-obvious logic
+- Explain "why" rather than "what" when the code is self-explanatory
+- Document ownership semantics, lifecycle assumptions, and thread-safety considerations
+
+### Comment Maintenance
+- **Always update comments when changing code** - comments must stay synchronized with implementation
+- When refactoring, review and update all related documentation
+- If removing or changing a method signature, update its Doxygen documentation
+- Keep examples in comments current with actual API usage
+
+Example Doxygen format:
+```cpp
+/**
+ * @brief Brief description of what this does.
+ * @param name Description of the parameter
+ * @return Description of return value
+ * 
+ * Longer detailed explanation if needed.
+ */
+ReturnType methodName(ParamType name);
+```
+
+This documentation style enables IDE tooltips, generates API documentation with Doxygen, and helps maintainers understand code intent.
+
 ## Testing Guidelines
 Automated tests are not yet wired in; rely on the acceptance scenarios listed in `README.md` until a `tests/` suite is added. Document new manual test cases alongside features, and script them via Qt Test or GTest once coverage becomes practical. When adding tests, place sources under `tests/`, update `CMakeLists.txt` to call `enable_testing()` and `add_test`, and execute with `ctest --test-dir build`. Always verify splitter persistence by resizing panes, quitting, and relaunching.
 
@@ -24,4 +76,6 @@ Use short, imperative commit subjects (e.g., `Add vertical grid layout preset`) 
 ## Agent Responsibilities
 - Keep `AGENTS.md` in sync with the current behavior and expectations of the codebase whenever functionality or workflows change.
 - Keep `README.md` up to date with the implemented features, build/run steps, and any relevant operational notes introduced by code changes.
+- **Maintain code documentation**: Always update Doxygen-style comments when modifying code. Ensure `@param`, `@return`, and `@brief` tags remain accurate.
+- Review and update documentation in both header and implementation files when refactoring or changing behavior.
 - Generate a commit message and accompanying description for every set of changes before handing work back to the user.

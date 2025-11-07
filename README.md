@@ -1,7 +1,21 @@
 Phraim
 ======
 
-Phraim is a web browser that divides each window into multiple resizable frames.
+Phraim is a web browser that divides each window into multiple resizable web page frames.
+
+## Code Organization
+
+The codebase is organized into modular components for better maintainability:
+
+- **main.cpp** - Application entry point and initialization
+- **SplitWindow** - Main window class with menu bar and splitter management
+- **SplitFrameWidget** - Individual web view frame with navigation controls
+- **MyWebEngineView** (header-only) - Custom QWebEngineView with context menu support
+- **DomPatch** - DOM patching system for CSS customizations
+- **EscapeFilter** (header-only) - Fullscreen escape key handler
+- **Utils** - Shared utilities and helper functions
+
+Simple classes like `EscapeFilter` and `MyWebEngineView` use header-only implementations for easier maintenance.
 
 Settings are stored at:
 - macOS:
