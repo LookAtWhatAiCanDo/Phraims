@@ -39,7 +39,16 @@ jobs:
       - name: Prepare artifacts
         run: |
           mkdir -p artifacts
-          cp -r build/Phraim.app artifacts/
+          # CMake may place the app in build/ or build/Release/ depending on generator
+          if [ -d "build/Phraim.app" ]; then
+            cp -r build/Phraim.app artifacts/
+          elif [ -d "build/Release/Phraim.app" ]; then
+            cp -r build/Release/Phraim.app artifacts/
+          else
+            echo "Error: Could not find Phraim.app"
+            find build -name "Phraim.app" -type d
+            exit 1
+          fi
       
       - name: Upload macOS app bundle
         uses: actions/upload-artifact@v4
