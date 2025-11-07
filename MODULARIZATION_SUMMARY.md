@@ -1,15 +1,15 @@
 # Modularization Summary
 
 ## Overview
-This refactoring extracted classes from a single 2,265-line `main.cpp` file into 7 dedicated header/source file pairs, improving code organization and maintainability.
+This refactoring extracted classes from a single 2,265-line `main.cpp` file into dedicated header files (with separate .cpp files for larger implementations), improving code organization and maintainability.
 
 ## File Structure
 
 ### New Modules
 | Module | Lines | Purpose |
 |--------|-------|---------|
-| EscapeFilter.h/.cpp | 539 + 831 | Event filter for fullscreen Escape key handling |
-| MyWebEngineView.h/.cpp | 564 + 1,338 | Custom web view with context menu |
+| EscapeFilter.h | ~40 (header-only) | Event filter for fullscreen Escape key handling |
+| MyWebEngineView.h | ~50 (header-only) | Custom web view with context menu |
 | DomPatch.h/.cpp | 1,643 + 11,213 | DOM patch system and management dialog |
 | SplitFrameWidget.h/.cpp | 2,904 + 16,542 | Individual frame widget with navigation |
 | SplitWindow.h/.cpp | 3,124 + 32,199 | Main window with layout management |
@@ -19,14 +19,20 @@ This refactoring extracted classes from a single 2,265-line `main.cpp` file into
 ### Class Extraction Map
 | Original Location | New Location | Class |
 |------------------|--------------|-------|
-| main.cpp:65-85 | EscapeFilter.h/.cpp | EscapeFilter |
-| main.cpp:92-131 | MyWebEngineView.h/.cpp | MyWebEngineView |
+| main.cpp:65-85 | EscapeFilter.h (header-only) | EscapeFilter |
+| main.cpp:92-131 | MyWebEngineView.h (header-only) | MyWebEngineView |
 | main.cpp:135-358 | DomPatch.h/.cpp | DomPatch helpers & dialog |
 | main.cpp:529-974 | SplitFrameWidget.h/.cpp | SplitFrameWidget |
 | main.cpp:994-1825 | SplitWindow.h/.cpp | SplitWindow |
 | main.cpp:147-157, etc | Utils.h/.cpp | GroupScope, icons, etc |
 
 ## Key Changes
+
+### Header-Only Classes
+For simple, small classes (`EscapeFilter` and `MyWebEngineView`), implementations have been moved into the header files as inline methods. This:
+- Keeps code and comments together, making it easier to maintain
+- Reduces the number of files to navigate
+- Follows modern C++ best practices for small, simple classes
 
 ### Include Dependencies
 - Each header uses `#pragma once` for include guards
@@ -39,13 +45,11 @@ This refactoring extracted classes from a single 2,265-line `main.cpp` file into
 - Signal/slot connections preserved exactly as before
 
 ### Build System
-CMakeLists.txt updated to compile all new source files:
+CMakeLists.txt updated to compile source files (header-only classes don't need compilation):
 ```cmake
 qt_add_executable(Phraim
   main.cpp
   Utils.cpp
-  EscapeFilter.cpp
-  MyWebEngineView.cpp
   DomPatch.cpp
   SplitFrameWidget.cpp
   SplitWindow.cpp

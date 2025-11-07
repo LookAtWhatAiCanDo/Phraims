@@ -28,8 +28,6 @@ if(APPLE)
     MACOSX_BUNDLE
     main.cpp
     Utils.cpp
-    EscapeFilter.cpp
-    MyWebEngineView.cpp
     DomPatch.cpp
     SplitFrameWidget.cpp
     SplitWindow.cpp
@@ -45,8 +43,6 @@ elseif(WIN32)
   qt_add_executable(Phraim
     main.cpp
     Utils.cpp
-    EscapeFilter.cpp
-    MyWebEngineView.cpp
     DomPatch.cpp
     SplitFrameWidget.cpp
     SplitWindow.cpp
