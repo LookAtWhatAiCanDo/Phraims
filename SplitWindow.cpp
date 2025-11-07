@@ -289,14 +289,7 @@ void SplitWindow::rebuildSections(int n) {
     currentSplitters_.push_back(split);
     // Install double-click handler for equal sizing
     SplitterDoubleClickFilter *filter = new SplitterDoubleClickFilter(split, this);
-    connect(filter, &SplitterDoubleClickFilter::splitterResized, this, [this]() {
-      // Save splitter sizes after double-click resize
-      if (!windowId_.isEmpty()) {
-        saveCurrentSplitterSizes(QStringLiteral("windows/%1/splitterSizes").arg(windowId_));
-      } else {
-        saveCurrentSplitterSizes();
-      }
-    });
+    connect(filter, &SplitterDoubleClickFilter::splitterResized, this, &SplitWindow::onSplitterDoubleClickResized);
     for (int i = 0; i < n; ++i) {
       auto *frame = new SplitFrameWidget(i);
       // logicalIndex property used for mapping frame -> addresses_ index
@@ -328,13 +321,7 @@ void SplitWindow::rebuildSections(int n) {
     currentSplitters_.push_back(outer);
     // Install double-click handler for equal sizing on outer splitter
     SplitterDoubleClickFilter *outerFilter = new SplitterDoubleClickFilter(outer, this);
-    connect(outerFilter, &SplitterDoubleClickFilter::splitterResized, this, [this]() {
-      if (!windowId_.isEmpty()) {
-        saveCurrentSplitterSizes(QStringLiteral("windows/%1/splitterSizes").arg(windowId_));
-      } else {
-        saveCurrentSplitterSizes();
-      }
-    });
+    connect(outerFilter, &SplitterDoubleClickFilter::splitterResized, this, &SplitWindow::onSplitterDoubleClickResized);
     int rows = (int)std::ceil(std::sqrt((double)n));
     int cols = (n + rows - 1) / rows;
     int idx = 0;
@@ -346,13 +333,7 @@ void SplitWindow::rebuildSections(int n) {
       currentSplitters_.push_back(rowSplit);
       // Install double-click handler for equal sizing on row splitters
       SplitterDoubleClickFilter *rowFilter = new SplitterDoubleClickFilter(rowSplit, this);
-      connect(rowFilter, &SplitterDoubleClickFilter::splitterResized, this, [this]() {
-        if (!windowId_.isEmpty()) {
-          saveCurrentSplitterSizes(QStringLiteral("windows/%1/splitterSizes").arg(windowId_));
-        } else {
-          saveCurrentSplitterSizes();
-        }
-      });
+      connect(rowFilter, &SplitterDoubleClickFilter::splitterResized, this, &SplitWindow::onSplitterDoubleClickResized);
       for (int c = 0; c < itemsInRow; ++c) {
         auto *frame = new SplitFrameWidget(idx);
         // logicalIndex property used for mapping frame -> addresses_ index
@@ -719,6 +700,15 @@ void SplitWindow::restoreSplitterSizes(const QString &groupPrefix) {
       }
       settings.endGroup();
     }
+  }
+}
+
+void SplitWindow::onSplitterDoubleClickResized() {
+  // Save splitter sizes after double-click resize
+  if (!windowId_.isEmpty()) {
+    saveCurrentSplitterSizes(QStringLiteral("windows/%1/splitterSizes").arg(windowId_));
+  } else {
+    saveCurrentSplitterSizes();
   }
 }
 

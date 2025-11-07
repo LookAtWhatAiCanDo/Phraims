@@ -268,6 +268,14 @@ private:
    */
   void restoreSplitterSizes(const QString &groupPrefix);
 
+  /**
+   * @brief Slot called when splitter is resized via double-click.
+   *
+   * Saves current splitter sizes to the appropriate settings location
+   * based on whether this window has a persistent ID.
+   */
+  void onSplitterDoubleClickResized();
+
   QWidget *central_ = nullptr;              ///< Central widget containing the layout
   QVBoxLayout *layout_ = nullptr;           ///< Main vertical layout
   std::vector<QString> addresses_;          ///< URL addresses for each frame
