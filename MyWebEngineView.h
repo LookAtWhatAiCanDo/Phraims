@@ -57,7 +57,7 @@ protected:
 
     auto pos = event->pos();
     auto selected = menu.exec(mapToGlobal(pos));
-    
+
     if (selected == inspect) {
       emit devToolsRequested(page, pos);
     } else if (selected == translate) {
@@ -115,7 +115,7 @@ private:
       }
     }
 
-    if (!translateUrl.isEmpty()) {
+    if (translateUrl.isValid()) {
       QDesktopServices::openUrl(translateUrl);
     }
   }
