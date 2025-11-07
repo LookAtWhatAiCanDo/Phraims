@@ -288,8 +288,7 @@ void SplitWindow::rebuildSections(int n) {
     // track this splitter for state persistence
     currentSplitters_.push_back(split);
     // Install double-click handler for equal sizing
-    SplitterDoubleClickFilter *filter = new SplitterDoubleClickFilter(split);
-    split->installEventFilter(filter);
+    SplitterDoubleClickFilter *filter = new SplitterDoubleClickFilter(split, this);
     connect(filter, &SplitterDoubleClickFilter::splitterResized, this, [this]() {
       // Save splitter sizes after double-click resize
       if (!windowId_.isEmpty()) {
@@ -328,8 +327,7 @@ void SplitWindow::rebuildSections(int n) {
     QSplitter *outer = new QSplitter(Qt::Vertical);
     currentSplitters_.push_back(outer);
     // Install double-click handler for equal sizing on outer splitter
-    SplitterDoubleClickFilter *outerFilter = new SplitterDoubleClickFilter(outer);
-    outer->installEventFilter(outerFilter);
+    SplitterDoubleClickFilter *outerFilter = new SplitterDoubleClickFilter(outer, this);
     connect(outerFilter, &SplitterDoubleClickFilter::splitterResized, this, [this]() {
       if (!windowId_.isEmpty()) {
         saveCurrentSplitterSizes(QStringLiteral("windows/%1/splitterSizes").arg(windowId_));
@@ -347,8 +345,7 @@ void SplitWindow::rebuildSections(int n) {
       QSplitter *rowSplit = new QSplitter(Qt::Horizontal);
       currentSplitters_.push_back(rowSplit);
       // Install double-click handler for equal sizing on row splitters
-      SplitterDoubleClickFilter *rowFilter = new SplitterDoubleClickFilter(rowSplit);
-      rowSplit->installEventFilter(rowFilter);
+      SplitterDoubleClickFilter *rowFilter = new SplitterDoubleClickFilter(rowSplit, this);
       connect(rowFilter, &SplitterDoubleClickFilter::splitterResized, this, [this]() {
         if (!windowId_.isEmpty()) {
           saveCurrentSplitterSizes(QStringLiteral("windows/%1/splitterSizes").arg(windowId_));
