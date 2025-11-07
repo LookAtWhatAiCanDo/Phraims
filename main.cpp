@@ -1,5 +1,5 @@
 /**
- * Qt6 Widgets Web Browser app that divides the main window into multiple web page frames.
+ * Qt6 Widgets web browser that divides each window into multiple resizable web page frames.
  */
 #include "SplitWindow.h"
 #include "Utils.h"

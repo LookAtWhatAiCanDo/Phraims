@@ -1,7 +1,7 @@
 Phraim
 ======
 
-Phraim is a web browser that divides each window into multiple resizable frames.
+Phraim is a web browser that divides each window into multiple resizable web page frames.
 
 ## Code Organization
 
