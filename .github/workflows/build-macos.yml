@@ -28,7 +28,7 @@ jobs:
           target: 'desktop'
           arch: 'clang_64'
           modules: 'qtwebengine'
-          cache: true
+          cache: false
       
       - name: Configure CMake
         run: |
