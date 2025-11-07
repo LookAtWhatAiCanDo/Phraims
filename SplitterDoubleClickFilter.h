@@ -113,3 +113,5 @@ private:
 
   QSplitter *splitter_ = nullptr;  ///< The splitter being monitored
 };
+
+#include "SplitterDoubleClickFilter.moc"
