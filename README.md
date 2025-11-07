@@ -107,6 +107,21 @@ The web view context menu provides quick access to common actions:
   - Opens in a new Phraim window
 - **Inspect…**: Opens DevTools for page inspection and debugging
 
+## Continuous Integration
+
+The project uses GitHub Actions to automatically build macOS binaries on every push to `main` and on pull requests. This ensures the codebase stays healthy and provides downloadable artifacts for testers.
+
+### Downloading Build Artifacts
+
+After each successful CI run, you can download the built macOS app bundle:
+1. Navigate to the [Actions tab](../../actions) in the repository
+2. Click on the latest workflow run
+3. Scroll down to the "Artifacts" section
+4. Download `Phraim-macOS` - this contains the `Phraim.app` bundle
+5. Extract and run the app (you may need to allow it in System Preferences > Security & Privacy)
+
+Artifacts are retained for 90 days. The workflow can also be triggered manually via the "Run workflow" button for building release candidates.
+
 ## TODOs
 - Improve Menu
   - Make similar to Chrome, VSCode, OBS, etc.

@@ -29,6 +29,16 @@ cmake --build build --target clean                         # remove compiled obj
 ```
 Use the same `build` tree for iterative work; regenerate only when toggling build options or Qt installs.
 
+## Continuous Integration
+
+The repository uses GitHub Actions to automatically build macOS binaries on every push to `main` and pull requests. The workflow is defined in `.github/workflows/build-macos.yml` and:
+- Installs Qt6 with WebEngine module using a caching action for faster builds
+- Configures and builds the Phraim app bundle using CMake
+- Uploads the resulting `Phraim.app` as a downloadable artifact (retained for 90 days)
+- Can be manually triggered via workflow_dispatch for release builds
+
+When modifying build requirements or dependencies, ensure the workflow file stays synchronized with local build instructions. Test the workflow by creating a pull request or triggering it manually from the GitHub Actions UI.
+
 ## Coding Style & Naming Conventions
 Follow the existing C++17 + Qt style: two-space indentation, opening braces on the same line, and `PascalCase` for classes (`SplitFrameWidget`). Member variables carry a trailing underscore (`backBtn_`), free/static helpers use `camelCase`, and enums stay scoped within their owning classes. Prefer Qt containers and utilities over STL when interacting with Qt APIs, and keep comments focused on non-obvious behavior (signals, persistence, or ownership nuances).
 

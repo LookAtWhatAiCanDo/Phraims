@@ -1,0 +1,49 @@
+name: Build macOS
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Install Qt6
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.6.0'
+          host: 'mac'
+          target: 'desktop'
+          arch: 'clang_64'
+          modules: 'qtwebengine'
+          cache: true
+      
+      - name: Configure CMake
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH=$Qt6_DIR
+      
+      - name: Build
+        run: cmake --build build --config Release
+      
+      - name: Prepare artifacts
+        run: |
+          mkdir -p artifacts
+          cp -r build/Phraim.app artifacts/
+      
+      - name: Upload macOS app bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: Phraim-macOS
+          path: artifacts/Phraim.app
+          retention-days: 90
