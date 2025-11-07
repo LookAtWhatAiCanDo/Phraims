@@ -433,7 +433,23 @@ void SplitWindow::onPlusFromFrame(SplitFrameWidget *who) {
   settings.setValue("addresses", list);
   // rebuild UI with the updated addresses_
   rebuildSections((int)addresses_.size());
+  // Focus the newly added frame's address bar. The new frame is at index pos+1.
+  // Use a queued connection to ensure focus is set after the layout has fully
+  // updated and all widgets are visible.
+  const int newFrameIndex = pos + 1;
+  QMetaObject::invokeMethod(this, [this, newFrameIndex]() {
+    if (!central_) return;
+    // Find all SplitFrameWidget children and locate the one with logicalIndex == newFrameIndex
+    QList<SplitFrameWidget *> frames = central_->findChildren<SplitFrameWidget *>();
+    for (SplitFrameWidget *frame : frames) {
+      if (frame->property("logicalIndex").toInt() == newFrameIndex) {
+        frame->focusAddress();
+        break;
+      }
+    }
+  }, Qt::QueuedConnection);
 }
+
 
 void SplitWindow::onUpFromFrame(SplitFrameWidget *who) {
   // move this frame up (towards index 0)

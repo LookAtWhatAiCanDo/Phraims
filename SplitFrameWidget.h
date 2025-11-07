@@ -108,6 +108,15 @@ public:
    */
   void setProfile(QWebEngineProfile *profile);
 
+  /**
+   * @brief Sets keyboard focus to the address bar.
+   *
+   * Gives focus to the address QLineEdit and selects all text so the user
+   * can immediately start typing a new address. This is called after adding
+   * a new frame to streamline the workflow.
+   */
+  void focusAddress();
+
 private slots:
   /**
    * @brief Handles HTML5 fullscreen requests from the page.

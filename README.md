@@ -35,9 +35,10 @@ cmake --build . --config Release
 ```
 
 Controls:
-- Use the + / - toolbar buttons or the spinbox to change the number of sections.
+- Use the + / - toolbar buttons to change the number of sections.
 - Each section is equally sized using layout stretch factors.
 - **Double-click any splitter handle** to instantly resize the two adjacent panes to equal sizes (50/50 split).
+- When adding a new frame with the + button, the address bar is automatically focused so you can start typing immediately.
 
 ## DOM Patches
 

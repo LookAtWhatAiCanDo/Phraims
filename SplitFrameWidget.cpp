@@ -209,6 +209,14 @@ void SplitFrameWidget::setMinusEnabled(bool en) { if (minusBtn_) minusBtn_->setE
 void SplitFrameWidget::setUpEnabled(bool en) { if (upBtn_) upBtn_->setEnabled(en); }
 void SplitFrameWidget::setDownEnabled(bool en) { if (downBtn_) downBtn_->setEnabled(en); }
 
+void SplitFrameWidget::focusAddress() {
+  if (!address_) return;
+  // Set focus to the address field with OtherFocusReason so the user can
+  // immediately start typing. Select all text so typing replaces any content.
+  address_->setFocus(Qt::OtherFocusReason);
+  address_->selectAll();
+}
+
 void SplitFrameWidget::setProfile(QWebEngineProfile *profile) {
   if (!webview_ || !profile) return;
   // assign a fresh page associated with the shared profile
