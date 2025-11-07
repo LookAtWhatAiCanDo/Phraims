@@ -103,7 +103,7 @@ The web view context menu provides quick access to common actions:
 - **Translate…**: Translate selected text or the entire page using Google Translate
   - If text is selected, opens translation of the selected text
   - If no text is selected, opens full page translation
-  - Opens in the system's default browser
+  - Opens in a new Phraim window
 - **Inspect…**: Opens DevTools for page inspection and debugging
 
 ## TODOs

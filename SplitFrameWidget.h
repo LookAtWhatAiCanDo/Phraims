@@ -168,6 +168,13 @@ signals:
    */
   void devToolsRequested(SplitFrameWidget *who, QWebEnginePage *page, const QPoint &pos);
 
+  /**
+   * @brief Requests opening a translation URL in a new window.
+   * @param who Pointer to this frame widget
+   * @param translateUrl The Google Translate URL to open
+   */
+  void translateRequested(SplitFrameWidget *who, const QUrl &translateUrl);
+
 private:
   QVBoxLayout *innerLayout_ = nullptr;  ///< Main layout for the frame
   QLineEdit *address_ = nullptr;        ///< Address bar for URL input

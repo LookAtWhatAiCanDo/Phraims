@@ -1,7 +1,6 @@
 #pragma once
 
 #include <QContextMenuEvent>
-#include <QDesktopServices>
 #include <QMenu>
 #include <QUrl>
 #include <QUrlQuery>
@@ -28,6 +27,15 @@ signals:
    * @param pos The position where the context menu was opened
    */
   void devToolsRequested(QWebEnginePage *source, const QPoint &pos);
+
+  /**
+   * @brief Emitted when the user requests translation via the context menu.
+   * @param translateUrl The Google Translate URL to open in a new window
+   *
+   * The URL will contain either selected text or the current page URL
+   * for translation. The parent widget should open this in a new window.
+   */
+  void translateRequested(const QUrl &translateUrl);
 
 protected:
   /**
@@ -83,10 +91,10 @@ private:
   /**
    * @brief Handles the translate action from the context menu.
    *
-   * If text is selected, opens Google Translate with the selected text.
-   * Otherwise, opens Google Translate with the current page URL for
-   * full page translation. Uses the system default browser to open
-   * the translation URL.
+   * If text is selected, constructs a Google Translate URL with the selected text.
+   * Otherwise, constructs a Google Translate URL with the current page URL for
+   * full page translation. Emits translateRequested() signal with the URL so the
+   * parent can open it in a new Phraim window.
    */
   void handleTranslateAction() {
     auto page = this->page();
@@ -116,7 +124,7 @@ private:
     }
 
     if (translateUrl.isValid()) {
-      QDesktopServices::openUrl(translateUrl);
+      emit translateRequested(translateUrl);
     }
   }
 };
