@@ -32,6 +32,13 @@
 
 bool DEBUG_SHOW_WINDOW_ID = 0;
 
+// Visual feedback constants for the frame addition flash effect
+namespace {
+  constexpr int FLASH_HANDLE_WIDTH_INCREASE = 4;  // pixels to increase splitter handle width
+  constexpr int FLASH_DURATION_MS = 150;          // milliseconds to show the flash
+}
+
+
 SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow(parent), windowId_(windowId) {
   setWindowTitle(QCoreApplication::applicationName());
   resize(800, 600);
@@ -476,8 +483,8 @@ void SplitWindow::onNewFrameShortcut() {
       QTimer::singleShot(0, this, [splitterGuard]() {
         if (!splitterGuard) return;
         const int origWidth = splitterGuard->handleWidth();
-        splitterGuard->setHandleWidth(origWidth + 4);
-        QTimer::singleShot(150, [splitterGuard, origWidth]() {
+        splitterGuard->setHandleWidth(origWidth + FLASH_HANDLE_WIDTH_INCREASE);
+        QTimer::singleShot(FLASH_DURATION_MS, [splitterGuard, origWidth]() {
           if (splitterGuard) {
             splitterGuard->setHandleWidth(origWidth);
           }
