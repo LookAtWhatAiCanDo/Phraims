@@ -27,7 +27,7 @@ jobs:
           host: 'mac'
           target: 'desktop'
           arch: 'clang_64'
-          modules: 'qtwebengine'
+          modules: 'qtpositioning qtwebchannel qtwebengine'
           cache: false
       
       - name: Configure CMake
@@ -54,7 +54,7 @@ jobs:
           fi
       
       - name: Upload macOS app bundle
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: Phraim-macOS
           path: artifacts/Phraim.app
