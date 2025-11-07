@@ -18,12 +18,12 @@ jobs:
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
       - name: Install Qt6
         uses: jurplel/install-qt-action@v3
         with:
-          version: '6.6.0'
+          version: '6.10.0'
           host: 'mac'
           target: 'desktop'
           arch: 'clang_64'
