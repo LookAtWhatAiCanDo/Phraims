@@ -26,7 +26,13 @@ if(APPLE)
 
   qt_add_executable(Phraim
     MACOSX_BUNDLE
-    main.cpp
+    main_new.cpp
+    Utils.cpp
+    EscapeFilter.cpp
+    MyWebEngineView.cpp
+    DomPatch.cpp
+    SplitFrameWidget.cpp
+    SplitWindow.cpp
     ${app_icon_macos}
   )
 
@@ -37,7 +43,13 @@ elseif(WIN32)
   set_target_properties(Phraim PROPERTIES WIN32_EXECUTABLE TRUE)
 
   qt_add_executable(Phraim
-    main.cpp
+    main_new.cpp
+    Utils.cpp
+    EscapeFilter.cpp
+    MyWebEngineView.cpp
+    DomPatch.cpp
+    SplitFrameWidget.cpp
+    SplitWindow.cpp
   )
 
 endif()
