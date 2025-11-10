@@ -828,7 +828,7 @@ void SplitWindow::onFrameDevToolsRequested(SplitFrameWidget *who, QWebEnginePage
 void SplitWindow::onFrameTranslateRequested(SplitFrameWidget *who, const QUrl &translateUrl) {
   Q_UNUSED(who);
   if (!translateUrl.isValid()) return;
-  // Open the translation URL in a new Phraim window
+  // Open the translation URL in a new Phraims window
   createAndShowWindow(translateUrl.toString());
 }
 

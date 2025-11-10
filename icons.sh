@@ -1,23 +1,18 @@
 #!/bin/zsh
-# Build phraim.icns from a 1024x1024 PNG source on macOS using iconutil conventions.
-# Usage: just run in a directory containing phraim.png (1024x1024). Optional: ./make_icns.zsh <source.png>
+# Build phraims.icns from a 1024x1024 PNG source on macOS using iconutil conventions.
+# Usage: just run in a directory containing phraims.png (1024x1024). Optional: ./make_icns.zsh <source.png>
 
 set -euo pipefail
 
 # --- locate source (prefer explicit arg, else common filenames) ---
-SRC="${1:-}"
-if [[ -z "${SRC}" ]]; then
-  for c in "phraim_icon_1024.png" "phraim-1024.png" "phraim-1024@2x.png"; do
-    [[ -f "$c" ]] && SRC="$c" && break
-  done
-fi
+SRC="phraims_icon_1024.png"
 if [[ -z "${SRC}" || ! -f "${SRC}" ]]; then
-  echo "Source 1024×1024 PNG not found. Place 'phraim.png' (or pass a file) in this directory." >&2
+  echo "Source 1024×1024 PNG not found." >&2
   exit 1
 fi
 
 # --- prepare iconset folder ---
-ICONSET="phraim.iconset"
+ICONSET="phraims.iconset"
 rm -rf "${ICONSET}"
 mkdir -p "${ICONSET}"
 
@@ -49,10 +44,10 @@ else
 fi
 
 # --- package to .icns ---
-/usr/bin/iconutil -c icns "${ICONSET}" -o "phraim.icns"
+/usr/bin/iconutil -c icns "${ICONSET}" -o "resources/phraims.icns"
 
 # --- verify and report ---
-SHA=$(shasum -a 256 "phraim.icns" | awk '{print $1}')
-BYTES=$(stat -f%z "phraim.icns")
-echo "phraim.icns SHA256: ${SHA}"
-echo "phraim.icns size:   ${BYTES} bytes"
+SHA=$(shasum -a 256 "resources/phraims.icns" | awk '{print $1}')
+BYTES=$(stat -f%z "resources/phraims.icns")
+echo "resources/phraims.icns SHA256: ${SHA}"
+echo "resources/phraims.icns size:   ${BYTES} bytes"

@@ -362,7 +362,7 @@ private:
    * If text is selected, constructs a Google Translate URL with the selected text.
    * Otherwise, constructs a Google Translate URL with the current page URL for
    * full page translation. Emits translateRequested() signal with the URL so the
-   * parent can open it in a new Phraim window.
+   * parent can open it in a new Phraims window.
    */
   void handleTranslateAction() {
     auto page = this->page();
