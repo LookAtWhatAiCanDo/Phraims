@@ -82,6 +82,12 @@ public:
   void updateNavButtons();
 
   /**
+   * @brief Reloads the current page optionally bypassing cache.
+   * @param bypassCache When true, forces network reload ignoring cached resources
+   */
+  void reload(bool bypassCache = false);
+
+  /**
    * @brief Event filter for the address line edit.
    * @param watched The object being watched
    * @param event The event to filter
@@ -206,7 +212,18 @@ signals:
    */
   void scaleChanged(SplitFrameWidget *who, double scale);
 
+  /**
+   * @brief Emitted whenever the user interacts with this frame.
+   * @param who Pointer to this frame widget
+   */
+  void interactionOccurred(SplitFrameWidget *who);
+
 private:
+  /**
+   * @brief Installs an event filter on a child widget to detect interactions.
+   */
+  void registerInteractionTarget(QWidget *child);
+
   QVBoxLayout *innerLayout_ = nullptr;  ///< Main layout for the frame
   QLineEdit *address_ = nullptr;        ///< Address bar for URL input
   MyWebEngineView *webview_ = nullptr;  ///< Web view content area
