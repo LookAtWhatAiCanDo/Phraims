@@ -6,6 +6,7 @@
 #include <QDebug>
 #include <QEvent>
 #include <QHBoxLayout>
+#include <QLabel>
 #include <QLineEdit>
 #include <QMainWindow>
 #include <QPalette>
@@ -16,6 +17,14 @@
 #include <QWebEnginePage>
 #include <QWebEngineProfile>
 #include <QWebEngineSettings>
+#include <QtGlobal>
+#include <algorithm>
+#include <cmath>
+
+namespace {
+  constexpr int BASE_FRAME_MARGIN = 6;
+  constexpr int BASE_FRAME_SPACING = 6;
+}
 
 SplitFrameWidget::SplitFrameWidget(int index, QWidget *parent) : QFrame(parent) {
   setFrameShape(QFrame::StyledPanel);
@@ -31,8 +40,8 @@ SplitFrameWidget::SplitFrameWidget(int index, QWidget *parent) : QFrame(parent) 
   setPalette(pal);
 
   innerLayout_ = new QVBoxLayout(this);
-  innerLayout_->setContentsMargins(6, 6, 6, 6);
-  innerLayout_->setSpacing(6);
+  innerLayout_->setContentsMargins(BASE_FRAME_MARGIN, BASE_FRAME_MARGIN, BASE_FRAME_MARGIN, BASE_FRAME_MARGIN);
+  innerLayout_->setSpacing(BASE_FRAME_SPACING);
 
   // left: navigation buttons, center: address bar, right: +/- buttons
   auto *topRow = new QHBoxLayout();
@@ -68,6 +77,27 @@ SplitFrameWidget::SplitFrameWidget(int index, QWidget *parent) : QFrame(parent) 
     address_->setToolTip(t);
   });
   topRow->addWidget(address_, 1);
+
+  scaleLabel_ = new QLabel(tr("100%"), this);
+  scaleLabel_->setAlignment(Qt::AlignCenter);
+  scaleLabel_->setMinimumWidth(58);
+  scaleLabel_->setToolTip(tr("Frame scale (affects controls + page content)"));
+  topRow->addWidget(scaleLabel_);
+
+  scaleDownBtn_ = new QToolButton(this);
+  scaleDownBtn_->setText(QStringLiteral("A-"));
+  scaleDownBtn_->setToolTip(tr("Scale frame down"));
+  topRow->addWidget(scaleDownBtn_);
+
+  scaleUpBtn_ = new QToolButton(this);
+  scaleUpBtn_->setText(QStringLiteral("A+"));
+  scaleUpBtn_->setToolTip(tr("Scale frame up"));
+  topRow->addWidget(scaleUpBtn_);
+
+  scaleResetBtn_ = new QToolButton(this);
+  scaleResetBtn_->setText(QStringLiteral("1x"));
+  scaleResetBtn_->setToolTip(tr("Reset frame scale to 100%"));
+  topRow->addWidget(scaleResetBtn_);
 
   // up/down move this frame within the list
   upBtn_ = new QToolButton(this);
@@ -110,6 +140,11 @@ SplitFrameWidget::SplitFrameWidget(int index, QWidget *parent) : QFrame(parent) 
   connect(backBtn_, &QToolButton::clicked, this, [this]() { if (webview_) webview_->back(); });
   connect(forwardBtn_, &QToolButton::clicked, this, [this]() { if (webview_) webview_->forward(); });
   connect(refreshBtn_, &QToolButton::clicked, this, [this]() { if (webview_) webview_->reload(); });
+  connect(scaleDownBtn_, &QToolButton::clicked, this, [this]() { nudgeScale(-kScaleStep); });
+  connect(scaleUpBtn_, &QToolButton::clicked, this, [this]() { nudgeScale(kScaleStep); });
+  connect(scaleResetBtn_, &QToolButton::clicked, this, [this]() { setScaleFactor(1.0, true); });
+
+  refreshScaleUi();
 
   connect(webview_, &MyWebEngineView::urlChanged, this, [this](const QUrl &url) {
     // ignore internal data URLs (used for instruction/error HTML) so the
@@ -220,11 +255,45 @@ void SplitFrameWidget::focusAddress() {
   address_->selectAll();
 }
 
+double SplitFrameWidget::scaleFactor() const { return scaleFactor_; }
+
+void SplitFrameWidget::setScaleFactor(double scale, bool notify) {
+  const double clamped = std::clamp(scale, kMinScaleFactor, kMaxScaleFactor);
+  if (qFuzzyCompare(scaleFactor_, clamped)) {
+    if (notify) emit scaleChanged(this, scaleFactor_);
+    return;
+  }
+  scaleFactor_ = clamped;
+  applyScale(notify);
+}
+
+void SplitFrameWidget::nudgeScale(double delta) {
+  setScaleFactor(scaleFactor_ + delta, true);
+}
+
+void SplitFrameWidget::applyScale(bool notify) {
+  if (webview_) webview_->setZoomFactor(scaleFactor_);
+  refreshScaleUi();
+  if (notify) emit scaleChanged(this, scaleFactor_);
+}
+
+void SplitFrameWidget::refreshScaleUi() {
+  const int percent = static_cast<int>(std::lround(scaleFactor_ * 100.0));
+  if (scaleLabel_) {
+    scaleLabel_->setText(QStringLiteral("%1%").arg(percent));
+  }
+  const double epsilon = 0.01;
+  if (scaleDownBtn_) scaleDownBtn_->setEnabled((scaleFactor_ - kMinScaleFactor) > epsilon);
+  if (scaleUpBtn_) scaleUpBtn_->setEnabled((kMaxScaleFactor - scaleFactor_) > epsilon);
+  if (scaleResetBtn_) scaleResetBtn_->setEnabled(std::abs(scaleFactor_ - 1.0) > epsilon);
+}
+
 void SplitFrameWidget::setProfile(QWebEngineProfile *profile) {
   if (!webview_ || !profile) return;
   // assign a fresh page associated with the shared profile
   auto *page = new QWebEnginePage(profile, webview_);
   webview_->setPage(page);
+  webview_->setZoomFactor(scaleFactor_);
   // Ensure DOM patches are applied on every load for this page.
   QObject::connect(page, &QWebEnginePage::loadFinished, page, [page](bool) {
     // apply patches after each load

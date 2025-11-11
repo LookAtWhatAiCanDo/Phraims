@@ -23,6 +23,7 @@
 #include <QSplitter>
 #include <QStandardPaths>
 #include <QTimer>
+#include <QVariant>
 #include <QUuid>
 #include <QVBoxLayout>
 #include <QWebEngineProfile>
@@ -84,6 +85,14 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
   QAction *toggleDevToolsAction = viewMenu->addAction(tr("Toggle DevTools"));
   toggleDevToolsAction->setShortcut(QKeySequence(Qt::Key_F12));
   connect(toggleDevToolsAction, &QAction::triggered, this, &SplitWindow::toggleDevToolsForFocusedFrame);
+
+  viewMenu->addSeparator();
+  QAction *increaseScaleAction = viewMenu->addAction(tr("Increase Frame Scale"));
+  connect(increaseScaleAction, &QAction::triggered, this, &SplitWindow::increaseFocusedFrameScale);
+  QAction *decreaseScaleAction = viewMenu->addAction(tr("Decrease Frame Scale"));
+  connect(decreaseScaleAction, &QAction::triggered, this, &SplitWindow::decreaseFocusedFrameScale);
+  QAction *resetScaleAction = viewMenu->addAction(tr("Reset Frame Scale"));
+  connect(resetScaleAction, &QAction::triggered, this, &SplitWindow::resetFocusedFrameScale);
 
   // Always-on-top toggle
   QAction *alwaysOnTopAction = viewMenu->addAction(tr("Always on Top"));
@@ -157,29 +166,42 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
   layout_->setContentsMargins(4, 4, 4, 4);
   layout_->setSpacing(6);
 
+  auto loadFrameState = [this](const QStringList &addresses, const QVariantList &scales) {
+    frames_.clear();
+    if (addresses.isEmpty()) {
+      frames_.push_back(FrameState());
+    } else {
+      frames_.reserve(addresses.size());
+      for (const QString &addr : addresses) {
+        FrameState state;
+        state.address = addr;
+        frames_.push_back(state);
+      }
+    }
+    if (frames_.empty()) frames_.push_back(FrameState());
+    for (int i = 0; i < (int)frames_.size(); ++i) {
+      double value = (i < scales.size()) ? scales[i].toDouble() : 1.0;
+      frames_[i].scale = std::clamp(value, SplitFrameWidget::kMinScaleFactor, SplitFrameWidget::kMaxScaleFactor);
+    }
+  };
+
   // load persisted addresses (per-window if windowId_ present, otherwise global)
   if (!windowId_.isEmpty()) {
     QSettings s;
     {
       GroupScope _gs(s, QStringLiteral("windows/%1").arg(windowId_));
-      const QStringList saved = s.value("addresses").toStringList();
-      if (saved.isEmpty()) {
-        addresses_.push_back(QString());
-      } else {
-        for (const QString &s2 : saved) addresses_.push_back(s2);
-      }
+      const QStringList savedAddresses = s.value("addresses").toStringList();
+      const QVariantList savedScales = s.value("frameScales").toList();
+      loadFrameState(savedAddresses, savedScales);
       layoutMode_ = (LayoutMode)s.value("layoutMode", (int)layoutMode_).toInt();
     }
   } else {
-    const QStringList saved = settings.value("addresses").toStringList();
-    if (saved.isEmpty()) {
-      addresses_.push_back(QString());
-    } else {
-      for (const QString &s : saved) addresses_.push_back(s);
-    }
+    const QStringList savedAddresses = settings.value("addresses").toStringList();
+    const QVariantList savedScales = settings.value("frameScales").toList();
+    loadFrameState(savedAddresses, savedScales);
   }
   // build initial UI
-  rebuildSections((int)addresses_.size());
+  rebuildSections((int)frames_.size());
   // restore splitter sizes only once at startup (subsequent layout
   // selections/rebuilds should reset splitters to defaults)
   if (!windowId_.isEmpty()) {
@@ -211,12 +233,17 @@ void SplitWindow::savePersistentStateToSettings() {
   QSettings s;
   QString id = windowId_;
   if (id.isEmpty()) id = QUuid::createUuid().toString();
-  qDebug() << "savePersistentStateToSettings: saving window id=" << id << " addresses.count=" << addresses_.size() << " layoutMode=" << (int)layoutMode_;
+  qDebug() << "savePersistentStateToSettings: saving window id=" << id << " addresses.count=" << frames_.size() << " layoutMode=" << (int)layoutMode_;
   {
     GroupScope _gs(s, QStringLiteral("windows/%1").arg(id));
-    QStringList list;
-    for (const auto &a : addresses_) list << a;
-    s.setValue("addresses", list);
+    QStringList addressList;
+    QVariantList scaleList;
+    for (const auto &state : frames_) {
+      addressList << state.address;
+      scaleList << state.scale;
+    }
+    s.setValue("addresses", addressList);
+    s.setValue("frameScales", scaleList);
     s.setValue("layoutMode", (int)layoutMode_);
     s.setValue("windowGeometry", saveGeometry());
     s.setValue("windowState", saveState());
@@ -227,8 +254,8 @@ void SplitWindow::savePersistentStateToSettings() {
 }
 
 void SplitWindow::resetToSingleEmptySection() {
-  addresses_.clear();
-  addresses_.push_back(QString());
+  frames_.clear();
+  frames_.push_back(FrameState());
   rebuildSections(1);
   // Do not persist immediately; keep in-memory until user changes or window closes.
   // After rebuilding, focus the address field so the user can start typing
@@ -257,7 +284,7 @@ void SplitWindow::updateWindowTitle() {
   for (size_t i = 0; i < g_windows.size(); ++i) {
     if (g_windows[i] == this) { idx = (int)i + 1; break; }
   }
-  const int count = (int)addresses_.size();
+  const int count = (int)frames_.size();
   QString title = QStringLiteral("Group %1 (%2)").arg(idx).arg(count);
   if (DEBUG_SHOW_WINDOW_ID && !windowId_.isEmpty()) {
       title += QStringLiteral(" [%1]").arg(windowId_);
@@ -272,11 +299,9 @@ void SplitWindow::setFirstFrameAddress(const QString &address) {
 
 void SplitWindow::rebuildSections(int n) {
 
-  // Ensure addresses_ vector matches requested size, preserving existing values.
-  if ((int)addresses_.size() < n) {
-    addresses_.resize(n);
-  } else if ((int)addresses_.size() > n) {
-    addresses_.resize(n);
+  // Ensure frames_ vector matches requested size, preserving existing values.
+  if ((int)frames_.size() != n) {
+    frames_.resize(n);
   }
   // clamp n
   if (n < 1) n = 1;
@@ -302,10 +327,11 @@ void SplitWindow::rebuildSections(int n) {
     currentSplitters_.push_back(split);
     for (int i = 0; i < n; ++i) {
       auto *frame = new SplitFrameWidget(i);
-      // logicalIndex property used for mapping frame -> addresses_ index
+      // logicalIndex property used for mapping frame -> frames_ index
       frame->setProperty("logicalIndex", i);
       frame->setProfile(profile_);
-      frame->setAddress(addresses_[i]);
+      frame->setScaleFactor(frames_[i].scale);
+      frame->setAddress(frames_[i].address);
       connect(frame, &SplitFrameWidget::plusClicked, this, &SplitWindow::onPlusFromFrame);
       connect(frame, &SplitFrameWidget::minusClicked, this, &SplitWindow::onMinusFromFrame);
       connect(frame, &SplitFrameWidget::addressEdited, this, &SplitWindow::onAddressEdited);
@@ -313,6 +339,7 @@ void SplitWindow::rebuildSections(int n) {
       connect(frame, &SplitFrameWidget::downClicked, this, &SplitWindow::onDownFromFrame);
       connect(frame, &SplitFrameWidget::devToolsRequested, this, &SplitWindow::onFrameDevToolsRequested);
       connect(frame, &SplitFrameWidget::translateRequested, this, &SplitWindow::onFrameTranslateRequested);
+      connect(frame, &SplitFrameWidget::scaleChanged, this, &SplitWindow::onFrameScaleChanged);
       frame->setMinusEnabled(n > 1);
       frame->setUpEnabled(i > 0);
       frame->setDownEnabled(i < n - 1);
@@ -346,10 +373,11 @@ void SplitWindow::rebuildSections(int n) {
       currentSplitters_.push_back(rowSplit);
       for (int c = 0; c < itemsInRow; ++c) {
         auto *frame = new SplitFrameWidget(idx);
-        // logicalIndex property used for mapping frame -> addresses_ index
+        // logicalIndex property used for mapping frame -> frames_ index
         frame->setProperty("logicalIndex", idx);
         frame->setProfile(profile_);
-        frame->setAddress(addresses_[idx]);
+        frame->setScaleFactor(frames_[idx].scale);
+        frame->setAddress(frames_[idx].address);
         connect(frame, &SplitFrameWidget::plusClicked, this, &SplitWindow::onPlusFromFrame);
         connect(frame, &SplitFrameWidget::minusClicked, this, &SplitWindow::onMinusFromFrame);
         connect(frame, &SplitFrameWidget::addressEdited, this, &SplitWindow::onAddressEdited);
@@ -357,6 +385,7 @@ void SplitWindow::rebuildSections(int n) {
         connect(frame, &SplitFrameWidget::downClicked, this, &SplitWindow::onDownFromFrame);
         connect(frame, &SplitFrameWidget::devToolsRequested, this, &SplitWindow::onFrameDevToolsRequested);
         connect(frame, &SplitFrameWidget::translateRequested, this, &SplitWindow::onFrameTranslateRequested);
+        connect(frame, &SplitFrameWidget::scaleChanged, this, &SplitWindow::onFrameScaleChanged);
         frame->setMinusEnabled(n > 1);
         frame->setUpEnabled(idx > 0);
         frame->setDownEnabled(idx < n - 1);
@@ -412,16 +441,7 @@ void SplitWindow::toggleDevToolsForFocusedFrame() {
     return;
   }
 
-  QWidget *fw = QApplication::focusWidget();
-  SplitFrameWidget *target = nullptr;
-  while (fw) {
-    if (auto *f = qobject_cast<SplitFrameWidget *>(fw)) {
-      target = f;
-      break;
-    }
-    fw = fw->parentWidget();
-  }
-  if (!target && central_) target = central_->findChild<SplitFrameWidget *>();
+  SplitFrameWidget *target = focusedFrame();
   if (target) {
     QWebEnginePage *p = target->page();
     if (p) {
@@ -436,43 +456,26 @@ void SplitWindow::toggleDevToolsForFocusedFrame() {
 }
 
 void SplitWindow::onNewFrameShortcut() {
-  // Find the currently focused frame (similar to toggleDevToolsForFocusedFrame)
-  QWidget *fw = QApplication::focusWidget();
-  SplitFrameWidget *target = nullptr;
-  while (fw) {
-    if (auto *f = qobject_cast<SplitFrameWidget *>(fw)) {
-      target = f;
-      break;
-    }
-    fw = fw->parentWidget();
-  }
-  // If no frame is focused, use the first frame
-  if (!target && central_) target = central_->findChild<SplitFrameWidget *>();
-  
+  SplitFrameWidget *target = focusedFrame();
   if (!target) {
     qDebug() << "onNewFrameShortcut: no target frame found";
     return;
   }
-  
-  // Get the logical index of the focused frame
-  const QVariant v = target->property("logicalIndex");
-  if (!v.isValid()) {
+
+  const int pos = frameIndexFor(target);
+  if (pos < 0) {
     qDebug() << "onNewFrameShortcut: target has no logicalIndex property";
     return;
   }
-  int pos = v.toInt();
   
   // Insert a new empty frame after the focused frame
-  addresses_.insert(addresses_.begin() + pos + 1, QString());
+  frames_.insert(frames_.begin() + pos + 1, FrameState());
   
-  // Persist addresses
-  QSettings settings;
-  QStringList list;
-  for (const auto &a : addresses_) list << a;
-  settings.setValue("addresses", list);
+  // Persist addresses and scale defaults
+  persistGlobalFrameState();
   
-  // Rebuild UI with the updated addresses_
-  rebuildSections((int)addresses_.size());
+  // Rebuild UI with the updated state
+  rebuildSections((int)frames_.size());
   
   // Provide a visual cue by briefly flashing the divider handle
   // Find the splitter that contains the newly added frame
@@ -503,14 +506,11 @@ void SplitWindow::onPlusFromFrame(SplitFrameWidget *who) {
   const QVariant v = who->property("logicalIndex");
   if (!v.isValid()) return;
   int pos = v.toInt();
-  addresses_.insert(addresses_.begin() + pos + 1, QString());
-  // persist addresses
-  QSettings settings;
-  QStringList list;
-  for (const auto &a : addresses_) list << a;
-  settings.setValue("addresses", list);
-  // rebuild UI with the updated addresses_
-  rebuildSections((int)addresses_.size());
+  frames_.insert(frames_.begin() + pos + 1, FrameState());
+  // persist addresses and scale defaults
+  persistGlobalFrameState();
+  // rebuild UI with the updated frames_
+  rebuildSections((int)frames_.size());
   // Focus the newly added frame's address bar. The new frame is at index pos+1.
   // Use a queued connection to ensure focus is set after the layout has fully
   // updated and all widgets are visible.
@@ -535,13 +535,9 @@ void SplitWindow::onUpFromFrame(SplitFrameWidget *who) {
   if (!v.isValid()) return;
   int pos = v.toInt();
   if (pos <= 0) return; // already at top or not found
-  std::swap(addresses_[pos], addresses_[pos - 1]);
-  // persist addresses
-  QSettings settings;
-  QStringList list;
-  for (const auto &a : addresses_) list << a;
-  settings.setValue("addresses", list);
-  rebuildSections((int)addresses_.size());
+  std::swap(frames_[pos], frames_[pos - 1]);
+  persistGlobalFrameState();
+  rebuildSections((int)frames_.size());
 }
 
 void SplitWindow::onDownFromFrame(SplitFrameWidget *who) {
@@ -549,14 +545,10 @@ void SplitWindow::onDownFromFrame(SplitFrameWidget *who) {
   const QVariant v = who->property("logicalIndex");
   if (!v.isValid()) return;
   int pos = v.toInt();
-  if (pos < 0 || pos >= (int)addresses_.size() - 1) return; // at bottom or not found
-  std::swap(addresses_[pos], addresses_[pos + 1]);
-  // persist addresses
-  QSettings settings;
-  QStringList list;
-  for (const auto &a : addresses_) list << a;
-  settings.setValue("addresses", list);
-  rebuildSections((int)addresses_.size());
+  if (pos < 0 || pos >= (int)frames_.size() - 1) return; // at bottom or not found
+  std::swap(frames_[pos], frames_[pos + 1]);
+  persistGlobalFrameState();
+  rebuildSections((int)frames_.size());
 }
 
 void SplitWindow::setLayoutMode(SplitWindow::LayoutMode m) {
@@ -569,7 +561,7 @@ void SplitWindow::setLayoutMode(SplitWindow::LayoutMode m) {
     const QString base = QStringLiteral("splitterSizes/%1").arg(layoutModeKey(layoutMode_));
     settings.remove(base);
     // rebuild so splitters are reset to defaults
-    rebuildSections((int)addresses_.size());
+    rebuildSections((int)frames_.size());
     return;
   }
 
@@ -588,7 +580,7 @@ void SplitWindow::setLayoutMode(SplitWindow::LayoutMode m) {
   layoutMode_ = m;
   settings.setValue("layoutMode", (int)layoutMode_);
   // Rebuild UI for the new layout (splitter sizes are only restored at startup)
-  rebuildSections((int)addresses_.size());
+  rebuildSections((int)frames_.size());
 }
 
 void SplitWindow::setHeightToScreen() {
@@ -604,7 +596,7 @@ void SplitWindow::setHeightToScreen() {
 }
 
 void SplitWindow::onMinusFromFrame(SplitFrameWidget *who) {
-  if (addresses_.size() <= 1) return; // shouldn't remove last
+  if (frames_.size() <= 1) return; // shouldn't remove last
 
   const QVariant v = who->property("logicalIndex");
   if (!v.isValid()) return;
@@ -617,13 +609,10 @@ void SplitWindow::onMinusFromFrame(SplitFrameWidget *who) {
     QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
   if (reply != QMessageBox::Yes) return;
 
-  addresses_.erase(addresses_.begin() + pos);
-  // persist addresses
-  QSettings settings;
-  QStringList list;
-  for (const auto &a : addresses_) list << a;
-  settings.setValue("addresses", list);
-  rebuildSections((int)addresses_.size());
+  frames_.erase(frames_.begin() + pos);
+  // persist addresses/scales
+  persistGlobalFrameState();
+  rebuildSections((int)frames_.size());
 }
 
 void SplitWindow::onAddressEdited(SplitFrameWidget *who, const QString &text) {
@@ -631,14 +620,18 @@ void SplitWindow::onAddressEdited(SplitFrameWidget *who, const QString &text) {
   if (!v.isValid()) return;
   int pos = v.toInt();
   if (pos < 0) return;
-  if (pos < (int)addresses_.size()) {
-    addresses_[pos] = text;
+  if (pos < (int)frames_.size()) {
+    frames_[pos].address = text;
     // persist addresses list
-    QSettings settings;
-    QStringList list;
-    for (const auto &a : addresses_) list << a;
-    settings.setValue("addresses", list);
+    persistGlobalFrameState();
   }
+}
+
+void SplitWindow::onFrameScaleChanged(SplitFrameWidget *who, double scale) {
+  const int pos = frameIndexFor(who);
+  if (pos < 0 || pos >= (int)frames_.size()) return;
+  frames_[pos].scale = std::clamp(scale, SplitFrameWidget::kMinScaleFactor, SplitFrameWidget::kMaxScaleFactor);
+  persistGlobalFrameState();
 }
 
 void SplitWindow::closeEvent(QCloseEvent *event) {
@@ -656,9 +649,14 @@ void SplitWindow::closeEvent(QCloseEvent *event) {
       QSettings s;
       {
         GroupScope _gs(s, QStringLiteral("windows/%1").arg(windowId_));
-        QStringList list;
-        for (const auto &a : addresses_) list << a;
-        s.setValue("addresses", list);
+        QStringList addressList;
+        QVariantList scaleList;
+        for (const auto &state : frames_) {
+          addressList << state.address;
+          scaleList << state.scale;
+        }
+        s.setValue("addresses", addressList);
+        s.setValue("frameScales", scaleList);
         s.setValue("layoutMode", (int)layoutMode_);
         s.setValue("windowGeometry", saveGeometry());
         s.setValue("windowState", saveState());
@@ -697,9 +695,14 @@ void SplitWindow::closeEvent(QCloseEvent *event) {
     // no per-window id: persist as legacy/global keys
     saveCurrentSplitterSizes();
     QSettings settings;
-    QStringList list;
-    for (const auto &a : addresses_) list << a;
-    settings.setValue("addresses", list);
+    QStringList addressList;
+    QVariantList scaleList;
+    for (const auto &state : frames_) {
+      addressList << state.address;
+      scaleList << state.scale;
+    }
+    settings.setValue("addresses", addressList);
+    settings.setValue("frameScales", scaleList);
     // persist window geometry
     settings.setValue("windowGeometry", saveGeometry());
     // persist window state (toolbars/dock state and maximized/minimized state)
@@ -718,6 +721,37 @@ QString SplitWindow::layoutModeKey(SplitWindow::LayoutMode m) {
     case Horizontal: return QStringLiteral("horizontal");
     case Grid: default: return QStringLiteral("grid");
   }
+}
+
+void SplitWindow::persistGlobalFrameState() {
+  QSettings settings;
+  QStringList addresses;
+  QVariantList scales;
+  addresses.reserve((int)frames_.size());
+  scales.reserve((int)frames_.size());
+  for (const auto &state : frames_) {
+    addresses << state.address;
+    scales << state.scale;
+  }
+  settings.setValue("addresses", addresses);
+  settings.setValue("frameScales", scales);
+}
+
+SplitFrameWidget *SplitWindow::focusedFrame() const {
+  QWidget *fw = QApplication::focusWidget();
+  while (fw) {
+    if (auto *f = qobject_cast<SplitFrameWidget *>(fw)) return f;
+    fw = fw->parentWidget();
+  }
+  if (central_) return central_->findChild<SplitFrameWidget *>();
+  return nullptr;
+}
+
+int SplitWindow::frameIndexFor(SplitFrameWidget *frame) const {
+  if (!frame) return -1;
+  const QVariant v = frame->property("logicalIndex");
+  if (!v.isValid()) return -1;
+  return v.toInt();
 }
 
 void SplitWindow::saveCurrentSplitterSizes() {
@@ -893,19 +927,34 @@ void SplitWindow::showDomPatchesManager() {
 
 void SplitWindow::onCloseShortcut() {
   // If more than one frame exists, close the last/end frame instead of the window.
-  if ((int)addresses_.size() > 1) {
+  if ((int)frames_.size() > 1) {
     qDebug() << "onCloseShortcut: removing last frame (Cmd-W pressed)";
-    // Remove the last address and rebuild UI. Persist the addresses.
-    addresses_.pop_back();
-    QSettings settings;
-    QStringList list;
-    for (const auto &a : addresses_) list << a;
-    settings.setValue("addresses", list);
-    rebuildSections((int)addresses_.size());
+    // Remove the last frame and rebuild UI. Persist the frame state.
+    frames_.pop_back();
+    persistGlobalFrameState();
+    rebuildSections((int)frames_.size());
   } else {
     // Only one frame remains: close the window as normal.
     qDebug() << "onCloseShortcut: single frame, closing window";
     this->close();
+  }
+}
+
+void SplitWindow::increaseFocusedFrameScale() {
+  if (SplitFrameWidget *frame = focusedFrame()) {
+    frame->setScaleFactor(frame->scaleFactor() + SplitFrameWidget::kScaleStep, true);
+  }
+}
+
+void SplitWindow::decreaseFocusedFrameScale() {
+  if (SplitFrameWidget *frame = focusedFrame()) {
+    frame->setScaleFactor(frame->scaleFactor() - SplitFrameWidget::kScaleStep, true);
+  }
+}
+
+void SplitWindow::resetFocusedFrameScale() {
+  if (SplitFrameWidget *frame = focusedFrame()) {
+    frame->setScaleFactor(1.0, true);
   }
 }
 

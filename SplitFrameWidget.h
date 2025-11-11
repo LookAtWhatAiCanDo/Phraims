@@ -7,6 +7,7 @@
 class QVBoxLayout;
 class QLineEdit;
 class QToolButton;
+class QLabel;
 class QWebEngineProfile;
 class QWebEnginePage;
 class QWebEngineFullScreenRequest;
@@ -20,6 +21,7 @@ class EscapeFilter;
  * - Navigation controls (back, forward, refresh) at the top
  * - Address bar for URL input
  * - Section manipulation buttons (+/-/up/down)
+ * - Frame zoom controls for the embedded web view
  * - Web view content area
  *
  * The widget handles HTML5 fullscreen requests, DOM patch application,
@@ -29,6 +31,15 @@ class SplitFrameWidget : public QFrame {
   Q_OBJECT
 
 public:
+  /** @brief Minimum allowed scale factor (50%) */
+  inline static constexpr double kMinScaleFactor = 0.5;
+
+  /** @brief Maximum allowed scale factor (175%) */
+  inline static constexpr double kMaxScaleFactor = 1.75;
+
+  /** @brief Increment applied when nudging scale from UI/shortcuts */
+  inline static constexpr double kScaleStep = 0.1;
+
   /**
    * @brief Constructs a SplitFrameWidget.
    * @param index The visual index of this frame (used for alternating colors)
@@ -117,6 +128,19 @@ public:
    */
   void focusAddress();
 
+  /**
+   * @brief Returns the current scale factor applied to this frame.
+   * @return Scale multiplier where 1.0 is default size
+   */
+  double scaleFactor() const;
+
+  /**
+   * @brief Applies a specific scale factor to the frame.
+   * @param scale Desired scale multiplier (clamped internally)
+   * @param notify Whether to emit scaleChanged (used for user-initiated changes)
+   */
+  void setScaleFactor(double scale, bool notify = false);
+
 private slots:
   /**
    * @brief Handles HTML5 fullscreen requests from the page.
@@ -174,6 +198,13 @@ signals:
    * @param translateUrl The Google Translate URL to open
    */
   void translateRequested(SplitFrameWidget *who, const QUrl &translateUrl);
+  
+  /**
+   * @brief Emitted when the frame's scale changes.
+   * @param who Pointer to this frame widget
+   * @param scale The new scale multiplier
+   */
+  void scaleChanged(SplitFrameWidget *who, double scale);
 
 private:
   QVBoxLayout *innerLayout_ = nullptr;  ///< Main layout for the frame
@@ -186,6 +217,10 @@ private:
   QToolButton *backBtn_ = nullptr;      ///< Navigate back button
   QToolButton *forwardBtn_ = nullptr;   ///< Navigate forward button
   QToolButton *refreshBtn_ = nullptr;   ///< Refresh page button
+  QLabel *scaleLabel_ = nullptr;        ///< Displays current scale percentage
+  QToolButton *scaleDownBtn_ = nullptr; ///< Scale down button
+  QToolButton *scaleUpBtn_ = nullptr;   ///< Scale up button
+  QToolButton *scaleResetBtn_ = nullptr; ///< Reset scale button
 
   /** @brief Top-level window created for fullscreen mode */
   QPointer<QWidget> fullScreenWindow_;
@@ -201,4 +236,16 @@ private:
   
   /** @brief Previous window state to restore after exiting fullscreen */
   Qt::WindowStates previousTopWindowState_ = Qt::WindowNoState;
+
+  /** @brief Current scale factor applied to web content */
+  double scaleFactor_ = 1.0;
+
+  /** @brief Applies the cached scale factor to fonts, zoom, and labels */
+  void applyScale(bool notify);
+
+  /** @brief Adjusts the scale factor by the given delta. */
+  void nudgeScale(double delta);
+
+  /** @brief Updates label/button state to reflect current scale. */
+  void refreshScaleUi();
 };

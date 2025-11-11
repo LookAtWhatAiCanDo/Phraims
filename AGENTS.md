@@ -60,6 +60,12 @@ When adding new keyboard shortcuts:
 - Ensure shortcuts don't interfere with text input fields by using the main window context
 - Document new shortcuts in both `README.md` and this file
 
+## Frame Scale Controls
+- Each frame header exposes `A-`, `A+`, and `1x` buttons that zoom only the embedded `QWebEngineView`. The header chrome intentionally stays a constant size so controls remain predictable; under the hood the buttons call `SplitFrameWidget::setScaleFactor`, which forwards the value to `QWebEngineView::setZoomFactor`.
+- Matching View menu actions (`Increase/Decrease/Reset Frame Scale`) operate on the currently focused frame for accessibility and keyboard-driven workflows. Add future shortcuts to those actions, not to individual widgets.
+- Scale factors are persisted per frame alongside addresses under the `frameScales` key in `QSettings`. Whenever you add, remove, or reorder frames, update the paired scale vector so indices remain aligned. Migrating persistence logic must keep both lists backward compatible.
+- If you need traditional web zoom outside of this mechanism, avoid duplicating state—route everything through `setScaleFactor` so persistence and UI stay consistent.
+
 ## Web View Context Menu
 - Navigation actions (Back, Forward, Reload) and editing commands (Cut, Copy, Paste, Select All) mirror Qt's built-in `QWebEnginePage` actions.
 - **Copy Link Address** appears when right-clicking a hyperlink and copies the fully encoded target URL to the clipboard for easy sharing.
