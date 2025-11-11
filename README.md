@@ -42,6 +42,8 @@ cmake --build . --config Release
 - **Remove Frame**: Click the `-` button on any frame to remove it (confirmation required)
 - **Reorder Frames**: Use the `↑` and `↓` buttons to move frames up or down
 - **Double-click any splitter handle** to instantly resize the two adjacent panes to equal sizes (50/50 split).
+- **Reload Frame**: Press `⌘R` (macOS) or `Ctrl+R` (other platforms) to reload the focused frame, or use `View -> Reload Frame`.
+- **Reload Frame (Bypass Cache)**: Press `⌘⇧R` (macOS) or `Ctrl+Shift+R` (other platforms) to force-refresh the focused frame via `View -> Reload Frame (Bypass Cache)`.
 
 ### Window Management
 - **New Window**: Press `⌘N` (Command-N on macOS) or `Ctrl+N` (other platforms)

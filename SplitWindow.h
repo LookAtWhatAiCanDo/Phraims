@@ -119,6 +119,16 @@ private slots:
    * to the focused frame (or first frame if none focused) and shows it.
    */
   void toggleDevToolsForFocusedFrame();
+
+  /**
+   * @brief Reloads the focused frame using the standard cache-preserving reload.
+   */
+  void reloadFocusedFrame();
+
+  /**
+   * @brief Reloads the focused frame while bypassing the HTTP cache.
+   */
+  void reloadFocusedFrameBypassingCache();
   
   /**
    * @brief Adds a new frame after the currently focused frame.
@@ -215,6 +225,12 @@ private slots:
    * Opens the translation URL in a new SplitWindow.
    */
   void onFrameTranslateRequested(SplitFrameWidget *who, const QUrl &translateUrl);
+
+  /**
+   * @brief Updates focus heuristics when a frame reports user interaction.
+   * @param who The frame that was interacted with
+   */
+  void onFrameInteraction(SplitFrameWidget *who);
   
   /**
    * @brief Creates and attaches the shared DevTools view to a page.
@@ -335,9 +351,15 @@ private:
   void onSplitterDoubleClickResized();
 
   /**
-   * @brief Returns the currently focused SplitFrameWidget, if any.
+   * @brief Finds the focused SplitFrameWidget or falls back to the first frame.
+   * @return Pointer to the focused frame, or the first frame if none focused
    */
-  SplitFrameWidget *focusedFrame() const;
+  SplitFrameWidget *focusedFrameOrFirst() const;
+
+  /**
+   * @brief Returns the first frame in logical order, if available.
+   */
+  SplitFrameWidget *firstFrameWidget() const;
 
   /**
    * @brief Looks up a frame's logical index based on its widget pointer.
@@ -363,4 +385,5 @@ private:
   bool restoredOnStartup_ = false;          ///< Whether state was restored on construction
   QString windowId_;                        ///< Unique ID for this window instance
   QMenu *windowMenu_ = nullptr;             ///< The Window menu for this window
+  SplitFrameWidget *lastFocusedFrame_ = nullptr; ///< Tracks the most recently focused frame
 };

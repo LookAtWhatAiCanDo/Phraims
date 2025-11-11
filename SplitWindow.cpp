@@ -4,6 +4,7 @@
 #include "Utils.h"
 #include "SplitterDoubleClickFilter.h"
 #include <cmath>
+#include <QAction>
 #include <QActionGroup>
 #include <QApplication>
 #include <QCloseEvent>
@@ -30,6 +31,7 @@
 #include <QWebEnginePage>
 #include <QWebEngineView>
 #include <algorithm>
+#include <limits>
 
 bool DEBUG_SHOW_WINDOW_ID = 0;
 
@@ -45,6 +47,17 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
   resize(800, 600);
 
   QSettings settings;
+
+  connect(qApp, &QApplication::focusChanged, this, [this](QWidget *, QWidget *now) {
+    QWidget *w = now;
+    while (w) {
+      if (auto *frame = qobject_cast<SplitFrameWidget *>(w)) {
+        if (frame->window() == this) lastFocusedFrame_ = frame;
+        return;
+      }
+      w = w->parentWidget();
+    }
+  });
 
   // File menu: New Window (Cmd/Ctrl+N), New Frame (Cmd/Ctrl+T)
   auto *fileMenu = menuBar()->addMenu(tr("File"));
@@ -85,6 +98,16 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
   QAction *toggleDevToolsAction = viewMenu->addAction(tr("Toggle DevTools"));
   toggleDevToolsAction->setShortcut(QKeySequence(Qt::Key_F12));
   connect(toggleDevToolsAction, &QAction::triggered, this, &SplitWindow::toggleDevToolsForFocusedFrame);
+
+  QAction *reloadFrameAction = viewMenu->addAction(tr("Reload Frame"));
+  reloadFrameAction->setShortcut(QKeySequence::Refresh);
+  reloadFrameAction->setShortcutContext(Qt::WindowShortcut);
+  connect(reloadFrameAction, &QAction::triggered, this, &SplitWindow::reloadFocusedFrame);
+
+  QAction *reloadBypassAction = viewMenu->addAction(tr("Reload Frame (Bypass Cache)"));
+  reloadBypassAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_R));
+  reloadBypassAction->setShortcutContext(Qt::WindowShortcut);
+  connect(reloadBypassAction, &QAction::triggered, this, &SplitWindow::reloadFocusedFrameBypassingCache);
 
   viewMenu->addSeparator();
   QAction *increaseScaleAction = viewMenu->addAction(tr("Increase Frame Scale"));
@@ -340,6 +363,10 @@ void SplitWindow::rebuildSections(int n) {
       connect(frame, &SplitFrameWidget::devToolsRequested, this, &SplitWindow::onFrameDevToolsRequested);
       connect(frame, &SplitFrameWidget::translateRequested, this, &SplitWindow::onFrameTranslateRequested);
       connect(frame, &SplitFrameWidget::scaleChanged, this, &SplitWindow::onFrameScaleChanged);
+      connect(frame, &SplitFrameWidget::interactionOccurred, this, &SplitWindow::onFrameInteraction);
+      connect(frame, &QObject::destroyed, this, [this, frame]() {
+        if (lastFocusedFrame_ == frame) lastFocusedFrame_ = nullptr;
+      });
       frame->setMinusEnabled(n > 1);
       frame->setUpEnabled(i > 0);
       frame->setDownEnabled(i < n - 1);
@@ -386,6 +413,10 @@ void SplitWindow::rebuildSections(int n) {
         connect(frame, &SplitFrameWidget::devToolsRequested, this, &SplitWindow::onFrameDevToolsRequested);
         connect(frame, &SplitFrameWidget::translateRequested, this, &SplitWindow::onFrameTranslateRequested);
         connect(frame, &SplitFrameWidget::scaleChanged, this, &SplitWindow::onFrameScaleChanged);
+        connect(frame, &SplitFrameWidget::interactionOccurred, this, &SplitWindow::onFrameInteraction);
+        connect(frame, &QObject::destroyed, this, [this, frame]() {
+          if (lastFocusedFrame_ == frame) lastFocusedFrame_ = nullptr;
+        });
         frame->setMinusEnabled(n > 1);
         frame->setUpEnabled(idx > 0);
         frame->setDownEnabled(idx < n - 1);
@@ -427,6 +458,7 @@ void SplitWindow::rebuildSections(int n) {
   // add a final stretch with zero so that widgets entirely control spacing
   layout_->addStretch(0);
   central_->update();
+  if (!lastFocusedFrame_) lastFocusedFrame_ = firstFrameWidget();
   // Update this window's title now that the number of frames may have changed
   // and ensure the Window menus across the app reflect the new title.
   updateWindowTitle();
@@ -441,7 +473,7 @@ void SplitWindow::toggleDevToolsForFocusedFrame() {
     return;
   }
 
-  SplitFrameWidget *target = focusedFrame();
+  SplitFrameWidget *target = focusedFrameOrFirst();
   if (target) {
     QWebEnginePage *p = target->page();
     if (p) {
@@ -456,7 +488,9 @@ void SplitWindow::toggleDevToolsForFocusedFrame() {
 }
 
 void SplitWindow::onNewFrameShortcut() {
-  SplitFrameWidget *target = focusedFrame();
+  // Find the currently focused frame (similar to toggleDevToolsForFocusedFrame)
+  SplitFrameWidget *target = focusedFrameOrFirst();
+  
   if (!target) {
     qDebug() << "onNewFrameShortcut: no target frame found";
     return;
@@ -499,6 +533,18 @@ void SplitWindow::onNewFrameShortcut() {
   }
   
   qDebug() << "onNewFrameShortcut: added new frame after position" << pos;
+}
+
+void SplitWindow::reloadFocusedFrame() {
+  SplitFrameWidget *target = focusedFrameOrFirst();
+  if (!target) return;
+  target->reload(false);
+}
+
+void SplitWindow::reloadFocusedFrameBypassingCache() {
+  SplitFrameWidget *target = focusedFrameOrFirst();
+  if (!target) return;
+  target->reload(true);
 }
 
 void SplitWindow::onPlusFromFrame(SplitFrameWidget *who) {
@@ -737,16 +783,6 @@ void SplitWindow::persistGlobalFrameState() {
   settings.setValue("frameScales", scales);
 }
 
-SplitFrameWidget *SplitWindow::focusedFrame() const {
-  QWidget *fw = QApplication::focusWidget();
-  while (fw) {
-    if (auto *f = qobject_cast<SplitFrameWidget *>(fw)) return f;
-    fw = fw->parentWidget();
-  }
-  if (central_) return central_->findChild<SplitFrameWidget *>();
-  return nullptr;
-}
-
 int SplitWindow::frameIndexFor(SplitFrameWidget *frame) const {
   if (!frame) return -1;
   const QVariant v = frame->property("logicalIndex");
@@ -846,6 +882,33 @@ void SplitWindow::onSplitterDoubleClickResized() {
   }
 }
 
+SplitFrameWidget *SplitWindow::focusedFrameOrFirst() const {
+  QWidget *fw = QApplication::focusWidget();
+  while (fw) {
+    if (auto *frame = qobject_cast<SplitFrameWidget *>(fw)) return frame;
+    fw = fw->parentWidget();
+  }
+  if (lastFocusedFrame_) return lastFocusedFrame_;
+  return firstFrameWidget();
+}
+
+SplitFrameWidget *SplitWindow::firstFrameWidget() const {
+  if (!central_) return nullptr;
+  const QList<SplitFrameWidget *> frames = central_->findChildren<SplitFrameWidget *>();
+  SplitFrameWidget *best = nullptr;
+  int bestIndex = std::numeric_limits<int>::max();
+  for (SplitFrameWidget *frame : frames) {
+    bool ok = false;
+    const int idx = frame->property("logicalIndex").toInt(&ok);
+    if (ok && idx < bestIndex) {
+      bestIndex = idx;
+      best = frame;
+    }
+  }
+  if (best) return best;
+  return central_->findChild<SplitFrameWidget *>();
+}
+
 void SplitWindow::onFrameDevToolsRequested(SplitFrameWidget *who, QWebEnginePage *page, const QPoint &pos) {
   Q_UNUSED(who);
   Q_UNUSED(pos);
@@ -864,6 +927,12 @@ void SplitWindow::onFrameTranslateRequested(SplitFrameWidget *who, const QUrl &t
   if (!translateUrl.isValid()) return;
   // Open the translation URL in a new Phraims window
   createAndShowWindow(translateUrl.toString());
+}
+
+void SplitWindow::onFrameInteraction(SplitFrameWidget *who) {
+  if (!who) return;
+  if (who->window() != this) return;
+  lastFocusedFrame_ = who;
 }
 
 void SplitWindow::createAndAttachSharedDevToolsForPage(QWebEnginePage *page) {
@@ -941,19 +1010,19 @@ void SplitWindow::onCloseShortcut() {
 }
 
 void SplitWindow::increaseFocusedFrameScale() {
-  if (SplitFrameWidget *frame = focusedFrame()) {
+  if (SplitFrameWidget *frame = focusedFrameOrFirst()) {
     frame->setScaleFactor(frame->scaleFactor() + SplitFrameWidget::kScaleStep, true);
   }
 }
 
 void SplitWindow::decreaseFocusedFrameScale() {
-  if (SplitFrameWidget *frame = focusedFrame()) {
+  if (SplitFrameWidget *frame = focusedFrameOrFirst()) {
     frame->setScaleFactor(frame->scaleFactor() - SplitFrameWidget::kScaleStep, true);
   }
 }
 
 void SplitWindow::resetFocusedFrameScale() {
-  if (SplitFrameWidget *frame = focusedFrame()) {
+  if (SplitFrameWidget *frame = focusedFrameOrFirst()) {
     frame->setScaleFactor(1.0, true);
   }
 }

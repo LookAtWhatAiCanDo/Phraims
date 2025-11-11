@@ -52,18 +52,21 @@ SplitFrameWidget::SplitFrameWidget(int index, QWidget *parent) : QFrame(parent) 
   backBtn_->setToolTip("Back");
   backBtn_->setEnabled(false);
   topRow->addWidget(backBtn_);
+  registerInteractionTarget(backBtn_);
 
   forwardBtn_ = new QToolButton(this);
   forwardBtn_->setText(">");
   forwardBtn_->setToolTip("Forward");
   forwardBtn_->setEnabled(false);
   topRow->addWidget(forwardBtn_);
+  registerInteractionTarget(forwardBtn_);
 
   refreshBtn_ = new QToolButton(this);
   refreshBtn_->setText("\u21BB"); // clockwise open circle arrow
   refreshBtn_->setToolTip("Refresh");
   refreshBtn_->setEnabled(false);
   topRow->addWidget(refreshBtn_);
+  registerInteractionTarget(refreshBtn_);
 
   address_ = new QLineEdit(this);
   address_->setPlaceholderText("Address or URL");
@@ -71,7 +74,7 @@ SplitFrameWidget::SplitFrameWidget(int index, QWidget *parent) : QFrame(parent) 
   // show the left-most characters when not being edited and provide
   // a hover tooltip containing the full URL
   address_->setToolTip(address_->text());
-  address_->installEventFilter(this);
+  registerInteractionTarget(address_);
   address_->setCursorPosition(0);
   connect(address_, &QLineEdit::textChanged, this, [this](const QString &t){
     address_->setToolTip(t);
@@ -83,42 +86,50 @@ SplitFrameWidget::SplitFrameWidget(int index, QWidget *parent) : QFrame(parent) 
   scaleLabel_->setMinimumWidth(58);
   scaleLabel_->setToolTip(tr("Frame scale (affects controls + page content)"));
   topRow->addWidget(scaleLabel_);
+  registerInteractionTarget(scaleLabel_);
 
   scaleDownBtn_ = new QToolButton(this);
   scaleDownBtn_->setText(QStringLiteral("A-"));
   scaleDownBtn_->setToolTip(tr("Scale frame down"));
   topRow->addWidget(scaleDownBtn_);
+  registerInteractionTarget(scaleDownBtn_);
 
   scaleUpBtn_ = new QToolButton(this);
   scaleUpBtn_->setText(QStringLiteral("A+"));
   scaleUpBtn_->setToolTip(tr("Scale frame up"));
   topRow->addWidget(scaleUpBtn_);
+  registerInteractionTarget(scaleUpBtn_);
 
   scaleResetBtn_ = new QToolButton(this);
   scaleResetBtn_->setText(QStringLiteral("1x"));
   scaleResetBtn_->setToolTip(tr("Reset frame scale to 100%"));
   topRow->addWidget(scaleResetBtn_);
+  registerInteractionTarget(scaleResetBtn_);
 
   // up/down move this frame within the list
   upBtn_ = new QToolButton(this);
   upBtn_->setText("\u25B2"); // up triangle
   upBtn_->setToolTip("Move this section up");
   topRow->addWidget(upBtn_);
+  registerInteractionTarget(upBtn_);
 
   downBtn_ = new QToolButton(this);
   downBtn_->setText("\u25BC"); // down triangle
   downBtn_->setToolTip("Move this section down");
   topRow->addWidget(downBtn_);
+  registerInteractionTarget(downBtn_);
 
   plusBtn_ = new QToolButton(this);
   plusBtn_->setText("+");
   plusBtn_->setToolTip("Insert a new section after this one");
   topRow->addWidget(plusBtn_);
+  registerInteractionTarget(plusBtn_);
 
   minusBtn_ = new QToolButton(this);
   minusBtn_->setText("-");
   minusBtn_->setToolTip("Remove this section");
   topRow->addWidget(minusBtn_);
+  registerInteractionTarget(minusBtn_);
 
   innerLayout_->addLayout(topRow);
 
@@ -126,6 +137,8 @@ SplitFrameWidget::SplitFrameWidget(int index, QWidget *parent) : QFrame(parent) 
   webview_ = new MyWebEngineView(this);
   webview_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   innerLayout_->addWidget(webview_, 1);
+  registerInteractionTarget(webview_);
+  registerInteractionTarget(this);
 
   // wire internal UI to emit signals and control webview
   connect(plusBtn_, &QToolButton::clicked, this, [this]() { emit plusClicked(this); });
@@ -229,7 +242,27 @@ void SplitFrameWidget::updateNavButtons() {
   refreshBtn_->setEnabled(!webview_->url().isEmpty());
 }
 
+void SplitFrameWidget::reload(bool bypassCache) {
+  if (!webview_) return;
+  if (bypassCache) {
+    webview_->triggerPageAction(QWebEnginePage::ReloadAndBypassCache);
+  } else {
+    webview_->reload();
+  }
+}
+
 bool SplitFrameWidget::eventFilter(QObject *watched, QEvent *event) {
+  switch (event->type()) {
+    case QEvent::MouseButtonPress:
+    case QEvent::FocusIn:
+    case QEvent::KeyPress:
+    case QEvent::Wheel:
+      emit interactionOccurred(this);
+      break;
+    default:
+      break;
+  }
+
   if (watched == address_) {
     if (event->type() == QEvent::FocusOut) {
       // When the user finishes editing (or focus leaves), ensure the
@@ -237,10 +270,14 @@ bool SplitFrameWidget::eventFilter(QObject *watched, QEvent *event) {
       // are visible.
       address_->setCursorPosition(0);
     }
-    // Let the line edit handle the event as well
     return false;
   }
   return QFrame::eventFilter(watched, event);
+}
+
+void SplitFrameWidget::registerInteractionTarget(QWidget *child) {
+  if (!child) return;
+  child->installEventFilter(this);
 }
 
 void SplitFrameWidget::setMinusEnabled(bool en) { if (minusBtn_) minusBtn_->setEnabled(en); }
