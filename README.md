@@ -1,7 +1,7 @@
-Phraim
+Phraims
 ======
 
-Phraim is a web browser that divides each window into multiple resizable web page frames.
+Phraims is a web browser that divides each window into multiple resizable web page frames.
 
 ## Code Organization
 
@@ -19,8 +19,8 @@ Simple classes like `EscapeFilter` and `MyWebEngineView` use header-only impleme
 
 Settings are stored at:
 - macOS:
-  - Preferences: /Users/pv/Library/Preferences/com.swooby.Phraim.plist
-  - Profile: /Users/pv/Library/Application Support/swooby/Phraim
+  - Preferences: /Users/pv/Library/Preferences/com.swooby.Phraims.plist
+  - Profile: /Users/pv/Library/Application Support/swooby/Phraims
 - Windows: TBD
 - Linux: TBD
 
@@ -31,7 +31,7 @@ Build (requires Qt6 development libraries and a working CMake):
 mkdir -p build && cd build
 cmake ..
 cmake --build . --config Release
-./Phraim
+./Phraims
 ```
 
 ## Controls and Shortcuts
@@ -104,8 +104,23 @@ The web view context menu provides quick access to common actions:
 - **Translate…**: Translate selected text or the entire page using Google Translate
   - If text is selected, opens translation of the selected text
   - If no text is selected, opens full page translation
-  - Opens in a new Phraim window
+  - Opens in a new Phraims window
 - **Inspect…**: Opens DevTools for page inspection and debugging
+
+## Continuous Integration
+
+The project uses GitHub Actions to automatically build macOS binaries on every push to `main` and on pull requests. This ensures the codebase stays healthy and provides downloadable artifacts for testers.
+
+### Downloading Build Artifacts
+
+After each successful CI run, you can download the built macOS app bundle:
+1. Navigate to the [Actions tab](../../actions) in the repository
+2. Click on the latest workflow run
+3. Scroll down to the "Artifacts" section
+4. Download `Phraims-macOS` - this contains the `Phraims.app` bundle
+5. Extract and run the app (you may need to allow it in System Preferences > Security & Privacy)
+
+Artifacts are retained for 90 days. The workflow can also be triggered manually via the "Run workflow" button for building release candidates.
 
 ## TODOs
 - Improve Menu
@@ -127,6 +142,11 @@ The web view context menu provides quick access to common actions:
   - Bookmarks
   - Passkeys!!
   - Downloads Shift-Command-J
-  - Extensions ([GitHub Issue #9](https://github.com/swooby/Phraim/issues/9))
+  - Extensions ([GitHub Issue #9](./issues/9))
   - Settings
   - ...; all expected things from a browser!
+  - User-Agent
+
+## BUGS
+- Discord page blank white
+- messenger.com page not loading

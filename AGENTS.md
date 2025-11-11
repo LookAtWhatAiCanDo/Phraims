@@ -14,20 +14,30 @@ The codebase follows a modular structure with classes separated into dedicated f
 
 For simple classes like `EscapeFilter`, `MyWebEngineView`, and `SplitterDoubleClickFilter`, implementations are kept in the header as inline methods to reduce file count and keep code/comments together.
 
-`CMakeLists.txt` configures the `Phraim` executable target and links Qt Widgets and WebEngine modules.
+`CMakeLists.txt` configures the `Phraims` executable target and links Qt Widgets and WebEngine modules.
 Generated binaries and intermediates belong in `build/`; feel free to create
 parallel out-of-source build directories (`build-debug`, `build-release`) to keep artifacts separated.
-User preferences persist through `QSettings` under the `swooby/Phraim` domain,
+User preferences persist through `QSettings` under the `swooby/Phraims` domain,
 so evolve keys carefully to avoid breaking stored layouts or address lists.
 
 ## Build, Test, and Development Commands
 ```bash
 cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/Qt        # configure; point to Qt6 if not on PATH
-cmake --build build --config Release                       # compile the Phraim executable
-./build/Phraim                                             # launch the multi-chat splitter UI
+cmake --build build --config Release                       # compile the Phraims executable
+./build/Phraims                                             # launch the multi-chat splitter UI
 cmake --build build --target clean                         # remove compiled objects when needed
 ```
 Use the same `build` tree for iterative work; regenerate only when toggling build options or Qt installs.
+
+## Continuous Integration
+
+The repository uses GitHub Actions to automatically build macOS binaries on every push to `main` and pull requests. The workflow is defined in `.github/workflows/build-macos.yml` and:
+- Installs Qt6 with WebEngine module using a caching action for faster builds
+- Configures and builds the Phraims app bundle using CMake
+- Uploads the resulting `Phraims.app` as a downloadable artifact (retained for 90 days)
+- Can be manually triggered via workflow_dispatch for release builds
+
+When modifying build requirements or dependencies, ensure the workflow file stays synchronized with local build instructions. Test the workflow by creating a pull request or triggering it manually from the GitHub Actions UI.
 
 ## Coding Style & Naming Conventions
 Follow the existing C++17 + Qt style: two-space indentation, opening braces on the same line, and `PascalCase` for classes (`SplitFrameWidget`). Member variables carry a trailing underscore (`backBtn_`), free/static helpers use `camelCase`, and enums stay scoped within their owning classes. Prefer Qt containers and utilities over STL when interacting with Qt APIs, and keep comments focused on non-obvious behavior (signals, persistence, or ownership nuances).
