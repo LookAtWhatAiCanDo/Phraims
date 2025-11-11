@@ -51,6 +51,11 @@ cmake --build . --config Release
 - Each section is equally sized using layout stretch factors
 - Use the Layout menu to switch between Grid, Vertical, and Horizontal arrangements
 
+### Per-frame zoom controls
+- Use the `A-`, `A+`, and `1x` buttons in each frame header (or `View -> Increase/Decrease/Reset Frame Scale`) to zoom the embedded page without touching splitter sizes or header chrome. These controls are simply a shortcut for adjusting the QWebEngineView zoom on a frame-by-frame basis.
+- The UI chrome stays at a consistent size so controls remain easy to target even when a page is zoomed way in/out.
+- Zoom choices are stored per frame in the current layout. Closing and reopening the app restores the last zoom factor for each saved slot.
+
 ## DOM Patches
 
 This application supports persisting small DOM CSS "patches" you create while using the inspector.  
@@ -150,3 +155,38 @@ Artifacts are retained for 90 days. The workflow can also be triggered manually 
 ## BUGS
 - Discord page blank white
 - messenger.com page not loading
+
+## Tests
+
+Acceptance tests / expected behavior
+---------------------------------
+These tests define the desired behavior for layout selection and splitter persistence.
+
+1) Setting a layout
+	- Action: Select a layout from the `Layout` menu (Grid, Stack Vertically, Stack Horizontally).
+	- Expected: The UI rebuilds so all frames are visible and equally sized.
+
+2) Manually adjusting splitters
+	- Action: Drag a splitter handle to change sizes of adjacent frames.
+	- Expected: The UI updates immediately to reflect the new sizes. The new sizes are stored on application exit and will be loaded on next launch.
+
+3) Close app and reopen — manual splitter positions persist
+	- Action: With manual splitter adjustments made, close the application and then relaunch it.
+	- Expected: The frames open with the splitters in the last positions the user set before exit.
+
+4) Re-setting the layout (re-selecting the currently selected layout)
+	- Action: Choose the currently-active layout again from the `Layout` menu.
+	- Expected: The layout fully resets and rebuilds; all frames are laid out evenly (default sizes). Persisted splitter sizes are NOT applied when re-selecting a layout.
+
+5) Changing to another layout
+	- Action: Select a different layout from the `Layout` menu.
+	- Expected: The layout switches and rebuilds. The new layout starts in default (evenly distributed) sizes. Persisted splitter sizes are only applied on application startup — not when changing layouts during a running session.
+
+6) Per-frame zoom persists
+	- Action: Use the `A-` / `A+` buttons (or the View menu actions) to change the zoom of a frame, quit the application, and relaunch it.
+	- Expected: Each frame reopens with the exact zoom factor that was active before quitting. Only the web content should change size; splitter handles and chrome stay put.
+
+Notes
+- Persisted splitter positions are only loaded once at application startup. During normal runtime, selecting or re-selecting layouts resets to default split positions.
+- The app persists splitter sizes on exit so they can be used for the next application launch.
+- Recommended: test quickly by resizing splitters, closing the app, and reopening to verify persistence.

@@ -187,6 +187,15 @@ private slots:
    * Updates the addresses_ vector and persists to QSettings.
    */
   void onAddressEdited(SplitFrameWidget *who, const QString &text);
+
+  /**
+   * @brief Handles scale adjustments emitted by a frame.
+   * @param who The frame whose scale changed
+   * @param scale The new scale factor (1.0 = default)
+   *
+   * Persists the new scale and keeps the internal model synchronized.
+   */
+  void onFrameScaleChanged(SplitFrameWidget *who, double scale);
   
   /**
    * @brief Handles DevTools request from a frame.
@@ -240,6 +249,21 @@ private slots:
    */
   void onCloseShortcut();
 
+  /**
+   * @brief Increases the focused frame's scale (View menu action).
+   */
+  void increaseFocusedFrameScale();
+
+  /**
+   * @brief Decreases the focused frame's scale (View menu action).
+   */
+  void decreaseFocusedFrameScale();
+
+  /**
+   * @brief Resets the focused frame's scale back to 100%.
+   */
+  void resetFocusedFrameScale();
+
 protected:
   /**
    * @brief Handles window close events.
@@ -261,6 +285,14 @@ protected:
   void changeEvent(QEvent *event) override;
 
 private:
+  /**
+   * @brief Represents persisted per-frame state (address + scale).
+   */
+  struct FrameState {
+    QString address;  ///< Last loaded address
+    double scale = 1.0; ///< UI/content scale multiplier
+  };
+
   /**
    * @brief Converts a layout mode enum to a settings key string.
    * @param m The layout mode
@@ -302,9 +334,28 @@ private:
    */
   void onSplitterDoubleClickResized();
 
+  /**
+   * @brief Returns the currently focused SplitFrameWidget, if any.
+   */
+  SplitFrameWidget *focusedFrame() const;
+
+  /**
+   * @brief Looks up a frame's logical index based on its widget pointer.
+   * @param frame The SplitFrameWidget to look up
+   * @return Zero-based index or -1 if not found
+   */
+  int frameIndexFor(SplitFrameWidget *frame) const;
+
+  /**
+   * @brief Persists the shared frame state (addresses + scales) to root QSettings.
+   *
+   * Used for default window templates and backwards compatibility when no window ID is set.
+   */
+  void persistGlobalFrameState();
+
   QWidget *central_ = nullptr;              ///< Central widget containing the layout
   QVBoxLayout *layout_ = nullptr;           ///< Main vertical layout
-  std::vector<QString> addresses_;          ///< URL addresses for each frame
+  std::vector<FrameState> frames_;          ///< Per-frame address + scale state
   QWebEngineProfile *profile_ = nullptr;    ///< Shared web engine profile
   LayoutMode layoutMode_ = Vertical;        ///< Current layout mode
   std::vector<QSplitter*> currentSplitters_; ///< Active splitters for current layout
