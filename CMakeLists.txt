@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 6.2 COMPONENTS Widgets WebEngineWidgets REQUIRED)
+find_package(Qt6 6.10 COMPONENTS Widgets WebEngineWidgets REQUIRED)
 
 # On macOS build a GUI app bundle (prevents launching a Terminal).
 if(APPLE)

@@ -24,7 +24,7 @@ Settings are stored at:
 - Windows: TBD
 - Linux: TBD
 
-Build (requires Qt6 development libraries and a working CMake):
+Build (requires Qt 6.10+ development libraries and a working CMake):
 
 ```bash
 # from repository root

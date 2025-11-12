@@ -22,7 +22,7 @@ so evolve keys carefully to avoid breaking stored layouts or address lists.
 
 ## Build, Test, and Development Commands
 ```bash
-cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/Qt        # configure; point to Qt6 if not on PATH
+cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/Qt        # configure; point to Qt 6.10+ if not on PATH
 cmake --build build --config Release                       # compile the Phraims executable
 ./build/Phraims                                             # launch the multi-chat splitter UI
 cmake --build build --target clean                         # remove compiled objects when needed

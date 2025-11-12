@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <QGuiApplication>
 #include <QMenu>
+#include <QMetaType>
 #include <QUrl>
 #include <QUrlQuery>
 #include <QWebEngineView>
@@ -255,7 +256,7 @@ protected:
     return [sel.toString(), href];
   }catch(e){ return ['','']; }
 })(%1, %2);
-)JS").arg(QString::number(docPos.x())).arg(QString::number(docPos.y()));
+)JS").arg(QString::number(docPos.x()), QString::number(docPos.y()));
 
     // Run the JS and then show the menu so the selection is visible when the
     // user sees the context menu.
@@ -264,7 +265,7 @@ protected:
       // Expecting an array: [selectionString, hrefString]
       QString selText;
       QString foundHref;
-      if (result.type() == QVariant::List) {
+      if (result.metaType() == QMetaType::fromType<QVariantList>()) {
         auto list = result.toList();
         if (list.size() >= 1) selText = list.value(0).toString();
         if (list.size() >= 2) foundHref = list.value(1).toString();
