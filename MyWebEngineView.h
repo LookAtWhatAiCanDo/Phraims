@@ -350,7 +350,7 @@ protected:
    * @return This view instance, causing the popup to load in place
    */
   MyWebEngineView *createWindow(QWebEnginePage::WebWindowType type) override {
-    Q_UNUSED(type);
+    qDebug() << "MyWebEngineView::createWindow: type=" << type;
     // Load popup targets in the same view. Returning 'this' tells the
     // engine to use the current view for the new window's contents.
     return this;

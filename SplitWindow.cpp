@@ -3,7 +3,10 @@
 #include "DomPatch.h"
 #include "Utils.h"
 #include "SplitterDoubleClickFilter.h"
+#include "MyWebEnginePage.h"
+#include <algorithm>
 #include <cmath>
+#include <limits>
 #include <QAction>
 #include <QActionGroup>
 #include <QApplication>
@@ -27,11 +30,9 @@
 #include <QVariant>
 #include <QUuid>
 #include <QVBoxLayout>
-#include <QWebEngineProfile>
 #include <QWebEnginePage>
+#include <QWebEngineProfile>
 #include <QWebEngineView>
-#include <algorithm>
-#include <limits>
 
 bool DEBUG_SHOW_WINDOW_ID = 0;
 
@@ -71,22 +72,9 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
 
   // No global toolbar; per-frame + / - buttons control sections.
 
-  // create a shared persistent QWebEngineProfile for all frames so
-  // cookies/localStorage/session state are persisted across frames and runs
-  const QString dataRoot = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-  const QString profilePath = dataRoot;
-  qDebug() << "  WebEngine profilePath:" << profilePath;
-  const QString profileCache = profilePath + "/cache";
-  qDebug() << "  WebEngine profileCache:" << profileCache;
-  QDir().mkpath(profilePath);
-  QDir().mkpath(profileCache);
-  const QString profileName = QCoreApplication::organizationName();
-  qDebug() << "  WebEngine profileName:" << profileName;
-  profile_ = new QWebEngineProfile(profileName, this);
-  profile_->setPersistentStoragePath(profilePath);
-  profile_->setCachePath(profileCache);
-  profile_->setHttpCacheType(QWebEngineProfile::DiskHttpCache);
-  profile_->setPersistentCookiesPolicy(QWebEngineProfile::ForcePersistentCookies);
+  profile_ = sharedWebEngineProfile();
+  qDebug() << "SplitWindow: using shared profile" << profile_
+           << "storage=" << profile_->persistentStoragePath();
 
   // (window geometry/state restored later after UI is built)
 
@@ -370,6 +358,7 @@ void SplitWindow::rebuildSections(int n) {
       frame->setMinusEnabled(n > 1);
       frame->setUpEnabled(i > 0);
       frame->setDownEnabled(i < n - 1);
+      qDebug() << "";
       split->addWidget(frame);
     }
     // distribute sizes evenly across the children so switching layouts
@@ -420,6 +409,7 @@ void SplitWindow::rebuildSections(int n) {
         frame->setMinusEnabled(n > 1);
         frame->setUpEnabled(idx > 0);
         frame->setDownEnabled(idx < n - 1);
+        qDebug() << "";
         rowSplit->addWidget(frame);
         ++idx;
       }
@@ -943,7 +933,7 @@ void SplitWindow::createAndAttachSharedDevToolsForPage(QWebEnginePage *page) {
     sharedDevToolsView_->setAttribute(Qt::WA_DeleteOnClose);
 
     QWebEngineProfile *profile = page->profile();
-    auto *devPage = new QWebEnginePage(profile, sharedDevToolsView_);
+    auto *devPage = new MyWebEnginePage(profile, sharedDevToolsView_);
     sharedDevToolsView_->setPage(devPage);
 
     page->setDevToolsPage(devPage);

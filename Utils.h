@@ -8,6 +8,7 @@
 
 class SplitWindow;
 class QWebEnginePage;
+class QWebEngineProfile;
 
 /**
  * @brief RAII helper for managing nested QSettings group paths.
@@ -95,6 +96,14 @@ void createAndShowWindow(const QString &initialAddress = QString(), const QStrin
  * QSettings groups under "windows/<id>/".
  */
 void performLegacyMigration();
+
+/**
+ * @brief Returns the shared persistent QWebEngineProfile used by all windows.
+ *
+ * The profile is created lazily on first call, configured for disk-backed
+ * cookies/cache, and re-used for every SplitWindow instance.
+ */
+QWebEngineProfile *sharedWebEngineProfile();
 
 /**
  * @brief Applies all enabled DOM patches to the given page immediately.

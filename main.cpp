@@ -9,6 +9,7 @@
 #include <QDir>
 #include <QGuiApplication>
 #include <QIcon>
+#include <QLoggingCategory>
 #include <QLocalServer>
 #include <QLocalSocket>
 #include <QSettings>
@@ -43,6 +44,7 @@ int main(int argc, char **argv) {
     }
   }
 
+  QLoggingCategory::setFilterRules(QStringLiteral("qt.webenginecontext.debug=true"));
   QApplication app(argc, argv);
   app.setWindowIcon(QIcon(QStringLiteral(":/icons/phraims.ico")));
 
