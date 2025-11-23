@@ -30,7 +30,7 @@ extern bool DEBUG_SHOW_WINDOW_ID;
  * - Shared DevTools view for debugging
  * - DOM patches management
  *
- * Each window has a unique ID for storing state separately in QSettings.
+ * Each window has a unique ID for storing state separately in AppSettings.
  */
 class SplitWindow : public QMainWindow {
   Q_OBJECT
@@ -45,15 +45,15 @@ public:
    * @param parent Optional parent widget
    *
    * If windowId is provided, the window loads its saved addresses, layout, geometry,
-   * and splitter sizes from QSettings group "windows/<windowId>".
+   * and splitter sizes from AppSettings group "windows/<windowId>".
    */
   SplitWindow(const QString &windowId = QString(), QWidget *parent = nullptr);
 
   /**
-   * @brief Persists window state to QSettings.
+   * @brief Persists window state to AppSettings.
    *
    * Saves addresses, layout mode, window geometry, window state, and splitter sizes
-   * under QSettings group "windows/<id>". If this window doesn't have an ID yet,
+   * under AppSettings group "windows/<id>". If this window doesn't have an ID yet,
    * a new UUID is generated so the window will be restorable on next launch.
    */
   void savePersistentStateToSettings();
@@ -194,7 +194,7 @@ private slots:
    * @param who The frame that emitted the signal
    * @param text The new address text
    *
-   * Updates the addresses_ vector and persists to QSettings.
+   * Updates the addresses_ vector and persists to AppSettings.
    */
   void onAddressEdited(SplitFrameWidget *who, const QString &text);
 
@@ -324,7 +324,7 @@ protected:
    *
    * Saves window state and handles cleanup. If this is the last window or
    * the app is shutting down, preserves state. Otherwise, removes the
-   * window's saved group from QSettings.
+   * window's saved group from AppSettings.
    */
   void closeEvent(QCloseEvent *event) override;
   
@@ -354,7 +354,7 @@ private:
   static QString layoutModeKey(SplitWindow::LayoutMode m);
   
   /**
-   * @brief Saves current splitter sizes to QSettings.
+   * @brief Saves current splitter sizes to AppSettings.
    *
    * Uses the default path "splitterSizes/<layoutMode>/<index>".
    */
@@ -362,12 +362,12 @@ private:
   
   /**
    * @brief Saves current splitter sizes to a specific settings path.
-   * @param groupPrefix The QSettings group path prefix (e.g., "windows/id/splitterSizes")
+   * @param groupPrefix The AppSettings group path prefix (e.g., "windows/id/splitterSizes")
    */
   void saveCurrentSplitterSizes(const QString &groupPrefix);
   
   /**
-   * @brief Restores splitter sizes from QSettings.
+   * @brief Restores splitter sizes from AppSettings.
    *
    * Uses the default path "splitterSizes/<layoutMode>/<index>".
    */
@@ -375,7 +375,7 @@ private:
   
   /**
    * @brief Restores splitter sizes from a specific settings path.
-   * @param groupPrefix The QSettings group path prefix
+   * @param groupPrefix The AppSettings group path prefix
    */
   void restoreSplitterSizes(const QString &groupPrefix);
 
@@ -406,7 +406,7 @@ private:
   int frameIndexFor(SplitFrameWidget *frame) const;
 
   /**
-   * @brief Persists the shared frame state (addresses + scales) to root QSettings.
+   * @brief Persists the shared frame state (addresses + scales) to root AppSettings.
    *
    * Used for default window templates and backwards compatibility when no window ID is set.
    */

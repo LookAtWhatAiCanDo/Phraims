@@ -1,6 +1,8 @@
-#include "Utils.h"
-#include "SplitWindow.h"
+#include "AppSettings.h"
 #include "DomPatch.h"
+#include "SplitWindow.h"
+#include "Utils.h"
+#include <algorithm>
 #include <QApplication>
 #include <QDateTime>
 #include <QDebug>
@@ -19,7 +21,6 @@
 #include <QWebEnginePage>
 #include <QWebEngineProfile>
 #include <QWebEngineProfileBuilder>
-#include <algorithm>
 
 std::vector<SplitWindow*> g_windows;
 
@@ -28,13 +29,13 @@ QIcon g_windowEmptyIcon;
 QIcon g_windowCheckIcon;
 QIcon g_windowCheckDiamondIcon;
 
-GroupScope::GroupScope(QSettings &settings, const QString &path) : s(settings) {
+GroupScope::GroupScope(AppSettings &settings, const QString &path) : s(settings) {
   const QStringList parts = path.split('/', Qt::SkipEmptyParts);
-  for (const QString &p : parts) { s.beginGroup(p); ++depth; }
+  for (const QString &p : parts) { s->beginGroup(p); ++depth; }
 }
 
 GroupScope::~GroupScope() {
-  for (int i = 0; i < depth; ++i) s.endGroup();
+  for (int i = 0; i < depth; ++i) s->endGroup();
 }
 
 void createWindowMenuIcons() {
@@ -162,125 +163,7 @@ void createAndShowWindow(const QString &initialAddress, const QString &windowId)
 }
 
 void performLegacyMigration() {
-  QSettings settings;
-  // Fast path: if we've already completed migration, skip. We check both
-  // a QSettings marker and a filesystem marker to avoid relying solely on
-  // the native settings backend which on some platforms can behave
-  // unexpectedly during early startup.
-  const QString markerPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + QDir::separator() + QStringLiteral("migration_done_v1");
-  if (QFile::exists(markerPath) || settings.value(QStringLiteral("migrationDone"), false).toBool()) return;
-
-  // Detect legacy presence
-  const QStringList legacyAddresses = settings.value("addresses").toStringList();
-  const bool hasLegacy = !legacyAddresses.isEmpty() || settings.contains("windowGeometry") || settings.contains("windowState");
-  if (!hasLegacy) {
-    // mark migration as done so we don't repeatedly check
-    settings.setValue("migrationDone", true);
-    settings.sync();
-    return;
-  }
-
-  // Repair pass: some older code wrote literal keys with slashes (e.g.
-  // "windows/<id>/addresses") which won't appear as childGroups() and
-  // therefore confuse detection. Move any such slash-containing keys
-  // into proper nested groups before proceeding.
-  const QStringList allKeys = settings.allKeys();
-  QStringList collectedWindowIds;
-  for (const QString &fullKey : allKeys) {
-    if (!fullKey.startsWith(QStringLiteral("windows/"))) continue;
-    // Example fullKey: "windows/<id>/addresses" or "windows/<id>/splitterSizes/vertical/0"
-    const QStringList parts = fullKey.split('/', Qt::SkipEmptyParts);
-    if (parts.size() < 2) continue; // malformed
-    // last element is the actual key name
-    const QString last = parts.last();
-    QString groupPath = parts.mid(0, parts.size() - 1).join('/'); // "windows/<id>"
-    QVariant val = settings.value(fullKey);
-    QSettings tmp;
-    {
-      GroupScope _gs(tmp, groupPath);
-      tmp.setValue(last, val);
-    }
-    tmp.sync();
-    qDebug() << "performLegacyMigration: moved literal key into group:" << fullKey << "->" << groupPath << "/" << last;
-    // remove the flattened key
-    settings.remove(fullKey);
-    // remember any ids we repaired
-    const QStringList gpParts = groupPath.split('/', Qt::SkipEmptyParts);
-    if (gpParts.size() >= 2) collectedWindowIds << gpParts[1];
-  }
-
-  // If we repaired any windows from literal keys, write them into the
-  // migratedWindowIds index so startup can discover them even if
-  // childGroups() behaves oddly on this platform.
-  if (!collectedWindowIds.isEmpty()) {
-    // deduplicate
-    std::sort(collectedWindowIds.begin(), collectedWindowIds.end());
-    collectedWindowIds.erase(std::unique(collectedWindowIds.begin(), collectedWindowIds.end()), collectedWindowIds.end());
-    settings.setValue("migratedWindowIds", collectedWindowIds);
-  }
-
-  // Re-check presence of per-window groups now that we've repaired any
-  // flattened keys. If windows exist, we don't need to copy the legacy
-  // global keys into a new group — they were already restored above.
-  {
-    QSettings probe;
-    probe.beginGroup(QStringLiteral("windows"));
-    const QStringList ids = probe.childGroups();
-    probe.endGroup();
-    if (!ids.isEmpty()) {
-      qDebug() << "performLegacyMigration: found existing window groups after repair:" << ids;
-      settings.setValue("migrationDone", true);
-      settings.sync();
-      // create filesystem marker as a durable guard
-      QFile f(markerPath);
-      if (f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        f.write(QDateTime::currentDateTimeUtc().toString(Qt::ISODate).toUtf8());
-        f.close();
-      }
-      return;
-    }
-  }
-
-  // If we still have legacy top-level values (addresses/windowGeometry/windowState)
-  // migrate them into a newly-created per-window group and index it.
-  const QStringList legacyKeys = { QStringLiteral("addresses"), QStringLiteral("layoutMode"), QStringLiteral("windowGeometry"), QStringLiteral("windowState") };
-  const QStringList legacyAddressesList = settings.value("addresses").toStringList();
-  const bool stillHasLegacy = !legacyAddressesList.isEmpty() || settings.contains("windowGeometry") || settings.contains("windowState");
-  if (stillHasLegacy) {
-    const QString newId = QUuid::createUuid().toString();
-    QSettings dst;
-    {
-      GroupScope _gs(dst, QStringLiteral("windows/%1").arg(newId));
-      dst.setValue("addresses", legacyAddressesList);
-      dst.setValue("layoutMode", settings.value("layoutMode"));
-      if (settings.contains("windowGeometry")) dst.setValue("windowGeometry", settings.value("windowGeometry"));
-      if (settings.contains("windowState")) dst.setValue("windowState", settings.value("windowState"));
-    }
-    dst.sync();
-    qDebug() << "performLegacyMigration: migrated legacy keys into window id=" << newId;
-
-    // Remove legacy top-level keys
-    for (const QString &k : legacyKeys) {
-      if (settings.contains(k)) {
-        settings.remove(k);
-        qDebug() << "performLegacyMigration: removed legacy key:" << k;
-      }
-    }
-
-    // Update migrated index to include the new id
-    QStringList existing = settings.value("migratedWindowIds").toStringList();
-    existing << newId;
-    settings.setValue("migratedWindowIds", existing);
-  }
-
-  // Mark migration done both in QSettings and with the filesystem marker.
-  settings.setValue("migrationDone", true);
-  settings.sync();
-  QFile mf(markerPath);
-  if (mf.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-    mf.write(QDateTime::currentDateTimeUtc().toString(Qt::ISODate).toUtf8());
-    mf.close();
-  }
+  // No-op placeholder reserved for future settings schema migrations.
 }
 
 // Map of profile name -> profile instance for caching
@@ -315,14 +198,14 @@ QWebEngineProfile *getProfileByName(const QString &profileName) {
 }
 
 QString currentProfileName() {
-  QSettings settings;
-  return settings.value("currentProfile", QStringLiteral("Default")).toString();
+  AppSettings s;
+  return s->value("currentProfile", QStringLiteral("Default")).toString();
 }
 
 void setCurrentProfileName(const QString &profileName) {
-  QSettings settings;
-  settings.setValue("currentProfile", profileName);
-  settings.sync();
+  AppSettings s;
+  s->setValue("currentProfile", profileName);
+  s->sync();
   qDebug() << "setCurrentProfileName:" << profileName;
 }
 

@@ -1,32 +1,32 @@
 #pragma once
 
+#include "AppSettings.h"
+#include <vector>
 #include <QString>
-#include <QSettings>
 #include <QIcon>
 #include <QUuid>
-#include <vector>
 
 class SplitWindow;
 class QWebEnginePage;
 class QWebEngineProfile;
 
 /**
- * @brief RAII helper for managing nested QSettings group paths.
+ * @brief RAII helper for managing nested AppSettings group paths.
  *
- * Automatically begins nested QSettings groups from a path like "windows/<id>/splitterSizes"
+ * Automatically begins nested AppSettings groups from a path like "windows/<id>/splitterSizes"
  * and ensures all groups are properly ended when the object goes out of scope.
  * This prevents mismatched endGroup() calls that can occur with early returns.
  */
 struct GroupScope {
-  QSettings &s;        ///< Reference to the QSettings object being scoped
+  AppSettings &s;      ///< Reference to the AppSettings handle being scoped
   int depth = 0;       ///< Number of nested groups opened
   
   /**
    * @brief Constructs a GroupScope and opens nested groups.
-   * @param settings The QSettings object to scope
+   * @param settings The AppSettings handle to scope
    * @param path The group path with '/' separators (e.g., "windows/id/sizes")
    */
-  GroupScope(QSettings &settings, const QString &path);
+  GroupScope(AppSettings &settings, const QString &path);
   
   /**
    * @brief Destructor that closes all opened groups.
@@ -84,16 +84,15 @@ void rebuildAllWindowMenus();
  * @param windowId Optional UUID for restoring saved window state
  *
  * The window is shown immediately and ownership is managed by g_windows.
- * If windowId is provided, the window restores its saved state from QSettings.
+ * If windowId is provided, the window restores its saved state from AppSettings.
  */
 void createAndShowWindow(const QString &initialAddress = QString(), const QString &windowId = QString());
 
 /**
- * @brief Performs one-time migration of legacy global settings to per-window settings.
+ * @brief Placeholder for future as needed legacy settings migration.
  *
- * This function is idempotent and writes a persistent marker so it only runs once.
- * It atomically migrates old global keys (addresses, windowGeometry) into per-window
- * QSettings groups under "windows/<id>/".
+ * Currently a no-op reserved for potential format/key evolution.
+ * Invoke at startup to keep a stable hook without needing conditional guards.
  */
 void performLegacyMigration();
 
@@ -125,7 +124,7 @@ QString currentProfileName();
  * @brief Sets the active profile for new windows and operations.
  * @param profileName The name of the profile to make active
  *
- * Persists the choice to QSettings so it's restored on next launch.
+ * Persists the choice to AppSettings so it's restored on next launch.
  */
 void setCurrentProfileName(const QString &profileName);
 
@@ -152,7 +151,7 @@ bool createProfile(const QString &profileName);
  * @param newName The new name for the profile
  * @return True if renamed successfully, false if old doesn't exist or new already exists
  *
- * Updates the filesystem directory and any references in QSettings.
+ * Updates the filesystem directory and any references in AppSettings.
  */
 bool renameProfile(const QString &oldName, const QString &newName);
 

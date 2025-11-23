@@ -40,6 +40,7 @@ if(APPLE)
   qt_add_executable(Phraims
     MACOSX_BUNDLE
     main.cpp
+    AppSettings.h
     Utils.h
     Utils.cpp
     EscapeFilter.h
@@ -69,6 +70,7 @@ elseif(WIN32)
 
   qt_add_executable(Phraims
     main.cpp
+    AppSettings.h
     Utils.h
     Utils.cpp
     EscapeFilter.h

@@ -7,3 +7,7 @@ build/
 # CodeQL artifacts
 _codeql_build_dir/
 _codeql_detected_source_root
+
+scratch*.txt
+
+simplebrowser-build/

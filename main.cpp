@@ -1,6 +1,7 @@
 /**
  * Qt6 Widgets web browser that divides each window into multiple resizable web page frames.
  */
+#include "AppSettings.h"
 #include "SplitWindow.h"
 #include "Utils.h"
 #include <QApplication>
@@ -12,7 +13,6 @@
 #include <QLoggingCategory>
 #include <QLocalServer>
 #include <QLocalSocket>
-#include <QSettings>
 #include <QStandardPaths>
 #include <QThread>
 
@@ -68,27 +68,28 @@ int main(int argc, char **argv) {
   const QString appDataLocation = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
   qDebug() << "Startup paths:";
   qDebug() << "  QStandardPaths::AppDataLocation:" << appDataLocation;
-  QSettings settings;
-  qDebug() << "  QSettings - format:" << settings.format() << "-> fileName:" << settings.fileName();
+  AppSettings settings; // unified handle to shared settings
+  qDebug() << "  AppSettings - format:" << settings->format() << "-> fileName:" << settings->fileName();
 
-  // Perform idempotent legacy migration if required. This centralizes
-  // migration behavior (atomic, logged, and only runs once).
+  // Perform idempotent legacy migration if required.
+  // This centralizes migration behavior (atomic, logged, and only runs once).
   performLegacyMigration();
 
   // Restore saved windows from last session if present. We store per-window
-  // data under QSettings group "windows/<id>".
+  // data under AppSettings group "windows/<id>".
   {
-    QSettings s;
-    s.beginGroup(QStringLiteral("windows"));
-    QStringList ids = s.childGroups();
-    s.endGroup();
+    settings->beginGroup(QStringLiteral("windows"));
+    QStringList ids = settings->childGroups();
+    settings->endGroup();
     qDebug() << "Startup: persisted window ids:" << ids;
     if (ids.isEmpty()) {
       // Fallback: check explicit migrated index (written during migration)
-      const QStringList fallback = settings.value("migratedWindowIds").toStringList();
+      const QStringList fallback = settings->value("migratedWindowIds").toStringList();
       if (!fallback.isEmpty()) {
-        qDebug() << "Startup: using migratedWindowIds fallback:" << fallback;
-        for (const QString &id : fallback) createAndShowWindow(QString(), id);
+        for (const QString &id : fallback) {
+            qDebug() << "Startup: restoring fallback window id=" << id;
+            createAndShowWindow(QString(), id);
+        }
       } else {
         createAndShowWindow();
       }
@@ -142,8 +143,7 @@ int main(int argc, char **argv) {
   // on next launch. This will create per-window groups for windows that
   // did not previously have a persistent id.
   QObject::connect(&app, &QCoreApplication::aboutToQuit, []() {
-    QSettings s;
-    qDebug() << "aboutToQuit: saving" << g_windows.size() << "windows to QSettings";
+    qDebug() << "aboutToQuit: saving" << g_windows.size() << "windows to AppSettings";
     for (SplitWindow *w : g_windows) {
       if (!w) continue;
       // Use the new public helper to save each window's persistent state.

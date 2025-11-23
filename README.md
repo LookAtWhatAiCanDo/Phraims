@@ -17,12 +17,16 @@ The codebase is organized into modular components for better maintainability:
 
 Simple classes like `EscapeFilter` and `MyWebEngineView` use header-only implementations for easier maintenance.
 
-Settings are stored at:
+Settings and Profiles are stored at:
 - macOS:
-  - Preferences: /Users/pv/Library/Preferences/com.swooby.Phraims.plist
-  - Profile: /Users/pv/Library/Application Support/swooby/Phraims
-- Windows: TBD
-- Linux: TBD
+  - Settings: `~/Library/Application Support/LookAtWhatAiCanDo/Phraims/settings.ini`
+  - Profile: `~/Library/Application Support/LookAtWhatAiCanDo/Phraims/profiles/`
+- Linux:
+  - Settings: `~/.config/LookAtWhatAiCanDo/Phraims/settings.ini`
+  - Profile: `~/.config/LookAtWhatAiCanDo/Phraims/profiles/`
+- Windows:
+  - Settings: `%APPDATA%/LookAtWhatAiCanDo/Phraims/settings.ini`
+  - Profile: `%APPDATA%/LookAtWhatAiCanDo/Phraims/profiles/`
 
 Build (requires Qt 6.10+ development libraries and a working CMake):
 

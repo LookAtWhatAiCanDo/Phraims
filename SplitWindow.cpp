@@ -1,9 +1,10 @@
-#include "SplitWindow.h"
-#include "SplitFrameWidget.h"
+#include "AppSettings.h"
 #include "DomPatch.h"
-#include "Utils.h"
-#include "SplitterDoubleClickFilter.h"
 #include "MyWebEnginePage.h"
+#include "SplitFrameWidget.h"
+#include "SplitterDoubleClickFilter.h"
+#include "SplitWindow.h"
+#include "Utils.h"
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -25,7 +26,6 @@
 #include <QPointer>
 #include <QScreen>
 #include <QScrollArea>
-#include <QSettings>
 #include <QSplitter>
 #include <QStandardPaths>
 #include <QTimer>
@@ -50,7 +50,7 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
   setWindowTitle(QCoreApplication::applicationName());
   resize(800, 600);
 
-  QSettings settings;
+  AppSettings settings;
 
   connect(qApp, &QApplication::focusChanged, this, [this](QWidget *, QWidget *now) {
     QWidget *w = now;
@@ -77,9 +77,9 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
 
   // Load the profile for this window (per-window if windowId_ present, otherwise global current)
   if (!windowId_.isEmpty()) {
-    QSettings s;
+    AppSettings s;
     GroupScope _gs(s, QStringLiteral("windows/%1").arg(windowId_));
-    currentProfileName_ = s.value("profileName", currentProfileName()).toString();
+    currentProfileName_ = s->value("profileName", currentProfileName()).toString();
   } else {
     currentProfileName_ = currentProfileName();
   }
@@ -122,7 +122,7 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
   alwaysOnTopAction->setCheckable(true);
   // read persisted value (default: false)
   {
-    const bool on = settings.value("alwaysOnTop", false).toBool();
+    const bool on = settings->value("alwaysOnTop", false).toBool();
     alwaysOnTopAction->setChecked(on);
     // apply the window flag; setWindowFlag requires a show() to take effect on some platforms
     setWindowFlag(Qt::WindowStaysOnTopHint, on);
@@ -131,8 +131,8 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
   connect(alwaysOnTopAction, &QAction::toggled, this, [this](bool checked){
     setWindowFlag(Qt::WindowStaysOnTopHint, checked);
     if (checked) show();
-    QSettings settings;
-    settings.setValue("alwaysOnTop", checked);
+    AppSettings s;
+    s->setValue("alwaysOnTop", checked);
   });
 
   // Layout menu: Grid, Stack Vertically, Stack Horizontally
@@ -150,7 +150,7 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
   layoutGroup->addAction(horizontalAction);
 
   // restore persisted layout choice
-  int storedMode = settings.value("layoutMode", (int)Vertical).toInt();
+  int storedMode = settings->value("layoutMode", (int)Vertical).toInt();
   layoutMode_ = (LayoutMode)storedMode;
   switch (layoutMode_) {
     case Grid: gridAction->setChecked(true); break;
@@ -239,17 +239,17 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
 
   // load persisted addresses (per-window if windowId_ present, otherwise global)
   if (!windowId_.isEmpty()) {
-    QSettings s;
+    AppSettings s;
     {
       GroupScope _gs(s, QStringLiteral("windows/%1").arg(windowId_));
-      const QStringList savedAddresses = s.value("addresses").toStringList();
-      const QVariantList savedScales = s.value("frameScales").toList();
+      const QStringList savedAddresses = s->value("addresses").toStringList();
+      const QVariantList savedScales = s->value("frameScales").toList();
       loadFrameState(savedAddresses, savedScales);
-      layoutMode_ = (LayoutMode)s.value("layoutMode", (int)layoutMode_).toInt();
+      layoutMode_ = (LayoutMode)s->value("layoutMode", (int)layoutMode_).toInt();
     }
   } else {
-    const QStringList savedAddresses = settings.value("addresses").toStringList();
-    const QVariantList savedScales = settings.value("frameScales").toList();
+    const QStringList savedAddresses = settings->value("addresses").toStringList();
+    const QVariantList savedScales = settings->value("frameScales").toList();
     loadFrameState(savedAddresses, savedScales);
   }
   // build initial UI
@@ -265,18 +265,18 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
 
   // restore saved window geometry and window state (position/size/state)
   if (!windowId_.isEmpty()) {
-    QSettings s;
+    AppSettings s;
     {
       GroupScope _gs(s, QStringLiteral("windows/%1").arg(windowId_));
-      const QByteArray savedGeom = s.value("windowGeometry").toByteArray();
+      const QByteArray savedGeom = s->value("windowGeometry").toByteArray();
       if (!savedGeom.isEmpty()) restoreGeometry(savedGeom);
-      const QByteArray savedState = s.value("windowState").toByteArray();
+      const QByteArray savedState = s->value("windowState").toByteArray();
       if (!savedState.isEmpty()) restoreState(savedState);
     }
   } else {
-    const QByteArray savedGeom = settings.value("windowGeometry").toByteArray();
+    const QByteArray savedGeom = settings->value("windowGeometry").toByteArray();
     if (!savedGeom.isEmpty()) restoreGeometry(savedGeom);
-    const QByteArray savedState = settings.value("windowState").toByteArray();
+    const QByteArray savedState = settings->value("windowState").toByteArray();
     if (!savedState.isEmpty()) restoreState(savedState);
   }
   
@@ -285,7 +285,7 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
 }
 
 void SplitWindow::savePersistentStateToSettings() {
-  QSettings s;
+  AppSettings s;
   QString id = windowId_;
   if (id.isEmpty()) id = QUuid::createUuid().toString();
   qDebug() << "savePersistentStateToSettings: saving window id=" << id << " addresses.count=" << frames_.size() << " layoutMode=" << (int)layoutMode_ << " profile=" << currentProfileName_;
@@ -297,14 +297,14 @@ void SplitWindow::savePersistentStateToSettings() {
       addressList << state.address;
       scaleList << state.scale;
     }
-    s.setValue("addresses", addressList);
-    s.setValue("frameScales", scaleList);
-    s.setValue("profileName", currentProfileName_);
-    s.setValue("layoutMode", (int)layoutMode_);
-    s.setValue("windowGeometry", saveGeometry());
-    s.setValue("windowState", saveState());
+    s->setValue("addresses", addressList);
+    s->setValue("frameScales", scaleList);
+    s->setValue("profileName", currentProfileName_);
+    s->setValue("layoutMode", (int)layoutMode_);
+    s->setValue("windowGeometry", saveGeometry());
+    s->setValue("windowState", saveState());
   }
-  s.sync();
+  s->sync();
   // persist splitter sizes under windows/<id>/splitterSizes/<index>
   saveCurrentSplitterSizes(QStringLiteral("windows/%1/splitterSizes").arg(id));
 }
@@ -599,7 +599,7 @@ void SplitWindow::onPlusFromFrame(SplitFrameWidget *who) {
   QMetaObject::invokeMethod(this, [this, newFrameIndex]() {
     if (!central_) return;
     // Find all SplitFrameWidget children and locate the one with logicalIndex == newFrameIndex
-    QList<SplitFrameWidget *> frames = central_->findChildren<SplitFrameWidget *>();
+    const QList<SplitFrameWidget *> frames = central_->findChildren<SplitFrameWidget *>();
     for (SplitFrameWidget *frame : frames) {
       if (frame->property("logicalIndex").toInt() == newFrameIndex) {
         frame->focusAddress();
@@ -633,14 +633,14 @@ void SplitWindow::onDownFromFrame(SplitFrameWidget *who) {
 }
 
 void SplitWindow::setLayoutMode(SplitWindow::LayoutMode m) {
-  QSettings settings;
+  AppSettings settings;
 
   // If the user re-selects the already-selected layout, treat that as a
   // request to reset splitters to their default sizes. Clear any saved
   // sizes for this layout and rebuild without saving the current sizes.
   if (m == layoutMode_) {
     const QString base = QStringLiteral("splitterSizes/%1").arg(layoutModeKey(layoutMode_));
-    settings.remove(base);
+    settings->remove(base);
     // rebuild so splitters are reset to defaults
     rebuildSections((int)frames_.size());
     return;
@@ -655,11 +655,11 @@ void SplitWindow::setLayoutMode(SplitWindow::LayoutMode m) {
   // restoring an older saved configuration for that layout.
   {
     const QString targetBase = QStringLiteral("splitterSizes/%1").arg(layoutModeKey(m));
-    settings.remove(targetBase);
+    settings->remove(targetBase);
   }
   // Apply the new layout mode and persist it.
   layoutMode_ = m;
-  settings.setValue("layoutMode", (int)layoutMode_);
+  settings->setValue("layoutMode", (int)layoutMode_);
   // Rebuild UI for the new layout (splitter sizes are only restored at startup)
   rebuildSections((int)frames_.size());
 }
@@ -727,7 +727,7 @@ void SplitWindow::closeEvent(QCloseEvent *event) {
     // does not get restored.
     if (qApp && qApp->closingDown()) {
       // During shutdown: save (do not remove) so session is preserved.
-      QSettings s;
+      AppSettings s;
       {
         GroupScope _gs(s, QStringLiteral("windows/%1").arg(windowId_));
         QStringList addressList;
@@ -736,14 +736,14 @@ void SplitWindow::closeEvent(QCloseEvent *event) {
           addressList << state.address;
           scaleList << state.scale;
         }
-        s.setValue("addresses", addressList);
-        s.setValue("frameScales", scaleList);
-        s.setValue("layoutMode", (int)layoutMode_);
-        s.setValue("windowGeometry", saveGeometry());
-        s.setValue("windowState", saveState());
+        s->setValue("addresses", addressList);
+        s->setValue("frameScales", scaleList);
+        s->setValue("layoutMode", (int)layoutMode_);
+        s->setValue("windowGeometry", saveGeometry());
+        s->setValue("windowState", saveState());
       }
       // Ensure these shutdown-time writes are flushed to the backend.
-      s.sync();
+      s->sync();
       saveCurrentSplitterSizes(QStringLiteral("windows/%1/splitterSizes").arg(windowId_));
     } else {
       // If other windows exist, remove this window's saved group now.
@@ -753,17 +753,17 @@ void SplitWindow::closeEvent(QCloseEvent *event) {
       const size_t windowsCount = g_windows.size();
       qDebug() << "SplitWindow::closeEvent: g_windows.count (including this)=" << windowsCount;
       if (windowsCount > 1) {
-        QSettings s;
-        s.beginGroup(QStringLiteral("windows"));
-        const QStringList before = s.childGroups();
+        AppSettings s;
+        s->beginGroup(QStringLiteral("windows"));
+        const QStringList before = s->childGroups();
         if (before.contains(windowId_)) {
           qDebug() << "SplitWindow::closeEvent: removing stored group for" << windowId_;
-          s.remove(windowId_);
-          s.sync();
+          s->remove(windowId_);
+          s->sync();
         } else {
           qDebug() << "SplitWindow::closeEvent: no stored group for" << windowId_;
         }
-        s.endGroup();
+        s->endGroup();
       } else {
         qDebug() << "SplitWindow::closeEvent: single window or quitting; preserving stored group for" << windowId_;
       }
@@ -775,19 +775,19 @@ void SplitWindow::closeEvent(QCloseEvent *event) {
   } else {
     // no per-window id: persist as legacy/global keys
     saveCurrentSplitterSizes();
-    QSettings settings;
+    AppSettings settings;
     QStringList addressList;
     QVariantList scaleList;
     for (const auto &state : frames_) {
       addressList << state.address;
       scaleList << state.scale;
     }
-    settings.setValue("addresses", addressList);
-    settings.setValue("frameScales", scaleList);
+    settings->setValue("addresses", addressList);
+    settings->setValue("frameScales", scaleList);
     // persist window geometry
-    settings.setValue("windowGeometry", saveGeometry());
+    settings->setValue("windowGeometry", saveGeometry());
     // persist window state (toolbars/dock state and maximized/minimized state)
-    settings.setValue("windowState", saveState());
+    settings->setValue("windowState", saveState());
   }
   // Refresh all Window menus immediately when this window is closed
   // so other windows reflect the removal without waiting for object
@@ -805,7 +805,7 @@ QString SplitWindow::layoutModeKey(SplitWindow::LayoutMode m) {
 }
 
 void SplitWindow::persistGlobalFrameState() {
-  QSettings settings;
+  AppSettings settings;
   QStringList addresses;
   QVariantList scales;
   addresses.reserve((int)frames_.size());
@@ -814,8 +814,8 @@ void SplitWindow::persistGlobalFrameState() {
     addresses << state.address;
     scales << state.scale;
   }
-  settings.setValue("addresses", addresses);
-  settings.setValue("frameScales", scales);
+  settings->setValue("addresses", addresses);
+  settings->setValue("frameScales", scales);
 }
 
 int SplitWindow::frameIndexFor(SplitFrameWidget *frame) const {
@@ -831,35 +831,35 @@ void SplitWindow::saveCurrentSplitterSizes() {
 
 void SplitWindow::saveCurrentSplitterSizes(const QString &groupPrefix) {
   if (currentSplitters_.empty()) return;
-  QSettings settings;
+  AppSettings settings;
   // If no groupPrefix provided, store under splitterSizes/<layout>/<index>
   if (groupPrefix.isEmpty()) {
-    settings.beginGroup(QStringLiteral("splitterSizes"));
-    settings.beginGroup(layoutModeKey(layoutMode_));
+    settings->beginGroup(QStringLiteral("splitterSizes"));
+    settings->beginGroup(layoutModeKey(layoutMode_));
     for (int i = 0; i < (int)currentSplitters_.size(); ++i) {
       QSplitter *s = currentSplitters_[i];
       if (!s) continue;
       const QList<int> sizes = s->sizes();
       QVariantList vl;
       for (int v : sizes) vl << v;
-      settings.setValue(QString::number(i), vl);
+      settings->setValue(QString::number(i), vl);
     }
-    settings.endGroup();
-    settings.endGroup();
+    settings->endGroup();
+    settings->endGroup();
   } else {
     // Create nested groups for the provided prefix (e.g., windows/<id>/splitterSizes)
     {
       GroupScope _gs(settings, groupPrefix);
-      settings.beginGroup(layoutModeKey(layoutMode_));
+      settings->beginGroup(layoutModeKey(layoutMode_));
       for (int i = 0; i < (int)currentSplitters_.size(); ++i) {
         QSplitter *s = currentSplitters_[i];
         if (!s) continue;
         const QList<int> sizes = s->sizes();
         QVariantList vl;
         for (int v : sizes) vl << v;
-        settings.setValue(QString::number(i), vl);
+        settings->setValue(QString::number(i), vl);
       }
-      settings.endGroup();
+      settings->endGroup();
     }
   }
 }
@@ -868,15 +868,15 @@ void SplitWindow::restoreSplitterSizes() { restoreSplitterSizes(QString()); }
 
 void SplitWindow::restoreSplitterSizes(const QString &groupPrefix) {
   if (currentSplitters_.empty()) return;
-  QSettings settings;
+  AppSettings settings;
   // If no groupPrefix provided, read from splitterSizes/<layout>/<index>
   if (groupPrefix.isEmpty()) {
-    settings.beginGroup(QStringLiteral("splitterSizes"));
-    settings.beginGroup(layoutModeKey(layoutMode_));
+    settings->beginGroup(QStringLiteral("splitterSizes"));
+    settings->beginGroup(layoutModeKey(layoutMode_));
     for (int i = 0; i < (int)currentSplitters_.size(); ++i) {
       QSplitter *s = currentSplitters_[i];
       if (!s) continue;
-      const QVariant v = settings.value(QString::number(i));
+      const QVariant v = settings->value(QString::number(i));
       if (!v.isValid()) continue;
       const QVariantList vl = v.toList();
       if (vl.isEmpty()) continue;
@@ -885,16 +885,16 @@ void SplitWindow::restoreSplitterSizes(const QString &groupPrefix) {
       for (const QVariant &qv : vl) sizes << qv.toInt();
       if (!sizes.isEmpty()) s->setSizes(sizes);
     }
-    settings.endGroup();
-    settings.endGroup();
+    settings->endGroup();
+    settings->endGroup();
   } else {
     {
       GroupScope _gs(settings, groupPrefix);
-      settings.beginGroup(layoutModeKey(layoutMode_));
+      settings->beginGroup(layoutModeKey(layoutMode_));
       for (int i = 0; i < (int)currentSplitters_.size(); ++i) {
         QSplitter *s = currentSplitters_[i];
         if (!s) continue;
-        const QVariant v = settings.value(QString::number(i));
+        const QVariant v = settings->value(QString::number(i));
         if (!v.isValid()) continue;
         const QVariantList vl = v.toList();
         if (vl.isEmpty()) continue;
@@ -903,7 +903,7 @@ void SplitWindow::restoreSplitterSizes(const QString &groupPrefix) {
         for (const QVariant &qv : vl) sizes << qv.toInt();
         if (!sizes.isEmpty()) s->setSizes(sizes);
       }
-      settings.endGroup();
+      settings->endGroup();
     }
   }
 }
@@ -1148,7 +1148,7 @@ void SplitWindow::updateProfilesMenu() {
   }
   
   // Get the list of available profiles
-  QStringList profiles = listProfiles();
+  const QStringList profiles = listProfiles();
   
   // Add an action for each profile with a checkmark for the current one
   for (const QString &profileName : profiles) {

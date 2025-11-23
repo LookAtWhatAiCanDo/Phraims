@@ -17,8 +17,17 @@ For simple classes like `EscapeFilter`, `MyWebEngineView`, and `SplitterDoubleCl
 `CMakeLists.txt` configures the `Phraims` executable target and links Qt Widgets and WebEngine modules.
 Generated binaries and intermediates belong in `build/`; feel free to create
 parallel out-of-source build directories (`build-debug`, `build-release`) to keep artifacts separated.
-User preferences persist through `QSettings` under the `swooby/Phraims` domain,
-so evolve keys carefully to avoid breaking stored layouts or address lists.
+
+User preferences persist exclusively via the `AppSettings` wrapper (INI file `settings.ini` under `QStandardPaths::AppDataLocation`).
+A [currently] no-op `performLegacyMigration()` hook is reserved for future schema evolution.
+Evolve keys carefully to avoid breaking layouts or address lists within the current format.
+
+Persistence Rules (MANDATORY)
+1. Never import or instantiate `QSettings` directly. Always use `AppSettings` (e.g. `AppSettings s;`).
+2. When adding a new key, document its purpose and lifecycle here (and in README) immediately.
+3. Prefer simple, stable, lowercase key names; group logically with `beginGroup`/`endGroup` via the wrapper.
+4. If a key must be renamed or removed, add a brief transitional note before deleting old usage.
+5. Treat settings as part of public app surface; avoid gratuitous churn.
 
 ## Build, Test, and Development Commands
 ```bash
@@ -41,6 +50,7 @@ When modifying build requirements or dependencies, ensure the workflow file stay
 
 ## Coding Style & Naming Conventions
 Follow the existing C++17 + Qt style: two-space indentation, opening braces on the same line, and `PascalCase` for classes (`SplitFrameWidget`). Member variables carry a trailing underscore (`backBtn_`), free/static helpers use `camelCase`, and enums stay scoped within their owning classes. Prefer Qt containers and utilities over STL when interacting with Qt APIs, and keep comments focused on non-obvious behavior (signals, persistence, or ownership nuances).
+- Use `auto` for local variable declarations whenever the type is clear from the initializer (iterators, Qt helpers, factory functions) to reduce verbosity; avoid it only when it would obscure meaning or hide important conversions.
 
 ## Keyboard Shortcuts & Navigation
 The application implements standard keyboard shortcuts for common operations:
@@ -65,7 +75,7 @@ When adding new keyboard shortcuts:
 ## Frame Scale Controls
 - Each frame header exposes `A-`, `A+`, and `1x` buttons that zoom only the embedded `QWebEngineView`. The header chrome intentionally stays a constant size so controls remain predictable; under the hood the buttons call `SplitFrameWidget::setScaleFactor`, which forwards the value to `QWebEngineView::setZoomFactor`.
 - Matching View menu actions (`Increase/Decrease/Reset Frame Scale`) operate on the currently focused frame for accessibility and keyboard-driven workflows. Add future shortcuts to those actions, not to individual widgets.
-- Scale factors are persisted per frame alongside addresses under the `frameScales` key in `QSettings`. Whenever you add, remove, or reorder frames, update the paired scale vector so indices remain aligned. Migrating persistence logic must keep both lists backward compatible.
+- Scale factors are persisted per frame alongside addresses under the `frameScales` key in `AppSettings`. Whenever you add, remove, or reorder frames, update the paired scale vector so indices remain aligned. Migrating persistence logic must keep both lists backward compatible.
 - If you need traditional web zoom outside of this mechanism, avoid duplicating state—route everything through `setScaleFactor` so persistence and UI stay consistent.
 
 ## Profiles System
@@ -75,13 +85,13 @@ Phraims supports multiple browser profiles, allowing users to maintain separate 
 - **Profile Storage**: Each profile has its own directory under `<AppDataLocation>/profiles/<profileName>/` containing persistent storage and cache.
 - **Profile Management**: Functions in `Utils.h/.cpp` handle profile creation, deletion, renaming, and listing.
 - **Profile Caching**: `QWebEngineProfile` instances are cached in `g_profileCache` (a `QMap<QString, QWebEngineProfile*>`) to avoid recreating profiles.
-- **Current Profile**: The global current profile is stored in `QSettings` under the `currentProfile` key (defaults to "Default").
+- **Current Profile**: The global current profile is stored in AppSettings under the `currentProfile` key (defaults to "Default").
 - **Per-Window Profiles**: Each `SplitWindow` tracks its active profile in `currentProfileName_` and persists it in `windows/<id>/profileName`.
 
 ### Key Functions (Utils.h/.cpp)
 - `getProfileByName(name)` - Returns or creates a `QWebEngineProfile` for the given name
-- `currentProfileName()` - Returns the globally active profile name from QSettings
-- `setCurrentProfileName(name)` - Sets the globally active profile and persists it
+- `currentProfileName()` - Returns the globally active profile name (via AppSettings wrapper)
+- `setCurrentProfileName(name)` - Sets and persists the global current profile (AppSettings)
 - `listProfiles()` - Returns all profile directory names from the filesystem
 - `createProfile(name)` - Creates a new profile directory
 - `renameProfile(old, new)` - Renames a profile directory and updates references
@@ -103,11 +113,11 @@ When switching profiles via `SplitWindow::switchToProfile()`:
 3. Rebuilds all frames with `rebuildSections()` to use the new profile's QWebEngineProfile
 4. Updates the Profiles menu in all windows to reflect the change
 5. Updates window title to show the new profile name
-6. Persists the window's profile choice to QSettings
+6. Persists the window's profile choice via AppSettings (never import or call QSettings directly)
 
 ### Persistence
-- Per-window profile: `windows/<id>/profileName` in QSettings
-- Global current profile: `currentProfile` in QSettings root
+- Per-window profile: `windows/<id>/profileName` (stored via AppSettings)
+- Global current profile: `currentProfile` (stored via AppSettings root scope)
 - Profile data: `<AppDataLocation>/profiles/<profileName>/` on filesystem
 
 ### Validation Rules
@@ -167,6 +177,9 @@ Use short, imperative commit subjects (e.g., `Add vertical grid layout preset`) 
 ## Agent Responsibilities
 - Keep `AGENTS.md` in sync with the current behavior and expectations of the codebase whenever functionality or workflows change.
 - Keep `README.md` up to date with the implemented features, build/run steps, and any relevant operational notes introduced by code changes.
+- Whenever correcting behavior, fixing inaccuracies, or adjusting semantics (e.g., settings keys, storage location), immediately update both `AGENTS.md` and `README.md` so documentation never drifts from reality.
+- Always use `AppSettings` for persistence; direct `QSettings` construction is prohibited. If legacy direct usage is found, schedule a refactor in the next change set.
+- Continuously enhance this document with improvements not limited to just code readability, maintainability, ownership semantics, error handling patterns, and performance techniques learned during development.
 - **Maintain code documentation**: Always update Doxygen-style comments when modifying code. Ensure `@param`, `@return`, and `@brief` tags remain accurate.
 - Review and update documentation in both header and implementation files when refactoring or changing behavior.
 - Generate a commit message and accompanying description for every set of changes before handing work back to the user.
