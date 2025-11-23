@@ -375,9 +375,7 @@ QWebEngineProfile *createIncognitoProfile() {
   
   QWebEngineProfileBuilder builder;
   // Off-the-record profile: no persistent storage, all data is ephemeral
-  builder.setOffTheRecord(true);
-  
-  QWebEngineProfile *profile = builder.createProfile(profileName, qApp);
+  QWebEngineProfile *profile = builder.createOffTheRecordProfile(profileName, qApp);
   qDebug() << "createIncognitoProfile: created off-the-record profile" << profileName
            << "offTheRecord=" << profile->isOffTheRecord();
   
