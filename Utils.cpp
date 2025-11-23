@@ -332,13 +332,16 @@ QStringList listProfiles() {
   
   QDir dir(profilesDir);
   if (!dir.exists()) {
-    // If profiles dir doesn't exist yet, return the default profile
+    // If profiles dir doesn't exist yet, return the default profile.
+    // Note: The Default profile directory is created lazily by getProfileByName()
+    // on first use, so it may not exist in the filesystem yet.
     return QStringList() << QStringLiteral("Default");
   }
 
   QStringList profiles = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
   
-  // Ensure at least "Default" exists
+  // Ensure at least "Default" exists in the list even if its directory hasn't
+  // been created yet (lazy creation). This ensures Default is always available.
   if (profiles.isEmpty() || !profiles.contains(QStringLiteral("Default"))) {
     profiles.prepend(QStringLiteral("Default"));
   }
@@ -430,6 +433,9 @@ bool deleteProfile(const QString &profileName) {
     // Note: We don't explicitly delete the QWebEngineProfile object because
     // it's parented to qApp and will be cleaned up on application exit.
     // Deleting it prematurely could cause crashes if pages are still using it.
+    // Design trade-off: During long sessions with frequent profile deletions,
+    // this could accumulate QWebEngineProfile objects in memory. This is
+    // acceptable for typical usage patterns where profiles are rarely deleted.
     g_profileCache.remove(profileName);
   }
   

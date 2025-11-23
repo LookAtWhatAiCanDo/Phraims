@@ -1112,11 +1112,25 @@ void SplitWindow::changeEvent(QEvent *event) {
 void SplitWindow::updateProfilesMenu() {
   if (!profilesMenu_) return;
   
-  // Remove all profile-specific actions (keep the first 4: New, Rename, Delete, separator)
+  // Remove all profile-specific actions (those after the separator)
+  // Find the separator that marks the end of management actions
   QList<QAction *> actions = profilesMenu_->actions();
-  for (int i = actions.size() - 1; i >= 4; --i) {
-    profilesMenu_->removeAction(actions[i]);
-    delete actions[i];
+  bool foundSeparator = false;
+  int separatorIndex = -1;
+  for (int i = 0; i < actions.size(); ++i) {
+    if (actions[i]->isSeparator()) {
+      foundSeparator = true;
+      separatorIndex = i;
+      break;
+    }
+  }
+  
+  if (foundSeparator) {
+    // Remove all actions after the separator
+    for (int i = actions.size() - 1; i > separatorIndex; --i) {
+      profilesMenu_->removeAction(actions[i]);
+      delete actions[i];
+    }
   }
   
   // Get the list of available profiles
@@ -1145,7 +1159,10 @@ void SplitWindow::switchToProfile(const QString &profileName) {
   currentProfileName_ = profileName;
   profile_ = getProfileByName(profileName);
   
-  // Set the new profile as the global current profile for new windows
+  // Set the new profile as the global current profile so new windows use it by default.
+  // Design choice: Switching profiles in one window sets the default for all new windows,
+  // making it the "active" profile application-wide. This provides consistent behavior
+  // where the most recently selected profile becomes the default.
   setCurrentProfileName(profileName);
   
   // Rebuild all frames with the new profile
@@ -1320,9 +1337,13 @@ void SplitWindow::deleteSelectedProfile() {
     // If we deleted the current profile, we were automatically switched
     // to another profile by deleteProfile(), so update our local state
     if (currentProfileName_ == name) {
-      currentProfileName_ = currentProfileName();
-      profile_ = getProfileByName(currentProfileName_);
-      rebuildSections((int)frames_.size());
+      QString newProfileName = currentProfileName();
+      // Only rebuild if we're actually switching to a different profile
+      if (newProfileName != currentProfileName_) {
+        currentProfileName_ = newProfileName;
+        profile_ = getProfileByName(currentProfileName_);
+        rebuildSections((int)frames_.size());
+      }
     }
     
     // Update all windows' profiles menus
