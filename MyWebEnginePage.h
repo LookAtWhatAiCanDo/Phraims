@@ -11,7 +11,7 @@ protected:
                                   const QString& message,
                                   int lineNumber,
                                   const QString& sourceID) override {
-        const char* levelStr = "";
+        const char* levelStr;
         switch (level) {
         case QWebEnginePage::JavaScriptConsoleMessageLevel::InfoMessageLevel:
             levelStr = "Info"; break;
@@ -19,7 +19,24 @@ protected:
             levelStr = "Warn"; break;
         case QWebEnginePage::JavaScriptConsoleMessageLevel::ErrorMessageLevel:
             levelStr = "Error"; break;
+        default:
+            levelStr = "Unknown"; break;
         }
-        qInfo().noquote() << "JS[" << levelStr << ":" << sourceID << ":" << lineNumber << "]" << message;
+        auto formatted = QStringLiteral("JS[%1:%2:%3] %4")
+                           .arg(levelStr)
+                           .arg(sourceID)
+                           .arg(lineNumber)
+                           .arg(message);
+        switch (level) {
+        case WarningMessageLevel:
+            qWarning().noquote() << formatted;
+            break;
+        case ErrorMessageLevel:
+            qCritical().noquote() << formatted;
+            break;
+        default:
+            qInfo().noquote() << formatted;
+            break;
+        }
     }
 };
