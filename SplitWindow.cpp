@@ -180,6 +180,8 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
   
   profilesMenu_->addSeparator();
   
+#ifndef NDEBUG
+  // Debug builds only: Add menu item to open profiles folder
   QAction *openProfilesFolderAction = profilesMenu_->addAction(tr("Open Profiles Folder"));
   connect(openProfilesFolderAction, &QAction::triggered, this, [this]() {
     const QString dataRoot = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
@@ -190,6 +192,8 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
   });
   
   profilesMenu_->addSeparator();
+#endif
+  
   // Profile list will be populated by updateProfilesMenu()
 
   // Window menu: per-macOS convention

@@ -93,7 +93,7 @@ The Profiles menu is located between Tools and Window menus and contains:
 - **New Profile...** - Dialog to create a new profile with validation
 - **Rename Profile...** - Dialog to select and rename a profile
 - **Delete Profile...** - Dialog to select and delete a profile with confirmation
-- **Open Profiles Folder** - Opens the profiles directory in the system file browser
+- **Open Profiles Folder** (debug builds only) - Opens the profiles directory in the system file browser (only shown when `NDEBUG` is not defined)
 - **Profile List** (dynamic) - Shows all profiles with checkmark for the current one; clicking switches profiles
 
 ### Profile Switching

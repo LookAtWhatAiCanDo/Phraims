@@ -76,9 +76,10 @@ Access profile management through the **Profiles** menu in the menu bar:
   - Cannot delete the last remaining profile
   - All cookies, cache, history, and other data will be permanently removed
   
-- **Open Profiles Folder**: Opens the profiles directory in your system file browser
+- **Open Profiles Folder** (debug builds only): Opens the profiles directory in your system file browser
   - Shows all profile directories on your filesystem
   - Useful for backup, inspection, or manual management of profile data
+  - Only available when running a debug build of the application
   
 - **Profile List**: Shows all available profiles
   - The currently active profile is marked with a checkmark
