@@ -13,6 +13,7 @@
 #include <QCloseEvent>
 #include <QCoreApplication>
 #include <QDebug>
+#include <QDesktopServices>
 #include <QDir>
 #include <QGridLayout>
 #include <QGuiApplication>
@@ -28,6 +29,7 @@
 #include <QSplitter>
 #include <QStandardPaths>
 #include <QTimer>
+#include <QUrl>
 #include <QVariant>
 #include <QUuid>
 #include <QVBoxLayout>
@@ -177,6 +179,17 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
   connect(deleteProfileAction, &QAction::triggered, this, &SplitWindow::deleteSelectedProfile);
   
   profilesMenu_->addSeparator();
+  
+  QAction *openProfilesFolderAction = profilesMenu_->addAction(tr("Open Profiles Folder"));
+  connect(openProfilesFolderAction, &QAction::triggered, this, [this]() {
+    const QString dataRoot = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    const QString profilesDir = dataRoot + QStringLiteral("/profiles");
+    // Ensure the profiles directory exists before trying to open it
+    QDir().mkpath(profilesDir);
+    QDesktopServices::openUrl(QUrl::fromLocalFile(profilesDir));
+  });
+  
+  profilesMenu_->addSeparator();
   // Profile list will be populated by updateProfilesMenu()
 
   // Window menu: per-macOS convention
@@ -324,7 +337,7 @@ void SplitWindow::updateWindowTitle() {
     if (g_windows[i] == this) { idx = (int)i + 1; break; }
   }
   const int count = (int)frames_.size();
-  QString title = QStringLiteral("Group %1 (%2)").arg(idx).arg(count);
+  QString title = QStringLiteral("Group %1 (%2) - %3").arg(idx).arg(count).arg(currentProfileName_);
   if (DEBUG_SHOW_WINDOW_ID && !windowId_.isEmpty()) {
       title += QStringLiteral(" [%1]").arg(windowId_);
   }
@@ -1112,22 +1125,19 @@ void SplitWindow::changeEvent(QEvent *event) {
 void SplitWindow::updateProfilesMenu() {
   if (!profilesMenu_) return;
   
-  // Remove all profile-specific actions (those after the separator)
-  // Find the separator that marks the end of management actions
+  // Remove all profile-specific actions (those after the last separator)
+  // Find the last separator that marks the start of the profile list
   QList<QAction *> actions = profilesMenu_->actions();
-  bool foundSeparator = false;
-  int separatorIndex = -1;
+  int lastSeparatorIndex = -1;
   for (int i = 0; i < actions.size(); ++i) {
     if (actions[i]->isSeparator()) {
-      foundSeparator = true;
-      separatorIndex = i;
-      break;
+      lastSeparatorIndex = i;
     }
   }
   
-  if (foundSeparator) {
-    // Remove all actions after the separator
-    for (int i = actions.size() - 1; i > separatorIndex; --i) {
+  if (lastSeparatorIndex >= 0) {
+    // Remove all actions after the last separator
+    for (int i = actions.size() - 1; i > lastSeparatorIndex; --i) {
       profilesMenu_->removeAction(actions[i]);
       delete actions[i];
     }

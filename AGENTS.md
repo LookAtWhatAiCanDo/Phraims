@@ -93,6 +93,7 @@ The Profiles menu is located between Tools and Window menus and contains:
 - **New Profile...** - Dialog to create a new profile with validation
 - **Rename Profile...** - Dialog to select and rename a profile
 - **Delete Profile...** - Dialog to select and delete a profile with confirmation
+- **Open Profiles Folder** - Opens the profiles directory in the system file browser
 - **Profile List** (dynamic) - Shows all profiles with checkmark for the current one; clicking switches profiles
 
 ### Profile Switching
@@ -101,7 +102,8 @@ When switching profiles via `SplitWindow::switchToProfile()`:
 2. Calls `setCurrentProfileName()` to update global current profile
 3. Rebuilds all frames with `rebuildSections()` to use the new profile's QWebEngineProfile
 4. Updates the Profiles menu in all windows to reflect the change
-5. Persists the window's profile choice to QSettings
+5. Updates window title to show the new profile name
+6. Persists the window's profile choice to QSettings
 
 ### Persistence
 - Per-window profile: `windows/<id>/profileName` in QSettings

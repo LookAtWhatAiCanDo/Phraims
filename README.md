@@ -76,12 +76,17 @@ Access profile management through the **Profiles** menu in the menu bar:
   - Cannot delete the last remaining profile
   - All cookies, cache, history, and other data will be permanently removed
   
+- **Open Profiles Folder**: Opens the profiles directory in your system file browser
+  - Shows all profile directories on your filesystem
+  - Useful for backup, inspection, or manual management of profile data
+  
 - **Profile List**: Shows all available profiles
   - The currently active profile is marked with a checkmark
   - Click any profile to switch to it immediately
 
 ### Using Profiles
 
+- Each window title displays the current profile name (e.g., "Group 1 (3) - Work")
 - Each window remembers which profile it was using and restores it on app restart
 - When you switch profiles, all frames in the current window are rebuilt with the new profile
 - New windows use the most recently selected profile by default
