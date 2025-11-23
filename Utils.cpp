@@ -1,5 +1,4 @@
 #include "AppSettings.h"
-#include "DomPatch.h"
 #include "SplitWindow.h"
 #include "Utils.h"
 #include <algorithm>
@@ -312,7 +311,7 @@ bool deleteProfile(const QString &profileName) {
   if (profileName.isEmpty()) return false;
   
   // Cannot delete if it's the only profile
-  QStringList profiles = listProfiles();
+  const QStringList profiles = listProfiles();
   if (profiles.size() <= 1) {
     qDebug() << "deleteProfile: cannot delete the last profile";
     return false;
