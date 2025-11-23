@@ -83,7 +83,7 @@ SplitWindow::SplitWindow(const QString &windowId, bool isIncognito, QWidget *par
   // Load the profile for this window
   if (isIncognito_) {
     // Incognito windows use a new off-the-record profile
-    currentProfileName_ = QStringLiteral("Incognito");
+    currentProfileName_ = QString();  // No profile name for Incognito
     profile_ = createIncognitoProfile();
     qDebug() << "SplitWindow: using Incognito profile" << profile_
              << "offTheRecord=" << profile_->isOffTheRecord();
@@ -371,10 +371,8 @@ void SplitWindow::updateWindowTitle() {
     if (g_windows[i] == this) { idx = (int)i + 1; break; }
   }
   const int count = (int)frames_.size();
-  QString title = QStringLiteral("Group %1 (%2) - %3").arg(idx).arg(count).arg(currentProfileName_);
-  if (isIncognito_) {
-    title += QStringLiteral(" - Incognito");
-  }
+  QString profileDisplay = isIncognito_ ? QStringLiteral("Incognito") : currentProfileName_;
+  QString title = QStringLiteral("Group %1 (%2) - %3").arg(idx).arg(count).arg(profileDisplay);
   if (DEBUG_SHOW_WINDOW_ID && !windowId_.isEmpty()) {
       title += QStringLiteral(" [%1]").arg(windowId_);
   }
