@@ -82,11 +82,22 @@ void rebuildAllWindowMenus();
  * @brief Creates a new SplitWindow and adds it to the global windows list.
  * @param initialAddress Optional URL to load in the first frame
  * @param windowId Optional UUID for restoring saved window state
+ * @param isIncognito If true, creates an Incognito (private) window
  *
  * The window is shown immediately and ownership is managed by g_windows.
  * If windowId is provided, the window restores its saved state from AppSettings.
+ * Incognito windows use ephemeral storage and do not persist state.
  */
-void createAndShowWindow(const QString &initialAddress = QString(), const QString &windowId = QString());
+void createAndShowWindow(const QString &initialAddress = QString(), const QString &windowId = QString(), bool isIncognito = false);
+
+/**
+ * @brief Creates a new Incognito (private) window.
+ * @param initialAddress Optional URL to load in the first frame
+ *
+ * Convenience wrapper for createAndShowWindow with isIncognito=true.
+ * Incognito windows use off-the-record profiles and do not persist state.
+ */
+void createAndShowIncognitoWindow(const QString &initialAddress = QString());
 
 /**
  * @brief Placeholder for future as needed legacy settings migration.
@@ -113,6 +124,15 @@ QWebEngineProfile *sharedWebEngineProfile();
  * directory for cookies, cache, and other data.
  */
 QWebEngineProfile *getProfileByName(const QString &profileName);
+
+/**
+ * @brief Creates a new off-the-record (ephemeral) profile for Incognito mode.
+ * @return Pointer to a new QWebEngineProfile with isOffTheRecord() == true
+ *
+ * Each call creates a new profile that does not persist to disk. The profile
+ * is owned by qApp and will be cleaned up on application exit.
+ */
+QWebEngineProfile *createIncognitoProfile();
 
 /**
  * @brief Returns the name of the currently active profile.

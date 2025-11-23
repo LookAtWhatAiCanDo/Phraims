@@ -60,6 +60,7 @@ The application implements standard keyboard shortcuts for common operations:
 - **Command-R** (macOS) / **Ctrl+R** (other platforms): Reload the focused frame via the View ▸ Reload Frame action
 - **Command-Shift-R** (macOS) / **Ctrl+Shift+R** (other platforms): Reload the focused frame while bypassing cache via View ▸ Reload Frame (Bypass Cache)
 - **Command-N** (macOS) / **Ctrl+N** (other platforms): Open a new window
+- **Shift-Command-N** (macOS) / **Shift+Ctrl+N** (other platforms): Open a new Incognito window
 - **F12**: Toggle DevTools for the focused frame
 - **Command-W** (macOS) / **Ctrl+W** (other platforms): Close window
 - **Command-M** (macOS) / **Ctrl+M** (other platforms): Minimize window
@@ -87,6 +88,7 @@ Phraims supports multiple browser profiles, allowing users to maintain separate 
 - **Profile Caching**: `QWebEngineProfile` instances are cached in `g_profileCache` (a `QMap<QString, QWebEngineProfile*>`) to avoid recreating profiles.
 - **Current Profile**: The global current profile is stored in AppSettings under the `currentProfile` key (defaults to "Default").
 - **Per-Window Profiles**: Each `SplitWindow` tracks its active profile in `currentProfileName_` and persists it in `windows/<id>/profileName`.
+- **Incognito Profiles**: Incognito windows use off-the-record profiles created via `createIncognitoProfile()` that do not persist to disk.
 
 ### Key Functions (Utils.h/.cpp)
 - `getProfileByName(name)` - Returns or creates a `QWebEngineProfile` for the given name
@@ -125,6 +127,41 @@ When switching profiles via `SplitWindow::switchToProfile()`:
 - Cannot delete the last remaining profile
 - Profile directories are created on first use via `getProfileByName()`
 - Default profile is always "Default" and created automatically if needed
+
+## Incognito Mode
+Phraims supports Incognito (private) browsing windows that provide ephemeral sessions without persisting history, cookies, or other data.
+
+### Architecture
+- **Off-the-Record Profiles**: Incognito windows use `QWebEngineProfile` instances created with `isOffTheRecord()` set to true.
+- **Ephemeral Storage**: All browsing data (cookies, cache, history, local storage) exists only in memory and is discarded when the window closes.
+- **Window Flag**: Each `SplitWindow` tracks whether it is Incognito via the `isIncognito_` boolean member.
+- **No Persistence**: Incognito windows skip all QSettings persistence in `savePersistentStateToSettings()` and `closeEvent()`.
+- **Visual Indicator**: Window titles append " - Incognito" to distinguish private windows from normal ones.
+
+### Key Functions (Utils.h/.cpp)
+- `createIncognitoProfile()` - Creates a new off-the-record QWebEngineProfile for Incognito mode
+- `createAndShowIncognitoWindow(address)` - Convenience wrapper to create an Incognito window
+- `createAndShowWindow(address, id, isIncognito)` - Core window creation with optional Incognito flag
+
+### SplitWindow Changes
+- Constructor accepts `isIncognito` parameter (defaults to false)
+- Incognito windows use `createIncognitoProfile()` instead of `getProfileByName()`
+- Frame state loading skips QSettings restoration for Incognito windows
+- Splitter size and window geometry restoration are skipped for Incognito windows
+- `savePersistentStateToSettings()` returns early for Incognito windows
+- `closeEvent()` skips all persistence logic for Incognito windows
+- `updateWindowTitle()` appends " - Incognito" suffix for Incognito windows
+
+### Menu and Shortcuts
+- File menu includes "New Incognito Window" action
+- Keyboard shortcut: `Shift+Command+N` (macOS) / `Shift+Ctrl+N` (other platforms)
+- Action triggers `createAndShowIncognitoWindow()` to open a new private window
+
+### Design Decisions
+- **DevTools Isolation**: DevTools for Incognito windows use the same ephemeral profile as the frames, ensuring complete isolation.
+- **No Session Restoration**: Incognito windows never appear in the restored session on app restart.
+- **Profile Name Display**: Incognito windows show "Incognito" as the profile name in the title for consistency with the UI pattern.
+- **Independent Lifecycle**: Each Incognito window gets a unique off-the-record profile instance to ensure complete isolation even between multiple Incognito windows.
 
 ## Web View Context Menu
 - Navigation actions (Back, Forward, Reload) and editing commands (Cut, Copy, Paste, Select All) mirror Qt's built-in `QWebEnginePage` actions.

@@ -128,15 +128,18 @@ void rebuildAllWindowMenus() {
   }
 }
 
-void createAndShowWindow(const QString &initialAddress, const QString &windowId) {
+void createAndShowWindow(const QString &initialAddress, const QString &windowId, bool isIncognito) {
   QString id = windowId;
-  if (id.isEmpty()) id = QUuid::createUuid().toString();
+  // Incognito windows should not have a persistent window ID
+  if (id.isEmpty() || isIncognito) id = QUuid::createUuid().toString();
   // Construct the window with an id. The SplitWindow constructor will
   // attempt to restore saved per-window addresses/layout if the id exists.
-  SplitWindow *w = new SplitWindow(id);
-  qDebug() << "createAndShowWindow: created window id=" << id << " initialAddress=" << (initialAddress.isEmpty() ? QString("(none)") : initialAddress);
+  SplitWindow *w = new SplitWindow(id, isIncognito);
+  qDebug() << "createAndShowWindow: created window id=" << id 
+           << " initialAddress=" << (initialAddress.isEmpty() ? QString("(none)") : initialAddress)
+           << " isIncognito=" << isIncognito;
   w->show();
-  if (!windowId.isEmpty()) {
+  if (!windowId.isEmpty() && !isIncognito) {
     // This is a restored window: the constructor already loaded addresses
     // and rebuilt sections. Do not reset or override addresses here.
   } else if (!initialAddress.isEmpty()) {
@@ -160,6 +163,10 @@ void createAndShowWindow(const QString &initialAddress, const QString &windowId)
 
   // Ensure all Window menus show the latest list
   rebuildAllWindowMenus();
+}
+
+void createAndShowIncognitoWindow(const QString &initialAddress) {
+  createAndShowWindow(initialAddress, QString(), true);
 }
 
 void performLegacyMigration() {
@@ -357,4 +364,19 @@ bool deleteProfile(const QString &profileName) {
 QWebEngineProfile *sharedWebEngineProfile() {
   // Use the current profile name
   return getProfileByName(currentProfileName());
+}
+
+QWebEngineProfile *createIncognitoProfile() {
+  // Create a unique name for this Incognito profile instance
+  const QString profileName = QStringLiteral("incognito-") + QUuid::createUuid().toString();
+  
+  QWebEngineProfileBuilder builder;
+  // Off-the-record profile: no persistent storage, all data is ephemeral
+  builder.setOffTheRecord(true);
+  
+  QWebEngineProfile *profile = builder.createProfile(profileName, qApp);
+  qDebug() << "createIncognitoProfile: created off-the-record profile" << profileName
+           << "offTheRecord=" << profile->isOffTheRecord();
+  
+  return profile;
 }

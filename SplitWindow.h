@@ -42,12 +42,14 @@ public:
   /**
    * @brief Constructs a SplitWindow.
    * @param windowId Optional UUID for restoring saved state. If empty, a new ID is generated.
+   * @param isIncognito If true, creates an Incognito (private) window with ephemeral storage.
    * @param parent Optional parent widget
    *
    * If windowId is provided, the window loads its saved addresses, layout, geometry,
    * and splitter sizes from AppSettings group "windows/<windowId>".
+   * Incognito windows use off-the-record profiles and do not persist state.
    */
-  SplitWindow(const QString &windowId = QString(), QWidget *parent = nullptr);
+  SplitWindow(const QString &windowId = QString(), bool isIncognito = false, QWidget *parent = nullptr);
 
   /**
    * @brief Persists window state to AppSettings.
@@ -71,9 +73,16 @@ public:
    *
    * Sets the title to "Group X (N)" where X is the 1-based index of this window
    * in g_windows and N is the number of frames currently in the window.
+   * If the window is in Incognito mode, appends " - Incognito" to the title.
    * If DEBUG_SHOW_WINDOW_ID is true, also appends the window UUID.
    */
   void updateWindowTitle();
+  
+  /**
+   * @brief Returns whether this window is in Incognito mode.
+   * @return True if this is an Incognito window, false otherwise
+   */
+  bool isIncognito() const { return isIncognito_; }
 
   /**
    * @brief Sets the address for the first frame.
@@ -420,6 +429,7 @@ private:
   std::vector<QSplitter*> currentSplitters_; ///< Active splitters for current layout
   QWebEngineView *sharedDevToolsView_ = nullptr; ///< Shared DevTools window
   bool restoredOnStartup_ = false;          ///< Whether state was restored on construction
+  bool isIncognito_ = false;                ///< Whether this is an Incognito (private) window
   QString windowId_;                        ///< Unique ID for this window instance
   QMenu *windowMenu_ = nullptr;             ///< The Window menu for this window
   QMenu *profilesMenu_ = nullptr;           ///< The Profiles menu for this window
