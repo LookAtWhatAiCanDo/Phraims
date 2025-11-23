@@ -117,6 +117,7 @@ Phraims supports Incognito (private) browsing windows for ephemeral sessions tha
 - **No History**: Browsing history, cookies, cache, and other data are discarded when the window closes
 - **Visual Indicator**: Incognito windows display "Incognito" in the title bar to distinguish them from normal windows
 - **No Persistence**: Window geometry, frame addresses, and splitter sizes are not saved between sessions
+- **No Profile Management**: The Profiles menu is not available in Incognito windows since they use ephemeral profiles
 - **Independent Operation**: Incognito and normal windows operate completely independently without cross-contamination
 
 ### Use Cases

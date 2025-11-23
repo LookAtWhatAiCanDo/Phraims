@@ -182,34 +182,36 @@ SplitWindow::SplitWindow(const QString &windowId, bool isIncognito, QWidget *par
   QAction *domPatchesAction = toolsMenu->addAction(tr("DOM Patches"));
   connect(domPatchesAction, &QAction::triggered, this, &SplitWindow::showDomPatchesManager);
 
-  // Profiles menu: manage browser profiles
-  profilesMenu_ = menuBar()->addMenu(tr("Profiles"));
-  QAction *newProfileAction = profilesMenu_->addAction(tr("New Profile..."));
-  connect(newProfileAction, &QAction::triggered, this, &SplitWindow::createNewProfile);
-  
-  QAction *renameProfileAction = profilesMenu_->addAction(tr("Rename Profile..."));
-  connect(renameProfileAction, &QAction::triggered, this, &SplitWindow::renameCurrentProfile);
-  
-  QAction *deleteProfileAction = profilesMenu_->addAction(tr("Delete Profile..."));
-  connect(deleteProfileAction, &QAction::triggered, this, &SplitWindow::deleteSelectedProfile);
-  
-  profilesMenu_->addSeparator();
-  
+  // Profiles menu: manage browser profiles (not available in Incognito mode)
+  if (!isIncognito_) {
+    profilesMenu_ = menuBar()->addMenu(tr("Profiles"));
+    QAction *newProfileAction = profilesMenu_->addAction(tr("New Profile..."));
+    connect(newProfileAction, &QAction::triggered, this, &SplitWindow::createNewProfile);
+    
+    QAction *renameProfileAction = profilesMenu_->addAction(tr("Rename Profile..."));
+    connect(renameProfileAction, &QAction::triggered, this, &SplitWindow::renameCurrentProfile);
+    
+    QAction *deleteProfileAction = profilesMenu_->addAction(tr("Delete Profile..."));
+    connect(deleteProfileAction, &QAction::triggered, this, &SplitWindow::deleteSelectedProfile);
+    
+    profilesMenu_->addSeparator();
+    
 #ifndef NDEBUG
-  // Debug builds only: Add menu item to open profiles folder
-  QAction *openProfilesFolderAction = profilesMenu_->addAction(tr("Open Profiles Folder"));
-  connect(openProfilesFolderAction, &QAction::triggered, this, [this]() {
-    const QString dataRoot = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-    const QString profilesDir = dataRoot + QStringLiteral("/profiles");
-    // Ensure the profiles directory exists before trying to open it
-    QDir().mkpath(profilesDir);
-    QDesktopServices::openUrl(QUrl::fromLocalFile(profilesDir));
-  });
-  
-  profilesMenu_->addSeparator();
+    // Debug builds only: Add menu item to open profiles folder
+    QAction *openProfilesFolderAction = profilesMenu_->addAction(tr("Open Profiles Folder"));
+    connect(openProfilesFolderAction, &QAction::triggered, this, [this]() {
+      const QString dataRoot = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+      const QString profilesDir = dataRoot + QStringLiteral("/profiles");
+      // Ensure the profiles directory exists before trying to open it
+      QDir().mkpath(profilesDir);
+      QDesktopServices::openUrl(QUrl::fromLocalFile(profilesDir));
+    });
+    
+    profilesMenu_->addSeparator();
 #endif
-  
-  // Profile list will be populated by updateProfilesMenu()
+    
+    // Profile list will be populated by updateProfilesMenu()
+  }
 
   // Window menu: per-macOS convention
   windowMenu_ = menuBar()->addMenu(tr("Window"));

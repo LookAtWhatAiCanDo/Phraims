@@ -152,18 +152,21 @@ Phraims supports Incognito (private) browsing windows that provide ephemeral ses
 - Splitter size and window geometry restoration are skipped for Incognito windows
 - `savePersistentStateToSettings()` returns early for Incognito windows
 - `closeEvent()` skips all persistence logic for Incognito windows
-- `updateWindowTitle()` appends " - Incognito" suffix for Incognito windows
+- `updateWindowTitle()` displays "Incognito" as the profile name in the title
+- `profilesMenu_` is not created for Incognito windows (remains null)
 
 ### Menu and Shortcuts
 - File menu includes "New Incognito Window" action
 - Keyboard shortcut: `Shift+Command+N` (macOS) / `Shift+Ctrl+N` (other platforms)
 - Action triggers `createAndShowIncognitoWindow()` to open a new private window
+- **Profiles menu is hidden** in Incognito windows to prevent switching to persistent profiles
 
 ### Design Decisions
 - **DevTools Isolation**: DevTools for Incognito windows use the same ephemeral profile as the frames, ensuring complete isolation.
 - **No Session Restoration**: Incognito windows never appear in the restored session on app restart.
 - **Profile Name Display**: Incognito windows show "Incognito" as the profile name in the title for consistency with the UI pattern.
 - **Independent Lifecycle**: Each Incognito window gets a unique off-the-record profile instance to ensure complete isolation even between multiple Incognito windows.
+- **No Profile Management**: The Profiles menu is not available in Incognito windows since they use ephemeral profiles that cannot be managed or switched.
 
 ## Web View Context Menu
 - Navigation actions (Back, Forward, Reload) and editing commands (Cut, Copy, Paste, Select All) mirror Qt's built-in `QWebEnginePage` actions.
