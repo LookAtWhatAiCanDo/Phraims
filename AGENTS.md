@@ -68,6 +68,8 @@ The application implements standard keyboard shortcuts for common operations:
 ### Shortcut Implementation Guidelines
 When adding new keyboard shortcuts:
 - Use `QKeySequence` standard key sequences when available (e.g., `QKeySequence::AddTab` for Command-T)
+- For custom shortcuts, use `Qt::CTRL` which Qt automatically maps to Command (⌘) on macOS and Ctrl on other platforms
+- **NEVER** use platform-specific conditionals (`#ifdef Q_OS_MAC`) with `Qt::META` - Qt handles this mapping automatically
 - Register shortcuts in the appropriate menu (File, View, Layout, Tools, Window) for discoverability
 - Provide visual feedback when shortcuts are triggered (e.g., brief animation or status message)
 - Ensure shortcuts don't interfere with text input fields by using the main window context
