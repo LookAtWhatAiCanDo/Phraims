@@ -153,10 +153,18 @@ Artifacts are retained for 90 days. The workflow can also be triggered manually 
   - Settings
   - ...; all expected things from a browser!
   - User-Agent
+- Support opening `phraims://inspect` similar to [chrome://inspect](chrome://inspect)
 
 ## BUGS
 - Discord page blank white
 - messenger.com page not loading
+
+## Debugging
+
+```
+open build/Qt_6_10_0_for_macOS-Debug/Phraims.app --args --webEngineArgs --remote-debugging-port=9222
+```
+Open Chrome to [chrome://inspect](chrome://inspect)
 
 ## Tests
 

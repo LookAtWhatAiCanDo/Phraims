@@ -24,12 +24,26 @@ if(APPLE)
   set(app_icon_macos "${CMAKE_CURRENT_SOURCE_DIR}/resources/phraims.icns")
   set_source_files_properties(${app_icon_macos} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 
+  set(MACOSX_BUNDLE_EXECUTABLE_NAME Phraims)
+  set(MACOSX_BUNDLE_ICON_FILE phraims.icns)
+  set(MACOSX_BUNDLE_BUNDLE_NAME "${PROJECT_NAME}")
+  set(MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}")
+  set(MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}")
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "${CMAKE_OSX_DEPLOYMENT_TARGET}")
+
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/resources/Info.plist.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
+    @ONLY
+  )
+
   qt_add_executable(Phraims
     MACOSX_BUNDLE
     main.cpp
     Utils.h
     Utils.cpp
     EscapeFilter.h
+    MyWebEnginePage.h
     MyWebEngineView.h
     SplitterDoubleClickFilter.h
     DomPatch.h
@@ -39,6 +53,12 @@ if(APPLE)
     SplitWindow.h
     SplitWindow.cpp
     ${app_icon_macos}
+  )
+  set_target_properties(Phraims PROPERTIES
+    MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
+    MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
+    MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
+    MACOSX_BUNDLE_BUNDLE_NAME "${PROJECT_NAME}"
   )
 
 elseif(WIN32)
@@ -52,6 +72,7 @@ elseif(WIN32)
     Utils.h
     Utils.cpp
     EscapeFilter.h
+    MyWebEnginePage.h
     MyWebEngineView.h
     SplitterDoubleClickFilter.h
     DomPatch.h

@@ -16,6 +16,8 @@
 #include <QThread>
 #include <QUuid>
 #include <QWebEnginePage>
+#include <QWebEngineProfile>
+#include <QWebEngineProfileBuilder>
 #include <algorithm>
 
 std::vector<SplitWindow*> g_windows;
@@ -278,4 +280,28 @@ void performLegacyMigration() {
     mf.write(QDateTime::currentDateTimeUtc().toString(Qt::ISODate).toUtf8());
     mf.close();
   }
+}
+
+QWebEngineProfile *sharedWebEngineProfile() {
+  static QWebEngineProfile *profile = nullptr;
+  if (profile) return profile;
+
+  const QString dataRoot = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+  const QString profileDir = dataRoot + QStringLiteral("/profiles/default");
+  const QString cacheDir = profileDir + QStringLiteral("/cache");
+  QDir().mkpath(profileDir);
+  QDir().mkpath(cacheDir);
+
+  QWebEngineProfileBuilder builder;
+  builder.setPersistentStoragePath(profileDir);
+  builder.setCachePath(cacheDir);
+  builder.setHttpCacheType(QWebEngineProfile::DiskHttpCache);
+  builder.setPersistentCookiesPolicy(QWebEngineProfile::ForcePersistentCookies);
+  builder.setPersistentPermissionsPolicy(QWebEngineProfile::PersistentPermissionsPolicy::StoreOnDisk);
+
+  profile = builder.createProfile(QStringLiteral("phraims-shared"), qApp);
+  qDebug() << "sharedWebEngineProfile: created profile storage=" << profile->persistentStoragePath()
+           << "cache=" << profile->cachePath() << "offTheRecord=" << profile->isOffTheRecord();
+
+  return profile;
 }

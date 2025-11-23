@@ -327,23 +327,31 @@ void SplitFrameWidget::refreshScaleUi() {
 
 void SplitFrameWidget::setProfile(QWebEngineProfile *profile) {
   if (!webview_ || !profile) return;
+
+  qDebug() << "SplitFrameWidget::setProfile: profile isOffTheRecord=" << profile->isOffTheRecord();
+  qDebug() << "SplitFrameWidget::setProfile: profile persistentStoragePath=" << profile->persistentStoragePath();
+
   // assign a fresh page associated with the shared profile
   auto *page = new QWebEnginePage(profile, webview_);
+  qDebug() << "SplitFrameWidget::setProfile: attaching page" << page;
   webview_->setPage(page);
+
   webview_->setZoomFactor(scaleFactor_);
+
   // Ensure DOM patches are applied on every load for this page.
   QObject::connect(page, &QWebEnginePage::loadFinished, page, [page](bool) {
     // apply patches after each load
     applyDomPatchesToPage(page);
   });
+
   // Ensure the page has fullscreen support enabled (should be true by default
   // but being explicit helps diagnose platform differences).
   page->settings()->setAttribute(QWebEngineSettings::FullScreenSupportEnabled, true);
   qDebug() << "SplitFrameWidget::setProfile: FullScreenSupportEnabled=" << page->settings()->testAttribute(QWebEngineSettings::FullScreenSupportEnabled);
 
-  // Log and (optionally) auto-grant feature permissions that some players
-  // request when entering fullscreen, like mouse lock. This will help
-  // diagnose permission-denied problems.
+  // Log and (optionally) auto-grant feature permissions that some
+  // video players request when entering fullscreen, like mouse lock.
+  // This will help diagnose permission-denied problems.
   QObject::connect(page, &QWebEnginePage::permissionRequested, this, [page](QWebEnginePermission permissionRequest){
     auto origin = permissionRequest.origin();
     auto permissionType = permissionRequest.permissionType();
@@ -355,15 +363,16 @@ void SplitFrameWidget::setProfile(QWebEngineProfile *profile) {
       qDebug() << "SplitFrameWidget: granted MouseLock for" << origin;
       return;
     }
-    // For other features, reject the request but log for diagnostics.
-    qDebug() << "SplitFrameWidget: denying" << permissionType << "for" << origin;
-    permissionRequest.deny();
-    qDebug() << "SplitFrameWidget: denied" << permissionType << "for" << origin;
+    // For all other permission types, log for diagnostics and no-op to defer to Qt defaults.
+    qDebug() << "SplitFrameWidget: leaving permission" << permissionType << "for" << origin << "to Qt defaults";
   });
+
+  bool ok;
+
   // Honor HTML5 fullscreen requests (e.g., YouTube fullscreen button).
   qDebug() << "SplitFrameWidget::setProfile: connecting fullScreenRequested for page" << page << "parent webview=" << webview_;
-  QObject::connect(page, &QWebEnginePage::fullScreenRequested, this, &SplitFrameWidget::handleFullScreenRequested);
-  qDebug() << "SplitFrameWidget::setProfile: connected fullScreenRequested";
+  ok = QObject::connect(page, &QWebEnginePage::fullScreenRequested, this, &SplitFrameWidget::handleFullScreenRequested);
+  qDebug() << "SplitFrameWidget::setProfile: fullScreenRequested connection" << (ok ? "succeeded" : "failed");
 }
 
 void SplitFrameWidget::handleFullScreenRequested(QWebEngineFullScreenRequest request) {
