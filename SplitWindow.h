@@ -258,12 +258,49 @@ private slots:
   void updateWindowMenu();
 
   /**
+   * @brief Updates the Profiles menu with all available profiles.
+   *
+   * Rebuilds the menu to show all profiles with a checkmark for the
+   * current window's active profile.
+   */
+  void updateProfilesMenu();
+
+  /**
    * @brief Handles the global Close (Cmd/Ctrl+W) shortcut.
    *
    * If multiple frames are present, this will close the last (end) frame.
    * If only one frame remains, it will close the window.
    */
   void onCloseShortcut();
+
+  /**
+   * @brief Switches this window to use a different profile.
+   * @param profileName The name of the profile to switch to
+   *
+   * Rebuilds all frames with the new profile's QWebEngineProfile.
+   */
+  void switchToProfile(const QString &profileName);
+
+  /**
+   * @brief Shows a dialog to create a new profile.
+   *
+   * Prompts the user for a profile name and creates it if valid.
+   */
+  void createNewProfile();
+
+  /**
+   * @brief Shows a dialog to rename the current profile.
+   *
+   * Prompts the user for a new name and renames the profile if valid.
+   */
+  void renameCurrentProfile();
+
+  /**
+   * @brief Shows a dialog to delete a profile.
+   *
+   * Asks for confirmation and deletes the selected profile if confirmed.
+   */
+  void deleteSelectedProfile();
 
   /**
    * @brief Increases the focused frame's scale (View menu action).
@@ -385,5 +422,7 @@ private:
   bool restoredOnStartup_ = false;          ///< Whether state was restored on construction
   QString windowId_;                        ///< Unique ID for this window instance
   QMenu *windowMenu_ = nullptr;             ///< The Window menu for this window
+  QMenu *profilesMenu_ = nullptr;           ///< The Profiles menu for this window
+  QString currentProfileName_;              ///< The profile currently used by this window
   SplitFrameWidget *lastFocusedFrame_ = nullptr; ///< Tracks the most recently focused frame
 };
