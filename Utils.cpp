@@ -350,8 +350,14 @@ QStringList listProfiles() {
   return profiles;
 }
 
+bool isValidProfileName(const QString &name) {
+  if (name.isEmpty()) return false;
+  if (name.contains('/') || name.contains('\\')) return false;
+  return true;
+}
+
 bool createProfile(const QString &profileName) {
-  if (profileName.isEmpty()) return false;
+  if (!isValidProfileName(profileName)) return false;
   
   const QString dataRoot = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
   const QString profileDir = dataRoot + QStringLiteral("/profiles/") + profileName;
@@ -372,7 +378,7 @@ bool createProfile(const QString &profileName) {
 }
 
 bool renameProfile(const QString &oldName, const QString &newName) {
-  if (oldName.isEmpty() || newName.isEmpty() || oldName == newName) return false;
+  if (!isValidProfileName(oldName) || !isValidProfileName(newName) || oldName == newName) return false;
   
   const QString dataRoot = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
   const QString oldDir = dataRoot + QStringLiteral("/profiles/") + oldName;
@@ -441,8 +447,18 @@ bool deleteProfile(const QString &profileName) {
   
   // Switch to another profile if this is the current one
   if (currentProfileName() == profileName) {
-    QString newProfile = profiles.first() != profileName ? profiles.first() : profiles.at(1);
-    setCurrentProfileName(newProfile);
+    // Find a profile that isn't being deleted
+    QString newProfile;
+    for (const QString &p : profiles) {
+      if (p != profileName) {
+        newProfile = p;
+        break;
+      }
+    }
+    // This should always succeed since we checked profiles.size() > 1 above
+    if (!newProfile.isEmpty()) {
+      setCurrentProfileName(newProfile);
+    }
   }
   
   // Delete the directory recursively

@@ -167,6 +167,15 @@ bool renameProfile(const QString &oldName, const QString &newName);
 bool deleteProfile(const QString &profileName);
 
 /**
+ * @brief Validates a profile name for creation or renaming.
+ * @param name The profile name to validate
+ * @return True if the name is valid, false otherwise
+ *
+ * Profile names must not be empty and cannot contain slashes (/ or \).
+ */
+bool isValidProfileName(const QString &name);
+
+/**
  * @brief Applies all enabled DOM patches to the given page immediately.
  * @param page The QWebEnginePage to apply patches to
  *

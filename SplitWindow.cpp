@@ -1195,12 +1195,12 @@ void SplitWindow::createNewProfile() {
   
   if (!ok || name.isEmpty()) return;
   
-  // Validate the name (no slashes or special characters)
-  if (name.contains('/') || name.contains('\\')) {
+  // Validate the name
+  if (!isValidProfileName(name)) {
     QMessageBox::warning(
       this,
       tr("Invalid Name"),
-      tr("Profile names cannot contain slashes.")
+      tr("Profile names cannot be empty or contain slashes.")
     );
     return;
   }
@@ -1255,11 +1255,11 @@ void SplitWindow::renameCurrentProfile() {
   if (!ok || newName.isEmpty() || newName == oldName) return;
   
   // Validate the name
-  if (newName.contains('/') || newName.contains('\\')) {
+  if (!isValidProfileName(newName)) {
     QMessageBox::warning(
       this,
       tr("Invalid Name"),
-      tr("Profile names cannot contain slashes.")
+      tr("Profile names cannot be empty or contain slashes.")
     );
     return;
   }
@@ -1334,16 +1334,12 @@ void SplitWindow::deleteSelectedProfile() {
       tr("Profile '%1' has been deleted.").arg(name)
     );
     
-    // If we deleted the current profile, we were automatically switched
-    // to another profile by deleteProfile(), so update our local state
+    // If we deleted the current profile, deleteProfile() automatically switched
+    // the global current profile to another one. Update our window's local state.
     if (currentProfileName_ == name) {
-      QString newProfileName = currentProfileName();
-      // Only rebuild if we're actually switching to a different profile
-      if (newProfileName != currentProfileName_) {
-        currentProfileName_ = newProfileName;
-        profile_ = getProfileByName(currentProfileName_);
-        rebuildSections((int)frames_.size());
-      }
+      currentProfileName_ = currentProfileName();
+      profile_ = getProfileByName(currentProfileName_);
+      rebuildSections((int)frames_.size());
     }
     
     // Update all windows' profiles menus
