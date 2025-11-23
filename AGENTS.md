@@ -68,6 +68,54 @@ When adding new keyboard shortcuts:
 - Scale factors are persisted per frame alongside addresses under the `frameScales` key in `QSettings`. Whenever you add, remove, or reorder frames, update the paired scale vector so indices remain aligned. Migrating persistence logic must keep both lists backward compatible.
 - If you need traditional web zoom outside of this mechanism, avoid duplicating state—route everything through `setScaleFactor` so persistence and UI stay consistent.
 
+## Profiles System
+Phraims supports multiple browser profiles, allowing users to maintain separate browsing contexts with isolated cookies, cache, history, and other data.
+
+### Architecture
+- **Profile Storage**: Each profile has its own directory under `<AppDataLocation>/profiles/<profileName>/` containing persistent storage and cache.
+- **Profile Management**: Functions in `Utils.h/.cpp` handle profile creation, deletion, renaming, and listing.
+- **Profile Caching**: `QWebEngineProfile` instances are cached in `g_profileCache` (a `QMap<QString, QWebEngineProfile*>`) to avoid recreating profiles.
+- **Current Profile**: The global current profile is stored in `QSettings` under the `currentProfile` key (defaults to "Default").
+- **Per-Window Profiles**: Each `SplitWindow` tracks its active profile in `currentProfileName_` and persists it in `windows/<id>/profileName`.
+
+### Key Functions (Utils.h/.cpp)
+- `getProfileByName(name)` - Returns or creates a `QWebEngineProfile` for the given name
+- `currentProfileName()` - Returns the globally active profile name from QSettings
+- `setCurrentProfileName(name)` - Sets the globally active profile and persists it
+- `listProfiles()` - Returns all profile directory names from the filesystem
+- `createProfile(name)` - Creates a new profile directory
+- `renameProfile(old, new)` - Renames a profile directory and updates references
+- `deleteProfile(name)` - Deletes a profile directory and switches away if current
+- `sharedWebEngineProfile()` - Convenience wrapper that calls `getProfileByName(currentProfileName())`
+
+### Profiles Menu (SplitWindow)
+The Profiles menu is located between Tools and Window menus and contains:
+- **New Profile...** - Dialog to create a new profile with validation
+- **Rename Profile...** - Dialog to select and rename a profile
+- **Delete Profile...** - Dialog to select and delete a profile with confirmation
+- **Open Profiles Folder** (debug builds only) - Opens the profiles directory in the system file browser (only shown when `NDEBUG` is not defined)
+- **Profile List** (dynamic) - Shows all profiles with checkmark for the current one; clicking switches profiles
+
+### Profile Switching
+When switching profiles via `SplitWindow::switchToProfile()`:
+1. Updates `currentProfileName_` and `profile_` members
+2. Calls `setCurrentProfileName()` to update global current profile
+3. Rebuilds all frames with `rebuildSections()` to use the new profile's QWebEngineProfile
+4. Updates the Profiles menu in all windows to reflect the change
+5. Updates window title to show the new profile name
+6. Persists the window's profile choice to QSettings
+
+### Persistence
+- Per-window profile: `windows/<id>/profileName` in QSettings
+- Global current profile: `currentProfile` in QSettings root
+- Profile data: `<AppDataLocation>/profiles/<profileName>/` on filesystem
+
+### Validation Rules
+- Profile names cannot contain slashes (/ or \)
+- Cannot delete the last remaining profile
+- Profile directories are created on first use via `getProfileByName()`
+- Default profile is always "Default" and created automatically if needed
+
 ## Web View Context Menu
 - Navigation actions (Back, Forward, Reload) and editing commands (Cut, Copy, Paste, Select All) mirror Qt's built-in `QWebEnginePage` actions.
 - **Copy Link Address** appears when right-clicking a hyperlink and copies the fully encoded target URL to the clipboard for easy sharing.

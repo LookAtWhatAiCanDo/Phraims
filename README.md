@@ -53,6 +53,50 @@ cmake --build . --config Release
 - Each section is equally sized using layout stretch factors
 - Use the Layout menu to switch between Grid, Vertical, and Horizontal arrangements
 
+## Profiles
+
+Phraims supports multiple browser profiles, each with its own separate browsing data, cookies, cache, and history. This allows you to maintain completely isolated browsing contexts within the same application.
+
+### Managing Profiles
+
+Access profile management through the **Profiles** menu in the menu bar:
+
+- **New Profile...**: Create a new profile with a custom name
+  - Profile names cannot contain slashes (/ or \)
+  - Each profile gets its own storage directory
+  
+- **Rename Profile...**: Rename an existing profile
+  - Select the profile to rename from the list
+  - Enter a new name (cannot contain slashes)
+  - If you rename the currently active profile, it will be updated automatically
+  
+- **Delete Profile...**: Permanently delete a profile and all its data
+  - Select the profile to delete from the list
+  - Confirmation is required before deletion
+  - Cannot delete the last remaining profile
+  - All cookies, cache, history, and other data will be permanently removed
+  
+- **Open Profiles Folder** (debug builds only): Opens the profiles directory in your system file browser
+  - Shows all profile directories on your filesystem
+  - Useful for backup, inspection, or manual management of profile data
+  - Only available when running a debug build of the application
+  
+- **Profile List**: Shows all available profiles
+  - The currently active profile is marked with a checkmark
+  - Click any profile to switch to it immediately
+
+### Using Profiles
+
+- Each window title displays the current profile name (e.g., "Group 1 (3) - Work")
+- Each window remembers which profile it was using and restores it on app restart
+- When you switch profiles, all frames in the current window are rebuilt with the new profile
+- New windows use the most recently selected profile by default
+- Profile data is stored in your application data directory under `profiles/<profile-name>/`
+
+### Default Profile
+
+When you first launch Phraims, a "Default" profile is automatically created and used. You can create additional profiles and switch between them at any time.
+
 ### Per-frame zoom controls
 - Use the `A-`, `A+`, and `1x` buttons in each frame header (or `View -> Increase/Decrease/Reset Frame Scale`) to zoom the embedded page without touching splitter sizes or header chrome. These controls are simply a shortcut for adjusting the QWebEngineView zoom on a frame-by-frame basis.
 - The UI chrome stays at a consistent size so controls remain easy to target even when a page is zoomed way in/out.
@@ -196,7 +240,32 @@ These tests define the desired behavior for layout selection and splitter persis
 	- Action: Use the `A-` / `A+` buttons (or the View menu actions) to change the zoom of a frame, quit the application, and relaunch it.
 	- Expected: Each frame reopens with the exact zoom factor that was active before quitting. Only the web content should change size; splitter handles and chrome stay put.
 
+7) Creating a new profile
+	- Action: Select `Profiles -> New Profile...` from the menu bar, enter a name (e.g., "Work"), and click OK.
+	- Expected: The profile is created successfully. A confirmation message appears. The Profiles menu now shows the new profile in the list.
+
+8) Switching between profiles
+	- Action: Open the Profiles menu and select a different profile from the list (e.g., switch from "Default" to "Work").
+	- Expected: The window immediately switches to the selected profile. All frames are rebuilt with the new profile's data. The checkmark in the Profiles menu moves to the newly selected profile. Cookies and browsing data are now isolated to the selected profile.
+
+9) Profile persistence across restarts
+	- Action: Switch to a specific profile (e.g., "Work"), load a website that sets a cookie, close the app, and reopen it.
+	- Expected: The window reopens using the last-selected profile ("Work"). The website's cookie is still present, confirming data persistence within that profile.
+
+10) Renaming a profile
+	- Action: Select `Profiles -> Rename Profile...`, choose a profile from the list, enter a new name, and confirm.
+	- Expected: The profile is renamed successfully. If the renamed profile was active, the current window continues using it with the new name. The Profiles menu reflects the new name.
+
+11) Deleting a profile
+	- Action: Select `Profiles -> Delete Profile...`, choose a profile (not the current one), and confirm deletion.
+	- Expected: A confirmation dialog appears warning about permanent data loss. After confirming, the profile and all its data are deleted. The profile disappears from the Profiles menu. If multiple profiles exist, deletion succeeds; if only one profile remains, deletion is blocked with an error message.
+
+12) Profile data isolation
+	- Action: Create two profiles (e.g., "Personal" and "Work"). In "Personal", log into a website. Switch to "Work" and visit the same website.
+	- Expected: The website in the "Work" profile does not show the logged-in state from "Personal", confirming complete data isolation between profiles.
+
 Notes
 - Persisted splitter positions are only loaded once at application startup. During normal runtime, selecting or re-selecting layouts resets to default split positions.
 - The app persists splitter sizes on exit so they can be used for the next application launch.
 - Recommended: test quickly by resizing splitters, closing the app, and reopening to verify persistence.
+- Profile data is stored per-profile in separate directories under the application data location (shown at startup).

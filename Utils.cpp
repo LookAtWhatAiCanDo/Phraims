@@ -10,6 +10,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QMap>
 #include <QPainter>
 #include <QPalette>
 #include <QStandardPaths>
@@ -282,12 +283,17 @@ void performLegacyMigration() {
   }
 }
 
-QWebEngineProfile *sharedWebEngineProfile() {
-  static QWebEngineProfile *profile = nullptr;
-  if (profile) return profile;
+// Map of profile name -> profile instance for caching
+static QMap<QString, QWebEngineProfile*> g_profileCache;
+
+QWebEngineProfile *getProfileByName(const QString &profileName) {
+  // Check cache first
+  if (g_profileCache.contains(profileName)) {
+    return g_profileCache.value(profileName);
+  }
 
   const QString dataRoot = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-  const QString profileDir = dataRoot + QStringLiteral("/profiles/default");
+  const QString profileDir = dataRoot + QStringLiteral("/profiles/") + profileName;
   const QString cacheDir = profileDir + QStringLiteral("/cache");
   QDir().mkpath(profileDir);
   QDir().mkpath(cacheDir);
@@ -299,9 +305,173 @@ QWebEngineProfile *sharedWebEngineProfile() {
   builder.setPersistentCookiesPolicy(QWebEngineProfile::ForcePersistentCookies);
   builder.setPersistentPermissionsPolicy(QWebEngineProfile::PersistentPermissionsPolicy::StoreOnDisk);
 
-  profile = builder.createProfile(QStringLiteral("phraims-shared"), qApp);
-  qDebug() << "sharedWebEngineProfile: created profile storage=" << profile->persistentStoragePath()
+  QWebEngineProfile *profile = builder.createProfile(QStringLiteral("phraims-") + profileName, qApp);
+  qDebug() << "getProfileByName: created profile" << profileName << "storage=" << profile->persistentStoragePath()
            << "cache=" << profile->cachePath() << "offTheRecord=" << profile->isOffTheRecord();
 
+  // Cache the profile
+  g_profileCache.insert(profileName, profile);
   return profile;
+}
+
+QString currentProfileName() {
+  QSettings settings;
+  return settings.value("currentProfile", QStringLiteral("Default")).toString();
+}
+
+void setCurrentProfileName(const QString &profileName) {
+  QSettings settings;
+  settings.setValue("currentProfile", profileName);
+  settings.sync();
+  qDebug() << "setCurrentProfileName:" << profileName;
+}
+
+QStringList listProfiles() {
+  const QString dataRoot = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+  const QString profilesDir = dataRoot + QStringLiteral("/profiles");
+  
+  QDir dir(profilesDir);
+  if (!dir.exists()) {
+    // If profiles dir doesn't exist yet, return the default profile.
+    // Note: The Default profile directory is created lazily by getProfileByName()
+    // on first use, so it may not exist in the filesystem yet.
+    return QStringList() << QStringLiteral("Default");
+  }
+
+  QStringList profiles = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
+  
+  // Ensure at least "Default" exists in the list even if its directory hasn't
+  // been created yet (lazy creation). This ensures Default is always available.
+  if (profiles.isEmpty() || !profiles.contains(QStringLiteral("Default"))) {
+    profiles.prepend(QStringLiteral("Default"));
+  }
+  
+  profiles.sort(Qt::CaseInsensitive);
+  return profiles;
+}
+
+bool isValidProfileName(const QString &name) {
+  if (name.isEmpty()) return false;
+  if (name.contains('/') || name.contains('\\')) return false;
+  return true;
+}
+
+bool createProfile(const QString &profileName) {
+  if (!isValidProfileName(profileName)) return false;
+  
+  const QString dataRoot = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+  const QString profileDir = dataRoot + QStringLiteral("/profiles/") + profileName;
+  
+  QDir dir;
+  if (dir.exists(profileDir)) {
+    qDebug() << "createProfile: profile already exists:" << profileName;
+    return false;
+  }
+  
+  if (!dir.mkpath(profileDir)) {
+    qWarning() << "createProfile: failed to create directory:" << profileDir;
+    return false;
+  }
+  
+  qDebug() << "createProfile: created profile:" << profileName << "at" << profileDir;
+  return true;
+}
+
+bool renameProfile(const QString &oldName, const QString &newName) {
+  if (!isValidProfileName(oldName) || !isValidProfileName(newName) || oldName == newName) return false;
+  
+  const QString dataRoot = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+  const QString oldDir = dataRoot + QStringLiteral("/profiles/") + oldName;
+  const QString newDir = dataRoot + QStringLiteral("/profiles/") + newName;
+  
+  QDir dir;
+  if (!dir.exists(oldDir)) {
+    qDebug() << "renameProfile: old profile doesn't exist:" << oldName;
+    return false;
+  }
+  
+  if (dir.exists(newDir)) {
+    qDebug() << "renameProfile: new profile name already exists:" << newName;
+    return false;
+  }
+  
+  if (!dir.rename(oldDir, newDir)) {
+    qWarning() << "renameProfile: failed to rename directory from" << oldDir << "to" << newDir;
+    return false;
+  }
+  
+  // Update cache if the profile is loaded
+  if (g_profileCache.contains(oldName)) {
+    QWebEngineProfile *profile = g_profileCache.take(oldName);
+    g_profileCache.insert(newName, profile);
+  }
+  
+  // Update current profile name if it was renamed
+  if (currentProfileName() == oldName) {
+    setCurrentProfileName(newName);
+  }
+  
+  qDebug() << "renameProfile: renamed profile from" << oldName << "to" << newName;
+  return true;
+}
+
+bool deleteProfile(const QString &profileName) {
+  if (profileName.isEmpty()) return false;
+  
+  // Cannot delete if it's the only profile
+  QStringList profiles = listProfiles();
+  if (profiles.size() <= 1) {
+    qDebug() << "deleteProfile: cannot delete the last profile";
+    return false;
+  }
+  
+  const QString dataRoot = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+  const QString profileDir = dataRoot + QStringLiteral("/profiles/") + profileName;
+  
+  QDir dir(profileDir);
+  if (!dir.exists()) {
+    qDebug() << "deleteProfile: profile doesn't exist:" << profileName;
+    return false;
+  }
+  
+  // Remove from cache if loaded
+  if (g_profileCache.contains(profileName)) {
+    // Note: We don't explicitly delete the QWebEngineProfile object because
+    // it's parented to qApp and will be cleaned up on application exit.
+    // Deleting it prematurely could cause crashes if pages are still using it.
+    // Design trade-off: During long sessions with frequent profile deletions,
+    // this could accumulate QWebEngineProfile objects in memory. This is
+    // acceptable for typical usage patterns where profiles are rarely deleted.
+    g_profileCache.remove(profileName);
+  }
+  
+  // Switch to another profile if this is the current one
+  if (currentProfileName() == profileName) {
+    // Find a profile that isn't being deleted
+    QString newProfile;
+    for (const QString &p : profiles) {
+      if (p != profileName) {
+        newProfile = p;
+        break;
+      }
+    }
+    // This should always succeed since we checked profiles.size() > 1 above
+    if (!newProfile.isEmpty()) {
+      setCurrentProfileName(newProfile);
+    }
+  }
+  
+  // Delete the directory recursively
+  if (!dir.removeRecursively()) {
+    qWarning() << "deleteProfile: failed to remove directory:" << profileDir;
+    return false;
+  }
+  
+  qDebug() << "deleteProfile: deleted profile:" << profileName;
+  return true;
+}
+
+QWebEngineProfile *sharedWebEngineProfile() {
+  // Use the current profile name
+  return getProfileByName(currentProfileName());
 }

@@ -13,9 +13,11 @@
 #include <QCloseEvent>
 #include <QCoreApplication>
 #include <QDebug>
+#include <QDesktopServices>
 #include <QDir>
 #include <QGridLayout>
 #include <QGuiApplication>
+#include <QInputDialog>
 #include <QKeySequence>
 #include <QLineEdit>
 #include <QMenuBar>
@@ -27,6 +29,7 @@
 #include <QSplitter>
 #include <QStandardPaths>
 #include <QTimer>
+#include <QUrl>
 #include <QVariant>
 #include <QUuid>
 #include <QVBoxLayout>
@@ -72,8 +75,17 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
 
   // No global toolbar; per-frame + / - buttons control sections.
 
-  profile_ = sharedWebEngineProfile();
-  qDebug() << "SplitWindow: using shared profile" << profile_
+  // Load the profile for this window (per-window if windowId_ present, otherwise global current)
+  if (!windowId_.isEmpty()) {
+    QSettings s;
+    GroupScope _gs(s, QStringLiteral("windows/%1").arg(windowId_));
+    currentProfileName_ = s.value("profileName", currentProfileName()).toString();
+  } else {
+    currentProfileName_ = currentProfileName();
+  }
+  
+  profile_ = getProfileByName(currentProfileName_);
+  qDebug() << "SplitWindow: using profile" << currentProfileName_ << profile_
            << "storage=" << profile_->persistentStoragePath();
 
   // (window geometry/state restored later after UI is built)
@@ -154,6 +166,35 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
   auto *toolsMenu = menuBar()->addMenu(tr("Tools"));
   QAction *domPatchesAction = toolsMenu->addAction(tr("DOM Patches"));
   connect(domPatchesAction, &QAction::triggered, this, &SplitWindow::showDomPatchesManager);
+
+  // Profiles menu: manage browser profiles
+  profilesMenu_ = menuBar()->addMenu(tr("Profiles"));
+  QAction *newProfileAction = profilesMenu_->addAction(tr("New Profile..."));
+  connect(newProfileAction, &QAction::triggered, this, &SplitWindow::createNewProfile);
+  
+  QAction *renameProfileAction = profilesMenu_->addAction(tr("Rename Profile..."));
+  connect(renameProfileAction, &QAction::triggered, this, &SplitWindow::renameCurrentProfile);
+  
+  QAction *deleteProfileAction = profilesMenu_->addAction(tr("Delete Profile..."));
+  connect(deleteProfileAction, &QAction::triggered, this, &SplitWindow::deleteSelectedProfile);
+  
+  profilesMenu_->addSeparator();
+  
+#ifndef NDEBUG
+  // Debug builds only: Add menu item to open profiles folder
+  QAction *openProfilesFolderAction = profilesMenu_->addAction(tr("Open Profiles Folder"));
+  connect(openProfilesFolderAction, &QAction::triggered, this, [this]() {
+    const QString dataRoot = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    const QString profilesDir = dataRoot + QStringLiteral("/profiles");
+    // Ensure the profiles directory exists before trying to open it
+    QDir().mkpath(profilesDir);
+    QDesktopServices::openUrl(QUrl::fromLocalFile(profilesDir));
+  });
+  
+  profilesMenu_->addSeparator();
+#endif
+  
+  // Profile list will be populated by updateProfilesMenu()
 
   // Window menu: per-macOS convention
   windowMenu_ = menuBar()->addMenu(tr("Window"));
@@ -238,13 +279,16 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
     const QByteArray savedState = settings.value("windowState").toByteArray();
     if (!savedState.isEmpty()) restoreState(savedState);
   }
+  
+  // Initialize the Profiles menu with the current profile list
+  updateProfilesMenu();
 }
 
 void SplitWindow::savePersistentStateToSettings() {
   QSettings s;
   QString id = windowId_;
   if (id.isEmpty()) id = QUuid::createUuid().toString();
-  qDebug() << "savePersistentStateToSettings: saving window id=" << id << " addresses.count=" << frames_.size() << " layoutMode=" << (int)layoutMode_;
+  qDebug() << "savePersistentStateToSettings: saving window id=" << id << " addresses.count=" << frames_.size() << " layoutMode=" << (int)layoutMode_ << " profile=" << currentProfileName_;
   {
     GroupScope _gs(s, QStringLiteral("windows/%1").arg(id));
     QStringList addressList;
@@ -255,6 +299,7 @@ void SplitWindow::savePersistentStateToSettings() {
     }
     s.setValue("addresses", addressList);
     s.setValue("frameScales", scaleList);
+    s.setValue("profileName", currentProfileName_);
     s.setValue("layoutMode", (int)layoutMode_);
     s.setValue("windowGeometry", saveGeometry());
     s.setValue("windowState", saveState());
@@ -296,7 +341,7 @@ void SplitWindow::updateWindowTitle() {
     if (g_windows[i] == this) { idx = (int)i + 1; break; }
   }
   const int count = (int)frames_.size();
-  QString title = QStringLiteral("Group %1 (%2)").arg(idx).arg(count);
+  QString title = QStringLiteral("Group %1 (%2) - %3").arg(idx).arg(count).arg(currentProfileName_);
   if (DEBUG_SHOW_WINDOW_ID && !windowId_.isEmpty()) {
       title += QStringLiteral(" [%1]").arg(windowId_);
   }
@@ -1079,4 +1124,249 @@ void SplitWindow::changeEvent(QEvent *event) {
     rebuildAllWindowMenus();
   }
   QMainWindow::changeEvent(event);
+}
+
+void SplitWindow::updateProfilesMenu() {
+  if (!profilesMenu_) return;
+  
+  // Remove all profile-specific actions (those after the last separator)
+  // Find the last separator that marks the start of the profile list
+  QList<QAction *> actions = profilesMenu_->actions();
+  int lastSeparatorIndex = -1;
+  for (int i = 0; i < actions.size(); ++i) {
+    if (actions[i]->isSeparator()) {
+      lastSeparatorIndex = i;
+    }
+  }
+  
+  if (lastSeparatorIndex >= 0) {
+    // Remove all actions after the last separator
+    for (int i = actions.size() - 1; i > lastSeparatorIndex; --i) {
+      profilesMenu_->removeAction(actions[i]);
+      delete actions[i];
+    }
+  }
+  
+  // Get the list of available profiles
+  QStringList profiles = listProfiles();
+  
+  // Add an action for each profile with a checkmark for the current one
+  for (const QString &profileName : profiles) {
+    QAction *action = profilesMenu_->addAction(profileName);
+    action->setCheckable(true);
+    action->setChecked(profileName == currentProfileName_);
+    
+    connect(action, &QAction::triggered, this, [this, profileName]() {
+      switchToProfile(profileName);
+    });
+  }
+}
+
+void SplitWindow::switchToProfile(const QString &profileName) {
+  if (profileName == currentProfileName_) {
+    qDebug() << "switchToProfile: already using profile" << profileName;
+    return;
+  }
+  
+  qDebug() << "switchToProfile: switching from" << currentProfileName_ << "to" << profileName;
+  
+  currentProfileName_ = profileName;
+  profile_ = getProfileByName(profileName);
+  
+  // Set the new profile as the global current profile so new windows use it by default.
+  // Design choice: Switching profiles in one window sets the default for all new windows,
+  // making it the "active" profile application-wide. This provides consistent behavior
+  // where the most recently selected profile becomes the default.
+  setCurrentProfileName(profileName);
+  
+  // Rebuild all frames with the new profile
+  rebuildSections((int)frames_.size());
+  
+  // Update the profiles menu to reflect the change
+  updateProfilesMenu();
+  
+  // Update all other windows' profiles menus
+  for (SplitWindow *w : g_windows) {
+    if (w && w != this && w->profilesMenu_) {
+      w->updateProfilesMenu();
+    }
+  }
+  
+  // Persist the profile change immediately
+  savePersistentStateToSettings();
+}
+
+void SplitWindow::createNewProfile() {
+  bool ok = false;
+  QString name = QInputDialog::getText(
+    this,
+    tr("New Profile"),
+    tr("Enter a name for the new profile:"),
+    QLineEdit::Normal,
+    QString(),
+    &ok
+  );
+  
+  if (!ok || name.isEmpty()) return;
+  
+  // Validate the name
+  if (!isValidProfileName(name)) {
+    QMessageBox::warning(
+      this,
+      tr("Invalid Name"),
+      tr("Profile names cannot be empty or contain slashes.")
+    );
+    return;
+  }
+  
+  if (createProfile(name)) {
+    QMessageBox::information(
+      this,
+      tr("Profile Created"),
+      tr("Profile '%1' has been created.").arg(name)
+    );
+    
+    // Update all windows' profiles menus
+    for (SplitWindow *w : g_windows) {
+      if (w && w->profilesMenu_) {
+        w->updateProfilesMenu();
+      }
+    }
+  } else {
+    QMessageBox::warning(
+      this,
+      tr("Profile Exists"),
+      tr("A profile named '%1' already exists.").arg(name)
+    );
+  }
+}
+
+void SplitWindow::renameCurrentProfile() {
+  QStringList profiles = listProfiles();
+  
+  bool ok = false;
+  QString oldName = QInputDialog::getItem(
+    this,
+    tr("Rename Profile"),
+    tr("Select a profile to rename:"),
+    profiles,
+    profiles.indexOf(currentProfileName_),
+    false,
+    &ok
+  );
+  
+  if (!ok || oldName.isEmpty()) return;
+  
+  QString newName = QInputDialog::getText(
+    this,
+    tr("Rename Profile"),
+    tr("Enter a new name for profile '%1':").arg(oldName),
+    QLineEdit::Normal,
+    oldName,
+    &ok
+  );
+  
+  if (!ok || newName.isEmpty() || newName == oldName) return;
+  
+  // Validate the name
+  if (!isValidProfileName(newName)) {
+    QMessageBox::warning(
+      this,
+      tr("Invalid Name"),
+      tr("Profile names cannot be empty or contain slashes.")
+    );
+    return;
+  }
+  
+  if (renameProfile(oldName, newName)) {
+    QMessageBox::information(
+      this,
+      tr("Profile Renamed"),
+      tr("Profile '%1' has been renamed to '%2'.").arg(oldName, newName)
+    );
+    
+    // If we renamed the current profile, update the local name
+    if (currentProfileName_ == oldName) {
+      currentProfileName_ = newName;
+    }
+    
+    // Update all windows' profiles menus
+    for (SplitWindow *w : g_windows) {
+      if (w && w->profilesMenu_) {
+        w->updateProfilesMenu();
+      }
+    }
+  } else {
+    QMessageBox::warning(
+      this,
+      tr("Rename Failed"),
+      tr("Failed to rename profile. The new name may already exist.")
+    );
+  }
+}
+
+void SplitWindow::deleteSelectedProfile() {
+  QStringList profiles = listProfiles();
+  
+  if (profiles.size() <= 1) {
+    QMessageBox::warning(
+      this,
+      tr("Cannot Delete"),
+      tr("Cannot delete the last profile. At least one profile must exist.")
+    );
+    return;
+  }
+  
+  bool ok = false;
+  QString name = QInputDialog::getItem(
+    this,
+    tr("Delete Profile"),
+    tr("Select a profile to delete:"),
+    profiles,
+    0,
+    false,
+    &ok
+  );
+  
+  if (!ok || name.isEmpty()) return;
+  
+  // Confirm deletion
+  QMessageBox::StandardButton reply = QMessageBox::question(
+    this,
+    tr("Confirm Deletion"),
+    tr("Are you sure you want to delete profile '%1'?\n\nThis will permanently delete all data associated with this profile including cookies, cache, and browsing history.").arg(name),
+    QMessageBox::Yes | QMessageBox::No,
+    QMessageBox::No
+  );
+  
+  if (reply != QMessageBox::Yes) return;
+  
+  if (deleteProfile(name)) {
+    QMessageBox::information(
+      this,
+      tr("Profile Deleted"),
+      tr("Profile '%1' has been deleted.").arg(name)
+    );
+    
+    // If we deleted the current profile, deleteProfile() automatically switched
+    // the global current profile to another one. Update our window's local state.
+    if (currentProfileName_ == name) {
+      currentProfileName_ = currentProfileName();
+      profile_ = getProfileByName(currentProfileName_);
+      rebuildSections((int)frames_.size());
+    }
+    
+    // Update all windows' profiles menus
+    for (SplitWindow *w : g_windows) {
+      if (w && w->profilesMenu_) {
+        w->updateProfilesMenu();
+      }
+    }
+  } else {
+    QMessageBox::warning(
+      this,
+      tr("Delete Failed"),
+      tr("Failed to delete profile.")
+    );
+  }
 }

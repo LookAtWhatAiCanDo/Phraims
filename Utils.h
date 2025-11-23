@@ -106,6 +106,76 @@ void performLegacyMigration();
 QWebEngineProfile *sharedWebEngineProfile();
 
 /**
+ * @brief Returns a QWebEngineProfile for the specified profile name.
+ * @param profileName The name of the profile to retrieve or create
+ * @return Pointer to the profile, created if it doesn't exist
+ *
+ * Profiles are cached and reused. Each profile has its own persistent storage
+ * directory for cookies, cache, and other data.
+ */
+QWebEngineProfile *getProfileByName(const QString &profileName);
+
+/**
+ * @brief Returns the name of the currently active profile.
+ * @return The current profile name (defaults to "Default")
+ */
+QString currentProfileName();
+
+/**
+ * @brief Sets the active profile for new windows and operations.
+ * @param profileName The name of the profile to make active
+ *
+ * Persists the choice to QSettings so it's restored on next launch.
+ */
+void setCurrentProfileName(const QString &profileName);
+
+/**
+ * @brief Returns a list of all existing profile names.
+ * @return QStringList of profile names, sorted alphabetically
+ *
+ * Scans the profiles directory to discover all available profiles.
+ */
+QStringList listProfiles();
+
+/**
+ * @brief Creates a new profile with the given name.
+ * @param profileName The name for the new profile
+ * @return True if the profile was created successfully, false if it already exists
+ *
+ * Creates the profile directory structure but doesn't switch to it automatically.
+ */
+bool createProfile(const QString &profileName);
+
+/**
+ * @brief Renames an existing profile.
+ * @param oldName The current name of the profile
+ * @param newName The new name for the profile
+ * @return True if renamed successfully, false if old doesn't exist or new already exists
+ *
+ * Updates the filesystem directory and any references in QSettings.
+ */
+bool renameProfile(const QString &oldName, const QString &newName);
+
+/**
+ * @brief Deletes a profile and all its data.
+ * @param profileName The name of the profile to delete
+ * @return True if deleted successfully, false if it doesn't exist or is the last profile
+ *
+ * Permanently removes the profile directory and all associated data.
+ * Cannot delete the last remaining profile.
+ */
+bool deleteProfile(const QString &profileName);
+
+/**
+ * @brief Validates a profile name for creation or renaming.
+ * @param name The profile name to validate
+ * @return True if the name is valid, false otherwise
+ *
+ * Profile names must not be empty and cannot contain slashes (/ or \).
+ */
+bool isValidProfileName(const QString &name);
+
+/**
  * @brief Applies all enabled DOM patches to the given page immediately.
  * @param page The QWebEnginePage to apply patches to
  *
