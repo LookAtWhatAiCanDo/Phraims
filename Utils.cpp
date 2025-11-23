@@ -131,7 +131,7 @@ void rebuildAllWindowMenus() {
 void createAndShowWindow(const QString &initialAddress, const QString &windowId, bool isIncognito) {
   QString id = windowId;
   // Generate a new ID for windows without one, or for Incognito windows.
-  // Incognito windows always get a fresh ID and will not restore from QSettings
+  // Incognito windows always get a fresh ID and will not restore from AppSettings
   // even if an ID is provided, since the constructor skips restoration for Incognito.
   if (id.isEmpty() || isIncognito) id = QUuid::createUuid().toString();
   // Construct the window with an id. The SplitWindow constructor will

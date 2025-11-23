@@ -95,9 +95,9 @@ SplitWindow::SplitWindow(const QString &windowId, bool isIncognito, QWidget *par
              << "offTheRecord=" << profile_->isOffTheRecord();
   } else if (!windowId_.isEmpty()) {
     // Normal window with saved state: load profile from settings
-    QSettings s;
+    AppSettings s;
     GroupScope _gs(s, QStringLiteral("windows/%1").arg(windowId_));
-    currentProfileName_ = s.value("profileName", currentProfileName()).toString();
+    currentProfileName_ = s->value("profileName", currentProfileName()).toString();
     profile_ = getProfileByName(currentProfileName_);
     qDebug() << "SplitWindow: using profile" << currentProfileName_ << profile_
              << "storage=" << profile_->persistentStoragePath();
@@ -263,7 +263,7 @@ SplitWindow::SplitWindow(const QString &windowId, bool isIncognito, QWidget *par
     // Incognito windows always start with a single empty frame
     loadFrameState(QStringList(), QVariantList());
   } else if (!windowId_.isEmpty()) {
-    QSettings s;
+    AppSettings s;
     {
       GroupScope _gs(s, QStringLiteral("windows/%1").arg(windowId_));
       const QStringList savedAddresses = s->value("addresses").toStringList();
@@ -294,18 +294,18 @@ SplitWindow::SplitWindow(const QString &windowId, bool isIncognito, QWidget *par
   // Incognito windows skip geometry restoration
   if (!isIncognito_) {
     if (!windowId_.isEmpty()) {
-      QSettings s;
+      AppSettings s;
       {
         GroupScope _gs(s, QStringLiteral("windows/%1").arg(windowId_));
-        const QByteArray savedGeom = s.value("windowGeometry").toByteArray();
+        const QByteArray savedGeom = s->value("windowGeometry").toByteArray();
         if (!savedGeom.isEmpty()) restoreGeometry(savedGeom);
-        const QByteArray savedState = s.value("windowState").toByteArray();
+        const QByteArray savedState = s->value("windowState").toByteArray();
         if (!savedState.isEmpty()) restoreState(savedState);
       }
     } else {
-      const QByteArray savedGeom = settings.value("windowGeometry").toByteArray();
+      const QByteArray savedGeom = settings->value("windowGeometry").toByteArray();
       if (!savedGeom.isEmpty()) restoreGeometry(savedGeom);
-      const QByteArray savedState = settings.value("windowState").toByteArray();
+      const QByteArray savedState = settings->value("windowState").toByteArray();
       if (!savedState.isEmpty()) restoreState(savedState);
     }
   }
@@ -321,7 +321,7 @@ void SplitWindow::savePersistentStateToSettings() {
     return;
   }
   
-  QSettings s;
+  AppSettings s;
   QString id = windowId_;
   if (id.isEmpty()) id = QUuid::createUuid().toString();
   qDebug() << "savePersistentStateToSettings: saving window id=" << id << " addresses.count=" << frames_.size() << " layoutMode=" << (int)layoutMode_ << " profile=" << currentProfileName_;
