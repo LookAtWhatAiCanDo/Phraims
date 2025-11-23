@@ -370,13 +370,10 @@ QWebEngineProfile *sharedWebEngineProfile() {
 }
 
 QWebEngineProfile *createIncognitoProfile() {
-  // Create a unique name for this Incognito profile instance
-  const QString profileName = QStringLiteral("incognito-") + QUuid::createUuid().toString();
-  
   QWebEngineProfileBuilder builder;
   // Off-the-record profile: no persistent storage, all data is ephemeral
-  QWebEngineProfile *profile = builder.createOffTheRecordProfile(profileName, qApp);
-  qDebug() << "createIncognitoProfile: created off-the-record profile" << profileName
+  QWebEngineProfile *profile = builder.createOffTheRecordProfile(qApp);
+  qDebug() << "createIncognitoProfile: created off-the-record profile"
            << "offTheRecord=" << profile->isOffTheRecord();
   
   return profile;
