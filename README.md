@@ -51,6 +51,7 @@ cmake --build . --config Release
 
 ### Window Management
 - **New Window**: Press `⌘N` (Command-N on macOS) or `Ctrl+N` (other platforms)
+- **New Incognito Window**: Press `⇧⌘N` (Shift+Command-N on macOS) or `Shift+Ctrl+N` (other platforms) to open a private browsing window
 - **Toggle DevTools**: Press `F12` to toggle developer tools for the focused frame
 
 ### Other Controls
@@ -100,6 +101,31 @@ Access profile management through the **Profiles** menu in the menu bar:
 ### Default Profile
 
 When you first launch Phraims, a "Default" profile is automatically created and used. You can create additional profiles and switch between them at any time.
+
+## Incognito Mode
+
+Phraims supports Incognito (private) browsing windows for ephemeral sessions that do not persist history, cookies, or other browsing data.
+
+### Opening Incognito Windows
+
+- **Keyboard Shortcut**: Press `⇧⌘N` (Shift+Command-N on macOS) or `Shift+Ctrl+N` (other platforms)
+- **Menu**: Select `File -> New Incognito Window`
+
+### Incognito Window Behavior
+
+- **Isolated Storage**: Each Incognito window uses a separate off-the-record profile that does not persist to disk
+- **No History**: Browsing history, cookies, cache, and other data are discarded when the window closes
+- **Visual Indicator**: Incognito windows display "Incognito" in the title bar to distinguish them from normal windows
+- **No Persistence**: Window geometry, frame addresses, and splitter sizes are not saved between sessions
+- **No Profile Management**: The Profiles menu is not available in Incognito windows since they use ephemeral profiles
+- **Independent Operation**: Incognito and normal windows operate completely independently without cross-contamination
+
+### Use Cases
+
+- **Temporary Browsing**: View websites without affecting your browsing history or saved data
+- **Multiple Logins**: Log into the same website with different accounts simultaneously
+- **Testing**: Test website behavior without cached data or cookies
+- **Privacy**: Browse sensitive content without leaving traces on your system
 
 ### Per-frame zoom controls
 - Use the `A-`, `A+`, and `1x` buttons in each frame header (or `View -> Increase/Decrease/Reset Frame Scale`) to zoom the embedded page without touching splitter sizes or header chrome. These controls are simply a shortcut for adjusting the QWebEngineView zoom on a frame-by-frame basis.
@@ -267,6 +293,22 @@ These tests define the desired behavior for layout selection and splitter persis
 12) Profile data isolation
 	- Action: Create two profiles (e.g., "Personal" and "Work"). In "Personal", log into a website. Switch to "Work" and visit the same website.
 	- Expected: The website in the "Work" profile does not show the logged-in state from "Personal", confirming complete data isolation between profiles.
+
+13) Opening an Incognito window
+	- Action: Press `Shift+Command+N` (macOS) or `Shift+Ctrl+N` (other platforms), or select `File -> New Incognito Window`.
+	- Expected: A new window opens with "Incognito" in the title bar. The window starts with a single empty frame.
+
+14) Incognito window isolation
+	- Action: Open an Incognito window, visit a website that sets a cookie or requires login, then close the Incognito window. Reopen a new Incognito window and visit the same website.
+	- Expected: The second Incognito window does not have the cookie or login state from the first session, confirming ephemeral storage.
+
+15) Incognito window non-persistence
+	- Action: Open an Incognito window, load several websites in multiple frames, adjust splitter sizes, then close the application. Relaunch the application.
+	- Expected: The Incognito window does not reopen. Only normal (non-Incognito) windows are restored with their saved state.
+
+16) Normal and Incognito window independence
+	- Action: Open a normal window and an Incognito window side-by-side. Log into a website in the normal window. Visit the same website in the Incognito window.
+	- Expected: The Incognito window does not share the login state from the normal window, confirming complete isolation between normal and Incognito sessions.
 
 Notes
 - Persisted splitter positions are only loaded once at application startup. During normal runtime, selecting or re-selecting layouts resets to default split positions.

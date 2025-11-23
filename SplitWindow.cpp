@@ -46,7 +46,8 @@ namespace {
 }
 
 
-SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow(parent), windowId_(windowId) {
+SplitWindow::SplitWindow(const QString &windowId, bool isIncognito, QWidget *parent) 
+    : QMainWindow(parent), windowId_(windowId), isIncognito_(isIncognito) {
   setWindowTitle(QCoreApplication::applicationName());
   resize(800, 600);
 
@@ -63,11 +64,15 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
     }
   });
 
-  // File menu: New Window (Cmd/Ctrl+N), New Frame (Cmd/Ctrl+T)
+  // File menu: New Window (Cmd/Ctrl+N), New Incognito Window (Shift+Cmd/Ctrl+N), New Frame (Cmd/Ctrl+T)
   auto *fileMenu = menuBar()->addMenu(tr("File"));
   QAction *newWindowAction = fileMenu->addAction(tr("New Window"));
   newWindowAction->setShortcut(QKeySequence::New);
   connect(newWindowAction, &QAction::triggered, this, [](bool){ createAndShowWindow(); });
+  
+  QAction *newIncognitoWindowAction = fileMenu->addAction(tr("New Incognito Window"));
+  newIncognitoWindowAction->setShortcut(QKeySequence(Qt::SHIFT | Qt::CTRL | Qt::Key_N));
+  connect(newIncognitoWindowAction, &QAction::triggered, this, [](bool){ createAndShowIncognitoWindow(); });
   
   QAction *newFrameAction = fileMenu->addAction(tr("New Frame"));
   newFrameAction->setShortcut(QKeySequence::AddTab);  // Command-T on macOS, Ctrl+T elsewhere
@@ -75,18 +80,28 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
 
   // No global toolbar; per-frame + / - buttons control sections.
 
-  // Load the profile for this window (per-window if windowId_ present, otherwise global current)
-  if (!windowId_.isEmpty()) {
+  // Load the profile for this window
+  if (isIncognito_) {
+    // Incognito windows use a new off-the-record profile
+    currentProfileName_ = QString();  // No profile name for Incognito
+    profile_ = createIncognitoProfile();
+    qDebug() << "SplitWindow: using Incognito profile" << profile_
+             << "offTheRecord=" << profile_->isOffTheRecord();
+  } else if (!windowId_.isEmpty()) {
+    // Normal window with saved state: load profile from settings
     AppSettings s;
     GroupScope _gs(s, QStringLiteral("windows/%1").arg(windowId_));
     currentProfileName_ = s->value("profileName", currentProfileName()).toString();
+    profile_ = getProfileByName(currentProfileName_);
+    qDebug() << "SplitWindow: using profile" << currentProfileName_ << profile_
+             << "storage=" << profile_->persistentStoragePath();
   } else {
+    // New normal window: use current global profile
     currentProfileName_ = currentProfileName();
+    profile_ = getProfileByName(currentProfileName_);
+    qDebug() << "SplitWindow: using profile" << currentProfileName_ << profile_
+             << "storage=" << profile_->persistentStoragePath();
   }
-  
-  profile_ = getProfileByName(currentProfileName_);
-  qDebug() << "SplitWindow: using profile" << currentProfileName_ << profile_
-           << "storage=" << profile_->persistentStoragePath();
 
   // (window geometry/state restored later after UI is built)
 
@@ -167,34 +182,36 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
   QAction *domPatchesAction = toolsMenu->addAction(tr("DOM Patches"));
   connect(domPatchesAction, &QAction::triggered, this, &SplitWindow::showDomPatchesManager);
 
-  // Profiles menu: manage browser profiles
-  profilesMenu_ = menuBar()->addMenu(tr("Profiles"));
-  QAction *newProfileAction = profilesMenu_->addAction(tr("New Profile..."));
-  connect(newProfileAction, &QAction::triggered, this, &SplitWindow::createNewProfile);
-  
-  QAction *renameProfileAction = profilesMenu_->addAction(tr("Rename Profile..."));
-  connect(renameProfileAction, &QAction::triggered, this, &SplitWindow::renameCurrentProfile);
-  
-  QAction *deleteProfileAction = profilesMenu_->addAction(tr("Delete Profile..."));
-  connect(deleteProfileAction, &QAction::triggered, this, &SplitWindow::deleteSelectedProfile);
-  
-  profilesMenu_->addSeparator();
-  
+  // Profiles menu: manage browser profiles (not available in Incognito mode)
+  if (!isIncognito_) {
+    profilesMenu_ = menuBar()->addMenu(tr("Profiles"));
+    QAction *newProfileAction = profilesMenu_->addAction(tr("New Profile..."));
+    connect(newProfileAction, &QAction::triggered, this, &SplitWindow::createNewProfile);
+    
+    QAction *renameProfileAction = profilesMenu_->addAction(tr("Rename Profile..."));
+    connect(renameProfileAction, &QAction::triggered, this, &SplitWindow::renameCurrentProfile);
+    
+    QAction *deleteProfileAction = profilesMenu_->addAction(tr("Delete Profile..."));
+    connect(deleteProfileAction, &QAction::triggered, this, &SplitWindow::deleteSelectedProfile);
+    
+    profilesMenu_->addSeparator();
+    
 #ifndef NDEBUG
-  // Debug builds only: Add menu item to open profiles folder
-  QAction *openProfilesFolderAction = profilesMenu_->addAction(tr("Open Profiles Folder"));
-  connect(openProfilesFolderAction, &QAction::triggered, this, [this]() {
-    const QString dataRoot = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-    const QString profilesDir = dataRoot + QStringLiteral("/profiles");
-    // Ensure the profiles directory exists before trying to open it
-    QDir().mkpath(profilesDir);
-    QDesktopServices::openUrl(QUrl::fromLocalFile(profilesDir));
-  });
-  
-  profilesMenu_->addSeparator();
+    // Debug builds only: Add menu item to open profiles folder
+    QAction *openProfilesFolderAction = profilesMenu_->addAction(tr("Open Profiles Folder"));
+    connect(openProfilesFolderAction, &QAction::triggered, this, [this]() {
+      const QString dataRoot = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+      const QString profilesDir = dataRoot + QStringLiteral("/profiles");
+      // Ensure the profiles directory exists before trying to open it
+      QDir().mkpath(profilesDir);
+      QDesktopServices::openUrl(QUrl::fromLocalFile(profilesDir));
+    });
+    
+    profilesMenu_->addSeparator();
 #endif
-  
-  // Profile list will be populated by updateProfilesMenu()
+    
+    // Profile list will be populated by updateProfilesMenu()
+  }
 
   // Window menu: per-macOS convention
   windowMenu_ = menuBar()->addMenu(tr("Window"));
@@ -237,8 +254,11 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
     }
   };
 
-  // load persisted addresses (per-window if windowId_ present, otherwise global)
-  if (!windowId_.isEmpty()) {
+  // load persisted addresses (per-window if windowId_ present and not Incognito, otherwise global)
+  if (isIncognito_) {
+    // Incognito windows always start with a single empty frame
+    loadFrameState(QStringList(), QVariantList());
+  } else if (!windowId_.isEmpty()) {
     AppSettings s;
     {
       GroupScope _gs(s, QStringLiteral("windows/%1").arg(windowId_));
@@ -256,28 +276,34 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
   rebuildSections((int)frames_.size());
   // restore splitter sizes only once at startup (subsequent layout
   // selections/rebuilds should reset splitters to defaults)
-  if (!windowId_.isEmpty()) {
-    restoreSplitterSizes(QStringLiteral("windows/%1/splitterSizes").arg(windowId_));
-  } else {
-    restoreSplitterSizes();
+  // Incognito windows skip splitter size restoration
+  if (!isIncognito_) {
+    if (!windowId_.isEmpty()) {
+      restoreSplitterSizes(QStringLiteral("windows/%1/splitterSizes").arg(windowId_));
+    } else {
+      restoreSplitterSizes();
+    }
   }
   restoredOnStartup_ = true;
 
   // restore saved window geometry and window state (position/size/state)
-  if (!windowId_.isEmpty()) {
-    AppSettings s;
-    {
-      GroupScope _gs(s, QStringLiteral("windows/%1").arg(windowId_));
-      const QByteArray savedGeom = s->value("windowGeometry").toByteArray();
+  // Incognito windows skip geometry restoration
+  if (!isIncognito_) {
+    if (!windowId_.isEmpty()) {
+      AppSettings s;
+      {
+        GroupScope _gs(s, QStringLiteral("windows/%1").arg(windowId_));
+        const QByteArray savedGeom = s->value("windowGeometry").toByteArray();
+        if (!savedGeom.isEmpty()) restoreGeometry(savedGeom);
+        const QByteArray savedState = s->value("windowState").toByteArray();
+        if (!savedState.isEmpty()) restoreState(savedState);
+      }
+    } else {
+      const QByteArray savedGeom = settings->value("windowGeometry").toByteArray();
       if (!savedGeom.isEmpty()) restoreGeometry(savedGeom);
-      const QByteArray savedState = s->value("windowState").toByteArray();
+      const QByteArray savedState = settings->value("windowState").toByteArray();
       if (!savedState.isEmpty()) restoreState(savedState);
     }
-  } else {
-    const QByteArray savedGeom = settings->value("windowGeometry").toByteArray();
-    if (!savedGeom.isEmpty()) restoreGeometry(savedGeom);
-    const QByteArray savedState = settings->value("windowState").toByteArray();
-    if (!savedState.isEmpty()) restoreState(savedState);
   }
   
   // Initialize the Profiles menu with the current profile list
@@ -285,6 +311,12 @@ SplitWindow::SplitWindow(const QString &windowId, QWidget *parent) : QMainWindow
 }
 
 void SplitWindow::savePersistentStateToSettings() {
+  // Incognito windows should never persist state
+  if (isIncognito_) {
+    qDebug() << "savePersistentStateToSettings: skipping save for Incognito window";
+    return;
+  }
+  
   AppSettings s;
   QString id = windowId_;
   if (id.isEmpty()) id = QUuid::createUuid().toString();
@@ -341,7 +373,8 @@ void SplitWindow::updateWindowTitle() {
     if (g_windows[i] == this) { idx = (int)i + 1; break; }
   }
   const int count = (int)frames_.size();
-  QString title = QStringLiteral("Group %1 (%2) - %3").arg(idx).arg(count).arg(currentProfileName_);
+  QString profileDisplay = isIncognito_ ? QStringLiteral("Incognito") : currentProfileName_;
+  QString title = QStringLiteral("Group %1 (%2) - %3").arg(idx).arg(count).arg(profileDisplay);
   if (DEBUG_SHOW_WINDOW_ID && !windowId_.isEmpty()) {
       title += QStringLiteral(" [%1]").arg(windowId_);
   }
@@ -716,6 +749,14 @@ void SplitWindow::onFrameScaleChanged(SplitFrameWidget *who, double scale) {
 }
 
 void SplitWindow::closeEvent(QCloseEvent *event) {
+  // Incognito windows should never persist state
+  if (isIncognito_) {
+    qDebug() << "SplitWindow::closeEvent: Incognito window - skipping all persistence";
+    rebuildAllWindowMenus();
+    QMainWindow::closeEvent(event);
+    return;
+  }
+  
   // Persist splitter sizes and either save or remove per-window restore data.
   // If this window has a persistent windowId_ it means it was part of the
   // saved session; when the user explicitly closes the window we remove
