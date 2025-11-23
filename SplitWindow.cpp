@@ -72,8 +72,10 @@ SplitWindow::SplitWindow(const QString &windowId, bool isIncognito, QWidget *par
   
   QAction *newIncognitoWindowAction = fileMenu->addAction(tr("New Incognito Window"));
 #ifdef Q_OS_MAC
-  newIncognitoWindowAction->setShortcut(QKeySequence(Qt::SHIFT | Qt::CTRL | Qt::Key_N));
+  // On macOS: Shift+Command+N (Meta is the Command key)
+  newIncognitoWindowAction->setShortcut(QKeySequence(Qt::SHIFT | Qt::META | Qt::Key_N));
 #else
+  // On other platforms: Shift+Ctrl+N
   newIncognitoWindowAction->setShortcut(QKeySequence(Qt::SHIFT | Qt::CTRL | Qt::Key_N));
 #endif
   connect(newIncognitoWindowAction, &QAction::triggered, this, [](bool){ createAndShowIncognitoWindow(); });
