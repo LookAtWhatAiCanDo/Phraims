@@ -20,36 +20,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Install Qt6
-        uses: jurplel/install-qt-action@v4.3.0
-        with:
-          version: '6.10.0'
-          host: 'mac'
-          target: 'desktop'
-          #arch: 'universal'
-          modules: 'qtpositioning qtwebchannel qtwebengine'
-          cache: false
+      - name: Build and package with local script (arm64)
+        run: bash ci/build-local-macos.sh
 
-      - name: Create universal build directory
-        run: mkdir build_universal
-
-      - name: Configure CMake for Universal Binary
-        shell: bash
-        run: |
-          cmake -S . -B build_universal \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH=$Qt6_DIR \
-            -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" \
-            -G "Ninja"
-
-      - name: Build
-        run: cmake --build build_universal --config Release
-
-      - name: Create app bundle
-        run: |
-          export PATH=$Qt6_DIR/bin:$PATH
-          macdeployqt build_universal/Phraims.app -dmg
-      
       # - name: Upload macOS app
       #   uses: actions/upload-artifact@v5
       #   with:
@@ -57,9 +30,9 @@ jobs:
       #     path: build_universal/Phraims.app
       #     retention-days: 90
 
-      - name: Upload macOS dmg
+      - name: Upload macOS dmg (arm64)
         uses: actions/upload-artifact@v5
         with:
-          name: Phraims-macOS-universal
-          path: build_universal/Phraims.dmg
+          name: Phraims-macOS-arm64
+          path: build_macos_arm64/Phraims.dmg
           retention-days: 90

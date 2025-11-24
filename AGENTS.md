@@ -31,19 +31,21 @@ Persistence Rules (MANDATORY)
 
 ## Build, Test, and Development Commands
 ```bash
-cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/Qt        # configure; point to Qt 6.10+ if not on PATH
-cmake --build build --config Release                       # compile the Phraims executable
-./build/Phraims                                             # launch the multi-chat splitter UI
-cmake --build build --target clean                         # remove compiled objects when needed
+cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/Qt # configure; point to Homebrew Qt6 (e.g. $(brew --prefix qt6), currently 6.9.3) if not on PATH
+cmake --build build --config Release                # compile the Phraims executable
+./build/Phraims                                     # launch the multi-chat splitter UI
+cmake --build build --target clean                  # remove compiled objects when needed
+./ci/build-local-macos.sh                           # macOS-only: update Homebrew, install deps, build arm64 Release in build_macos_arm64, macdeployqt with staged libpaths, sync WebEngine payload, normalize install_name/rpaths, validate bundle linkage, sign, and emit Phraims.dmg. Set FORCE_BREW_UPDATE=0 to skip brew update; DEBUG=1 for verbose deploy diagnostics.
+                                                    # For diagnostics: DEBUG=1 ./ci/build-local-macos.sh (macdeployqt log, staging/Frameworks listings, rpaths).
 ```
 Use the same `build` tree for iterative work; regenerate only when toggling build options or Qt installs.
 
 ## Continuous Integration
 
-The repository uses GitHub Actions to automatically build macOS binaries on every push to `main` and pull requests. The workflow is defined in `.github/workflows/build-macos.yml` and:
-- Installs Qt6 with WebEngine module using a caching action for faster builds
-- Configures and builds the Phraims app bundle using CMake
-- Uploads the resulting `Phraims.app` as a downloadable artifact (retained for 90 days)
+The repository uses GitHub Actions to automatically build macOS binaries on every push to `main` and pull requests.  
+The workflow is defined in `.github/workflows/build-macos.yml` and:
+- Delegates to `ci/build-local-macos.sh` to install the Homebrew Qt components with proprietary codecs, configure, build, deploy, and package the arm64 DMG in `build_macos_arm64/`
+- Uploads the resulting `Phraims.app` DMG from `build_macos_arm64/` as a downloadable artifact (retained for 90 days)
 - Can be manually triggered via workflow_dispatch for release builds
 
 When modifying build requirements or dependencies, ensure the workflow file stays synchronized with local build instructions. Test the workflow by creating a pull request or triggering it manually from the GitHub Actions UI.

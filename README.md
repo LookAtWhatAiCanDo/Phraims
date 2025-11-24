@@ -28,15 +28,37 @@ Settings and Profiles are stored at:
   - Settings: `%APPDATA%/LookAtWhatAiCanDo/Phraims/settings.ini`
   - Profile: `%APPDATA%/LookAtWhatAiCanDo/Phraims/profiles/`
 
-Build (requires Qt 6.10+ development libraries and a working CMake):
-
+Build (requires CMake + Qt 6 + WebEngine w/ proprietary codecs enabled; the Homebrew `qt6` package is confirmed to ship with `-DFEATURE_webengine_proprietary_codecs=ON`):
+* https://github.com/search?q=repo%3AHomebrew%2Fhomebrew-core%20DFEATURE_webengine_proprietary_codecs&type=code
 ```bash
 # from repository root
+brew install qt6
 mkdir -p build && cd build
-cmake ..
+cmake .. -DCMAKE_PREFIX_PATH="$(brew --prefix qt6)"
 cmake --build . --config Release
 ./Phraims
 ```
+
+macOS CI builds an arm64 app bundle in `build_macos_arm64/` using Homebrew `qt6` and packages it as a DMG (Homebrew Qt bottles are arm64-only on Apple Silicon runners).
+
+### Local macOS packaging
+
+Run `./ci/build-local-macos.sh` to:
+1. update Homebrew
+1. install dependencies
+1. build Release with Ninja in `build_macos_arm64`
+1. run `macdeployqt`
+1. sync QtWebEngine resources
+1. fix rpaths
+1. sign
+1. emit `build_macos_arm64/Phraims.dmg`.  
+
+It also validates that every dependency resolves inside the bundle and checks WebEngine resources.
+
+Set `FORCE_BREW_UPDATE=0` to skip `brew update` if needed.
+
+- Normal run: `./ci/build-local-macos.sh`
+- Debug info: `DEBUG=1 ./ci/build-local-macos.sh` (shows macdeployqt log, staging/Frameworks listings, and rpaths for the main binary and QtWebEngineProcess)
 
 ## Controls and Shortcuts
 
