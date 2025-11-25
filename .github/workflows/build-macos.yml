@@ -11,7 +11,9 @@ on:
 
 jobs:
   build-macos:
-    runs-on: macos-latest
+    runs-on: macos-26
+    env:
+      QTWEBENGINE_VER: 6.9.3
 
     permissions:
       contents: read
@@ -19,6 +21,36 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
+
+      - name: Try to download cached QtWebEngine prefix
+        id: fetch-webengine
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          name="qtwebengine-macos-${QTWEBENGINE_VER}"
+          api="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts?name=${name}"
+          run_id="$(curl -sSL -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" "$api" | python3 -c "import sys,json; arts=json.load(sys.stdin).get('artifacts', []); print(arts[0].get('workflow_run', {}).get('id', '')) if arts else None")"
+          if [ -n "${run_id}" ]; then
+            echo "run_id=${run_id}" >> "${GITHUB_OUTPUT}"
+            echo "Found artifact from run ${run_id}"
+          else
+            echo "No cached QtWebEngine artifact found"
+          fi
+
+      - name: Download cached QtWebEngine prefix
+        if: steps.fetch-webengine.outputs.run_id != ''
+        uses: actions/download-artifact@v4
+        with:
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.fetch-webengine.outputs.run_id }}
+          name: qtwebengine-macos-${{ env.QTWEBENGINE_VER }}
+          path: .qt
+
+      - name: Build QtWebEngine with proprietary codecs (arm64)
+        if: steps.fetch-webengine.outputs.run_id == ''
+        run: bash ci/build-qtwebengine-macos.sh
 
       - name: Build and package with local script (arm64)
         run: bash ci/build-local-macos.sh

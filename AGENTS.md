@@ -32,11 +32,20 @@ Persistence Rules (MANDATORY)
 ## Build, Test, and Development Commands
 ```bash
 cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/Qt # configure; point to Homebrew Qt6 (e.g. $(brew --prefix qt6), currently 6.9.3) if not on PATH
-cmake --build build --config Release                # compile the Phraims executable
+cmake -B build --config Release                     # compile the Phraims executable
 ./build/Phraims                                     # launch the multi-chat splitter UI
-cmake --build build --target clean                  # remove compiled objects when needed
-./ci/build-local-macos.sh                           # macOS-only: update Homebrew, install deps, build arm64 Release in build_macos_arm64, macdeployqt with staged libpaths, sync WebEngine payload, normalize install_name/rpaths, validate bundle linkage, sign, and emit Phraims.dmg. Set FORCE_BREW_UPDATE=0 to skip brew update; DEBUG=1 for verbose deploy diagnostics.
-                                                    # For diagnostics: DEBUG=1 ./ci/build-local-macos.sh (macdeployqt log, staging/Frameworks listings, rpaths).
+cmake -B build --target clean                       # remove compiled objects when needed
+./ci/build-qtwebengine-macos.sh                     # build QtWebEngine with proprietary codecs into .qt/<ver>-prop-macos
+                                                    # (set QTWEBENGINE_VER/QT_WEBENGINE_PROP_PREFIX to override) — run this before local macOS packaging
+./ci/build-local-macos.sh                           # macOS-only: update Homebrew, install deps, require custom QtWebEngine from 
+                                                    # .qt/<ver>-prop-macos (build it via ci/build-qtwebengine-macos.sh
+                                                    # or set QT_WEBENGINE_PROP_PREFIX), build arm64 Release in build_macos_arm64,
+                                                    # macdeployqt with staged libpaths, sync WebEngine payload, normalize install_name/rpaths, 
+                                                    # validate bundle linkage, sign, and emit Phraims.dmg.
+                                                    # Set FORCE_BREW_UPDATE=0 to skip brew update; DEBUG=1 for verbose deploy diagnostics.
+                                                    # For diagnostics: DEBUG=1 ./ci/build-local-macos.sh
+                                                    # (macdeployqt log, staging/Frameworks listings, rpaths).
+                                                    # Run ci/build-qtwebengine-macos.sh first when the .qt prefix is missing/stale (mandatory before packaging).
 ```
 Use the same `build` tree for iterative work; regenerate only when toggling build options or Qt installs.
 
@@ -44,9 +53,13 @@ Use the same `build` tree for iterative work; regenerate only when toggling buil
 
 The repository uses GitHub Actions to automatically build macOS binaries on every push to `main` and pull requests.  
 The workflow is defined in `.github/workflows/build-macos.yml` and:
-- Delegates to `ci/build-local-macos.sh` to install the Homebrew Qt components with proprietary codecs, configure, build, deploy, and package the arm64 DMG in `build_macos_arm64/`
+- Builds a custom QtWebEngine with proprietary codecs via `ci/build-qtwebengine-macos.sh` into `.qt/<ver>-prop-macos` (run this first locally before packaging)
+- Downloads a cached QtWebEngine prefix artifact from the `Build QtWebEngine macOS` workflow when available; otherwise rebuilds it inline
+- Delegates to `ci/build-local-macos.sh` to install the Homebrew Qt components, configure against the custom QtWebEngine prefix, build, deploy, and package the arm64 DMG in `build_macos_arm64/`
 - Uploads the resulting `Phraims.app` DMG from `build_macos_arm64/` as a downloadable artifact (retained for 90 days)
 - Can be manually triggered via workflow_dispatch for release builds
+
+Run the `Build QtWebEngine macOS` workflow whenever QtWebEngine is bumped to refresh the cached artifact used by the main build.
 
 When modifying build requirements or dependencies, ensure the workflow file stays synchronized with local build instructions. Test the workflow by creating a pull request or triggering it manually from the GitHub Actions UI.
 

@@ -39,9 +39,21 @@ cmake --build . --config Release
 ./Phraims
 ```
 
-macOS CI builds an arm64 app bundle in `build_macos_arm64/` using Homebrew `qt6` and packages it as a DMG (Homebrew Qt bottles are arm64-only on Apple Silicon runners).
+macOS CI builds an arm64 app bundle in `build_macos_arm64/` using Homebrew Qt for base modules
+plus the custom QtWebEngine built by `ci/build-qtwebengine-macos.sh` (default prefix `.qt/6.9.3-prop-macos`)
+and packages it as a DMG (Homebrew Qt bottles are arm64-only on Apple Silicon runners).  
+The primary workflow first tries to download a cached QtWebEngine prefix artifact
+produced by `Build QtWebEngine macOS` (`.github/workflows/build-qtwebengine-macos.yml`);
+if absent it rebuilds via `ci/build-qtwebengine-macos.sh`.
+macdeployqt receives both the Homebrew Qt module libpaths and the custom QtWebEngine prefix
+to avoid rpath resolution errors in plugins before creating the DMG.
+When bumping QtWebEngine, run the `Build QtWebEngine macOS` workflow manually to refresh the artifact.
 
 ### Local macOS packaging
+
+Packaging uses the custom QtWebEngine produced by `./ci/build-qtwebengine-macos.sh`
+(default install prefix `.qt/6.9.3-prop-macos`; override with `QT_WEBENGINE_PROP_PREFIX`).
+Run that script first or after bumping QtWebEngine versions so the prefix exists locally.
 
 Run `./ci/build-local-macos.sh` to:
 1. update Homebrew

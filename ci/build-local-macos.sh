@@ -9,7 +9,9 @@ BUILD_DIR="${REPO_ROOT}/build_macos_arm64"
 APP_PATH="${BUILD_DIR}/Phraims.app"
 LOG_FILE="${BUILD_DIR}/macdeployqt.log"
 STAGING_LIB_DIR="${BUILD_DIR}/lib"
-QT_MODULES=(qtbase qtdeclarative qtwebengine qtwebchannel qtpositioning qtvirtualkeyboard qtsvg brotli)
+QTWEBENGINE_VER="${QTWEBENGINE_VER:-6.9.3}"
+QT_WEBENGINE_PROP_PREFIX="${QT_WEBENGINE_PROP_PREFIX:-${REPO_ROOT}/.qt/${QTWEBENGINE_VER}-prop-macos}"
+QT_MODULES=(qtbase qtdeclarative qtwebchannel qtpositioning qtvirtualkeyboard qtsvg brotli)
 
 step() { printf "\n==> %s\n" "$*"; }
 debug() {
@@ -74,10 +76,26 @@ install_formulae() {
   done
 }
 
+require_custom_webengine() {
+  local framework="${QT_WEBENGINE_PROP_PREFIX}/lib/QtWebEngineCore.framework/Versions/A/QtWebEngineCore"
+  local cmake_cfg="${QT_WEBENGINE_PROP_PREFIX}/lib/cmake/Qt6WebEngineWidgets/Qt6WebEngineWidgetsConfig.cmake"
+  if [ ! -f "$framework" ] || [ ! -f "$cmake_cfg" ]; then
+    cat <<EOF
+Custom QtWebEngine not found at ${QT_WEBENGINE_PROP_PREFIX}
+Run ./ci/build-qtwebengine-macos.sh first (or set QT_WEBENGINE_PROP_PREFIX/QTWEBENGINE_VER to your install prefix).
+EOF
+    exit 1
+  fi
+}
+
 run_macdeployqt() {
   mkdir -p "${STAGING_LIB_DIR}" "${APP_PATH}/Contents/Frameworks"
 
-  local -a lib_paths=("${QT_PREFIX}/lib" "${APP_PATH}/Contents/Frameworks")
+  local -a lib_paths=("${QT_WEBENGINE_PROP_PREFIX}/lib" "${QT_PREFIX}/lib" "${APP_PATH}/Contents/Frameworks")
+  if [ -d "${QT_WEBENGINE_PROP_PREFIX}/lib" ]; then
+    ln -sf "${QT_WEBENGINE_PROP_PREFIX}"/lib/Qt*.framework "${STAGING_LIB_DIR}/" 2>/dev/null || true
+    ln -sf "${QT_WEBENGINE_PROP_PREFIX}"/lib/lib*.dylib "${STAGING_LIB_DIR}/" 2>/dev/null || true
+  fi
   for mod in "${QT_MODULES[@]}"; do
     if prefix="$(brew --prefix "$mod" 2>/dev/null)" && [ -d "${prefix}/lib" ]; then
       lib_paths+=("${prefix}/lib")
@@ -179,6 +197,13 @@ fix_rpaths() {
         /opt/homebrew/*/lib/*.dylib)
           install_name_tool -change "$dep" "@loader_path/$(basename "$dep")" "$f"
           ;;
+        "${QT_WEBENGINE_PROP_PREFIX}"/lib/Qt*.framework/Versions/A/*)
+          local name; name="$(basename "$dep")"
+          install_name_tool -change "$dep" "@rpath/${name}.framework/Versions/A/${name}" "$f"
+          ;;
+        "${QT_WEBENGINE_PROP_PREFIX}"/lib/lib*.dylib)
+          install_name_tool -change "$dep" "@loader_path/$(basename "$dep")" "$f"
+          ;;
         @rpath/libbrotlicommon.1.dylib|/opt/homebrew/opt/brotli/lib/libbrotlicommon.1.dylib)
           install_name_tool -change "$dep" "@loader_path/libbrotlicommon.1.dylib" "$f"
           ;;
@@ -191,10 +216,10 @@ fix_rpaths() {
       esac
     done < <(otool -L "$f" | tail -n +2 | awk '{print $1}')
 
-    # Drop rpaths that point to Homebrew prefixes so the bundle uses its own frameworks.
+    # Drop rpaths that point to external prefixes so the bundle uses its own frameworks.
     while IFS= read -r rp; do
       case "$rp" in
-        /opt/homebrew/*|/usr/local/*)
+        /opt/homebrew/*|/usr/local/*|${QT_WEBENGINE_PROP_PREFIX}/*)
           install_name_tool -delete_rpath "$rp" "$f" 2>/dev/null || true
           ;;
       esac
@@ -208,9 +233,9 @@ fix_rpaths() {
 
 sync_webengine_payload() {
   step "Syncing QtWebEngine resources"
-  local src="${QT_WEBENGINE_PREFIX}/lib/QtWebEngineCore.framework/Versions/A"
+  local src="${QT_WEBENGINE_PROP_PREFIX}/lib/QtWebEngineCore.framework/Versions/A"
   local dest="${APP_PATH}/Contents/Frameworks/QtWebEngineCore.framework/Versions/A"
-  [ -d "${src}" ] || { echo "Missing QtWebEngineCore.framework under ${QT_PREFIX}" >&2; exit 1; }
+  [ -d "${src}" ] || { echo "Missing QtWebEngineCore.framework under ${QT_WEBENGINE_PROP_PREFIX}" >&2; exit 1; }
   rsync -a "${src}/Resources/" "${dest}/Resources/"
   rsync -a "${src}/Helpers/QtWebEngineProcess.app/" "${dest}/Helpers/QtWebEngineProcess.app/"
 }
@@ -314,21 +339,23 @@ main() {
   step "Repository root: ${REPO_ROOT}"
 
   ensure_homebrew
-  install_formulae qtbase qtdeclarative qtwebengine qtwebchannel qtpositioning qtvirtualkeyboard qtsvg brotli ninja cmake
+  install_formulae qtbase qtdeclarative qtwebchannel qtpositioning qtvirtualkeyboard qtsvg brotli ninja cmake
+  require_custom_webengine
+  step "QtWebEngine prefix: ${QT_WEBENGINE_PROP_PREFIX}"
 
   QT_PREFIX="$(brew --prefix qtbase || brew --prefix qt6)"
-  QT_WEBENGINE_PREFIX="$(brew --prefix qtwebengine)"
   QT_DECLARATIVE_PREFIX="$(brew --prefix qtdeclarative)"
   QT_WEBCHANNEL_PREFIX="$(brew --prefix qtwebchannel)"
   QT_POSITIONING_PREFIX="$(brew --prefix qtpositioning)"
   QT_META_PREFIX="$(brew --prefix qt 2>/dev/null || true)"
 
   export PATH="${QT_PREFIX}/bin:${PATH}"
+  local -a cmake_prefixes=("${QT_WEBENGINE_PROP_PREFIX}" "${QT_PREFIX}" "${QT_DECLARATIVE_PREFIX}" "${QT_WEBCHANNEL_PREFIX}" "${QT_POSITIONING_PREFIX}")
   if [ -n "${QT_META_PREFIX}" ] && [ -d "${QT_META_PREFIX}" ]; then
-    export CMAKE_PREFIX_PATH="${QT_META_PREFIX}"
-  else
-    export CMAKE_PREFIX_PATH="${QT_PREFIX};${QT_DECLARATIVE_PREFIX};${QT_WEBENGINE_PREFIX};${QT_WEBCHANNEL_PREFIX};${QT_POSITIONING_PREFIX}"
+    cmake_prefixes+=("${QT_META_PREFIX}")
   fi
+  CMAKE_PREFIX_PATH="$(IFS=';'; echo "${cmake_prefixes[*]}")"
+  export CMAKE_PREFIX_PATH
 
   step "Configuring CMake (Release, Ninja, arm64)"
   rm -f "${BUILD_DIR}/CMakeCache.txt"
@@ -342,7 +369,7 @@ main() {
     -DQt6Qml_DIR="${QT_DECLARATIVE_PREFIX}/lib/cmake/Qt6Qml" \
     -DQt6Network_DIR="${QT_PREFIX}/lib/cmake/Qt6Network" \
     -DQt6Positioning_DIR="${QT_POSITIONING_PREFIX}/lib/cmake/Qt6Positioning" \
-    -DQt6WebEngineWidgets_DIR="${QT_WEBENGINE_PREFIX}/lib/cmake/Qt6WebEngineWidgets" \
+    -DQt6WebEngineWidgets_DIR="${QT_WEBENGINE_PROP_PREFIX}/lib/cmake/Qt6WebEngineWidgets" \
     -DCMAKE_OSX_ARCHITECTURES="arm64"
 
   step "Building Phraims"
