@@ -56,7 +56,7 @@ jobs:
           repository: ${{ github.repository }}
           run-id: ${{ steps.fetch-webengine.outputs.run_id }}
           name: qtwebengine-macos-${{ env.QTWEBENGINE_VER }}-${{ matrix.arch }}
-          path: .qt
+          path: .qt/${{ env.QTWEBENGINE_VER }}-prop-macos-${{ matrix.arch }}
 
       - name: Build QtWebEngine with proprietary codecs (${{ matrix.arch }})
         if: steps.fetch-webengine.outputs.run_id == ''
@@ -76,5 +76,5 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: Phraims-macOS-${{ matrix.arch }}
-          path: build_macos_${{ matrix.arch }}/Phraims.dmg
+          path: build/macos-${{ matrix.arch }}/Phraims.dmg
           retention-days: 90

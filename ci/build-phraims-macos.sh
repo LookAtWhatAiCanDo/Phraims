@@ -6,12 +6,12 @@ DEBUG="${DEBUG:-0}" # DEBUG=1 for verbose diagnostics
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 ARCH_NAME="${BUILD_ARCH:-arm64}"
-BUILD_DIR="${BUILD_DIR:-${REPO_ROOT}/build_macos_${ARCH_NAME}}"
+BUILD_DIR="${BUILD_DIR:-${REPO_ROOT}/build/macos-${ARCH_NAME}}"
 APP_PATH="${BUILD_DIR}/Phraims.app"
 LOG_FILE="${BUILD_DIR}/macdeployqt.log"
 STAGING_LIB_DIR="${BUILD_DIR}/lib"
 QTWEBENGINE_VER="${QTWEBENGINE_VER:-6.9.3}"
-QT_WEBENGINE_PROP_PREFIX="${QT_WEBENGINE_PROP_PREFIX:-${REPO_ROOT}/.qt/${QTWEBENGINE_VER}-prop-macos}"
+QT_WEBENGINE_PROP_PREFIX="${QT_WEBENGINE_PROP_PREFIX:-${REPO_ROOT}/.qt/${QTWEBENGINE_VER}-prop-macos-${ARCH_NAME}}"
 QT_MODULES=(qtbase qtdeclarative qtwebchannel qtpositioning qtvirtualkeyboard qtsvg brotli)
 
 step() { printf "\n==> %s\n" "$*"; }

@@ -35,18 +35,18 @@ cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/Qt # configure; point to Homebr
 cmake -B build --config Release                     # compile the Phraims executable
 ./build/Phraims                                     # launch the multi-chat splitter UI
 cmake -B build --target clean                       # remove compiled objects when needed
-./ci/build-qtwebengine-macos.sh                     # build QtWebEngine with proprietary codecs into .qt/<ver>-prop-macos
+./ci/build-qtwebengine-macos.sh                     # build QtWebEngine with proprietary codecs into .qt/<ver>-prop-macos-<arch>
                                                     # (set QTWEBENGINE_VER/QT_WEBENGINE_PROP_PREFIX to override) — run this before local macOS packaging
 ./ci/build-phraims-macos.sh                         # macOS-only: update Homebrew, install deps, require custom QtWebEngine from 
-                                                    # .qt/<ver>-prop-macos (build it via ci/build-qtwebengine-macos.sh
-                                                    # or set QT_WEBENGINE_PROP_PREFIX), build Release in build_macos_<arch>,
+                                                    # .qt/<ver>-prop-macos-<arch> (build it via ci/build-qtwebengine-macos.sh
+                                                    # or set QT_WEBENGINE_PROP_PREFIX), build Release in build/macos-<arch>,
                                                     # macdeployqt with staged libpaths, sync WebEngine payload, normalize install_name/rpaths, 
                                                     # validate bundle linkage, sign, and emit Phraims.dmg.
                                                     # Set FORCE_BREW_UPDATE=0 to skip brew update; DEBUG=1 for verbose deploy diagnostics.
                                                     # For diagnostics: DEBUG=1 ./ci/build-phraims-macos.sh
                                                     # (macdeployqt log, staging/Frameworks listings, rpaths).
                                                     # Run ci/build-qtwebengine-macos.sh first when the .qt prefix is missing/stale (mandatory before packaging).
-                                                    # Override BUILD_ARCH/MACOS_ARCH to build x86_64 output (build dir becomes build_macos_<arch>).
+                                                    # Override BUILD_ARCH/MACOS_ARCH to build x86_64 output (build dir becomes build/macos-<arch>).
 ```
 ```powershell
 ./ci/build-qtwebengine-windows.ps1                  # Windows-only: build QtWebEngine with proprietary codecs into .qt/<ver>-prop-win-<arch>
@@ -58,10 +58,10 @@ Use the same `build` tree for iterative work; regenerate only when toggling buil
 
 The repository uses GitHub Actions to automatically build macOS binaries on every push to `main` and pull requests.  
 The workflow is defined in `.github/workflows/build-macos.yml` and:
-- Builds a custom QtWebEngine with proprietary codecs via `ci/build-qtwebengine-macos.sh` into `.qt/<ver>-prop-macos` (run this first locally before packaging)
+- Builds a custom QtWebEngine with proprietary codecs via `ci/build-qtwebengine-macos.sh` into `.qt/<ver>-prop-macos-<arch>` (run this first locally before packaging)
 - Downloads a cached QtWebEngine prefix artifact from the `Build QtWebEngine macOS` workflow when available; otherwise rebuilds it inline
-- Delegates to `ci/build-phraims-macos.sh` to install the Homebrew Qt components, configure against the custom QtWebEngine prefix, build, deploy, and package the DMG in `build_macos_<arch>/`
-- Uploads the resulting `Phraims.app` DMG from `build_macos_<arch>/` as a downloadable artifact (retained for 90 days)
+- Delegates to `ci/build-phraims-macos.sh` to install the Homebrew Qt components, configure against the custom QtWebEngine prefix, build, deploy, and package the DMG in `build/macos-<arch>/`
+- Uploads the resulting `Phraims.app` DMG from `build/macos-<arch>/` as a downloadable artifact (retained for 90 days)
 - Can be manually triggered via workflow_dispatch for release builds
 
 Both build workflows run as a matrix on `macos-26` (arm64) and `macos-15-intel` (x86_64),

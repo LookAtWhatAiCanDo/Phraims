@@ -39,8 +39,8 @@ cmake --build . --config Release
 ./Phraims
 ```
 
-macOS CI builds an arm64 app bundle in `build_macos_arm64/` using Homebrew Qt for base modules
-plus the custom QtWebEngine built by `ci/build-qtwebengine-macos.sh` (default prefix `.qt/6.9.3-prop-macos`)
+macOS CI builds an arm64 app bundle in `build/macos-arm64/` using Homebrew Qt for base modules
+plus the custom QtWebEngine built by `ci/build-qtwebengine-macos.sh` (default prefix `.qt/6.9.3-prop-macos-<arch>`)
 and packages it as a DMG (Homebrew Qt bottles are arm64-only on Apple Silicon runners).  
 The primary workflow first tries to download a cached QtWebEngine prefix artifact
 produced by `Build QtWebEngine macOS` (`.github/workflows/build-qtwebengine-macos.yml`);
@@ -50,6 +50,7 @@ to avoid rpath resolution errors in plugins before creating the DMG.
 When bumping QtWebEngine, run the `Build QtWebEngine macOS` workflow manually to refresh the artifact.
 Both workflows run in a matrix on `macos-26` (arm64) and `macos-15-intel` (x86_64), producing per-arch QtWebEngine artifacts
 (`qtwebengine-macos-<ver>-<arch>`) and DMGs (`Phraims-macOS-<arch>`).
+Each prefix is stored under `.qt/<ver>-prop-macos-<arch>`.
 
 Windows QtWebEngine builds are handled separately by `Build QtWebEngine Windows` (`.github/workflows/build-qtwebengine-windows.yml`), which produces
 per-arch prefixes (`qtwebengine-windows-<ver>-x64` / `qtwebengine-windows-<ver>-arm64`) using `ci/build-qtwebengine-windows.ps1`.
@@ -63,12 +64,12 @@ Run that script first or after bumping QtWebEngine versions so the prefix exists
 Run `./ci/build-phraims-macos.sh` to:
 1. update Homebrew
 1. install dependencies
-1. build Release with Ninja in `build_macos_<arch>` (default `build_macos_arm64`; override with `BUILD_ARCH`/`MACOS_ARCH`)
+1. build Release with Ninja in `build/macos-<arch>` (default `build/macos-arm64`; override with `BUILD_ARCH`/`MACOS_ARCH`)
 1. run `macdeployqt`
 1. sync QtWebEngine resources
 1. fix rpaths
 1. sign
-1. emit `build_macos_<arch>/Phraims.dmg`.  
+1. emit `build/macos-<arch>/Phraims.dmg`.  
 
 It also validates that every dependency resolves inside the bundle and checks WebEngine resources.
 

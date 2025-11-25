@@ -6,9 +6,7 @@ _codeql_detected_source_root
 .qt/
 .qtcreator/
 build/
-build_macos_arm64/
-build_macos_x86_64/
-3rdparty/
+3rdparty/qtwebengine-everywhere-src-*
 
 .DS_Store
 
