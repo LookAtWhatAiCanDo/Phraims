@@ -59,8 +59,10 @@ fi
 
 CMAKE_PLATFORM_FLAGS="-DCMAKE_OSX_ARCHITECTURES=${MACOS_ARCH} -DCMAKE_OSX_DEPLOYMENT_TARGET=${MACOS_DEPLOY}"
 
-echo "==> Ensuring Metal toolchain is present…"
-xcodebuild -downloadComponent MetalToolchain
+if [[ "${MACOS_ARCH}" = "arm64" ]]; then
+  echo "==> Ensuring Metal toolchain is present…"
+  xcodebuild -downloadComponent MetalToolchain
+fi
 #brew remove qtwebengine # We don't want the Homebrew QtWebEngine; we are building our own.
 brew install qtwebchannel
 brew install vulkan-headers
