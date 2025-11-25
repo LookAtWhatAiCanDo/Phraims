@@ -2,6 +2,9 @@
 set -euo pipefail
 
 DEBUG="${DEBUG:-0}" # DEBUG=1 for verbose diagnostics
+if [ "$DEBUG" -eq 2 ]; then
+  set -x
+fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
@@ -15,12 +18,19 @@ QT_WEBENGINE_PROP_PREFIX="${QT_WEBENGINE_PROP_PREFIX:-${REPO_ROOT}/.qt/${QTWEBEN
 QT_MODULES=(qtbase qtdeclarative qtwebchannel qtpositioning qtvirtualkeyboard qtsvg brotli)
 
 step() { printf "\n==> %s\n" "$*"; }
+
 debug() {
   if [ "$DEBUG" -eq 1 ]; then
     printf "  [debug] %s\n" "$*"
   fi
   return 0
 }
+
+# Ensure Metal toolchain is available for arm64 builds (needed by QtWebEngine/Chromium)
+if [ "${ARCH_NAME}" = "arm64" ]; then
+  step "Ensuring Xcode Metal toolchain is installed (arm64)"
+  xcodebuild -downloadComponent MetalToolchain
+fi
 
 ensure_homebrew() {
   if ! command -v brew >/dev/null 2>&1; then
@@ -83,7 +93,8 @@ require_custom_webengine() {
   if [ ! -f "$framework" ] || [ ! -f "$cmake_cfg" ]; then
     cat <<EOF
 Custom QtWebEngine not found at ${QT_WEBENGINE_PROP_PREFIX}
-Run ./ci/build-qtwebengine-macos.sh first (or set QT_WEBENGINE_PROP_PREFIX/QTWEBENGINE_VER to your install prefix).
+Fetch a proprietary-codec QtWebEngine prefix from the private LookAtWhatAiCanDo/QtWebEngineProprietaryCodecs repo,
+or set QT_WEBENGINE_PROP_PREFIX/QTWEBENGINE_VER to point at an existing install prefix.
 EOF
     exit 1
   fi
@@ -198,6 +209,17 @@ fix_rpaths() {
         /opt/homebrew/*/lib/*.dylib)
           install_name_tool -change "$dep" "@loader_path/$(basename "$dep")" "$f"
           ;;
+        /usr/local/opt/*/lib/Qt*.framework/Versions/A/*)
+          local name; name="$(basename "$dep")"
+          install_name_tool -change "$dep" "@rpath/${name}.framework/Versions/A/${name}" "$f"
+          ;;
+        /usr/local/*/Qt*.framework/Versions/A/*)
+          local name; name="$(basename "$dep")"
+          install_name_tool -change "$dep" "@rpath/${name}.framework/Versions/A/${name}" "$f"
+          ;;
+        /usr/local/*/lib/*.dylib)
+          install_name_tool -change "$dep" "@loader_path/$(basename "$dep")" "$f"
+          ;;
         "${QT_WEBENGINE_PROP_PREFIX}"/lib/Qt*.framework/Versions/A/*)
           local name; name="$(basename "$dep")"
           install_name_tool -change "$dep" "@rpath/${name}.framework/Versions/A/${name}" "$f"
@@ -292,6 +314,17 @@ validate_bundle_links() {
       case "$dep" in
         @executable_path/*|@loader_path/*|${APP_PATH}/*) ;;
         /System/*|/usr/lib/*) ;;
+        /usr/local/opt/*/lib/Qt*.framework/Versions/A/*)
+          local name; name="$(basename "$dep")"
+          install_name_tool -change "$dep" "@rpath/${name}.framework/Versions/A/${name}" "$f"
+          ;;
+        /usr/local/*/Qt*.framework/Versions/A/*)
+          local name; name="$(basename "$dep")"
+          install_name_tool -change "$dep" "@rpath/${name}.framework/Versions/A/${name}" "$f"
+          ;;
+        /usr/local/*/lib/*.dylib)
+          install_name_tool -change "$dep" "@loader_path/$(basename "$dep")" "$f"
+          ;;
         /opt/homebrew/*|/usr/local/*)
           echo "  [!] $f depends on $dep (Homebrew path)"
           bad=1
@@ -362,7 +395,7 @@ main() {
   CMAKE_PREFIX_PATH="$(IFS=';'; echo "${cmake_prefixes[*]}")"
   export CMAKE_PREFIX_PATH
 
-  step "Configuring CMake (Release, Ninja, arm64)"
+  step "Configuring CMake (Release, Ninja)"
   rm -f "${BUILD_DIR}/CMakeCache.txt"
   cmake -S "${REPO_ROOT}" -B "${BUILD_DIR}" \
     -G Ninja \
