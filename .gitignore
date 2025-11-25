@@ -6,12 +6,10 @@ _codeql_detected_source_root
 .qt/
 .qtcreator/
 build/
-3rdparty/
+3rdparty/qtwebengine-everywhere-src-*
 
 .DS_Store
 
 scratch*.txt
 
 simplebrowser-build/
-
-build_macos_arm64/

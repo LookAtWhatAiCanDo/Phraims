@@ -5,12 +5,13 @@ DEBUG="${DEBUG:-0}" # DEBUG=1 for verbose diagnostics
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-BUILD_DIR="${REPO_ROOT}/build_macos_arm64"
+ARCH_NAME="${BUILD_ARCH:-arm64}"
+BUILD_DIR="${BUILD_DIR:-${REPO_ROOT}/build/macos-${ARCH_NAME}}"
 APP_PATH="${BUILD_DIR}/Phraims.app"
 LOG_FILE="${BUILD_DIR}/macdeployqt.log"
 STAGING_LIB_DIR="${BUILD_DIR}/lib"
 QTWEBENGINE_VER="${QTWEBENGINE_VER:-6.9.3}"
-QT_WEBENGINE_PROP_PREFIX="${QT_WEBENGINE_PROP_PREFIX:-${REPO_ROOT}/.qt/${QTWEBENGINE_VER}-prop-macos}"
+QT_WEBENGINE_PROP_PREFIX="${QT_WEBENGINE_PROP_PREFIX:-${REPO_ROOT}/.qt/${QTWEBENGINE_VER}-prop-macos-${ARCH_NAME}}"
 QT_MODULES=(qtbase qtdeclarative qtwebchannel qtpositioning qtvirtualkeyboard qtsvg brotli)
 
 step() { printf "\n==> %s\n" "$*"; }
@@ -244,7 +245,11 @@ verify_webengine_payload() {
   step "Verifying QtWebEngine payload"
   local res="${APP_PATH}/Contents/Frameworks/QtWebEngineCore.framework/Versions/A/Resources"
   local helper="${APP_PATH}/Contents/Frameworks/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess"
-  local required=(icudtl.dat qtwebengine_devtools_resources.pak qtwebengine_resources.pak qtwebengine_resources_100p.pak qtwebengine_resources_200p.pak v8_context_snapshot.arm64.bin)
+  local snapshot="v8_context_snapshot.arm64.bin"
+  case "${MACOS_ARCH:-$ARCH_NAME}" in
+    x86_64) snapshot="v8_context_snapshot.x86_64.bin" ;;
+  esac
+  local required=(icudtl.dat qtwebengine_devtools_resources.pak qtwebengine_resources.pak qtwebengine_resources_100p.pak qtwebengine_resources_200p.pak "${snapshot}")
   for f in "${required[@]}"; do
     [ -f "${res}/${f}" ] || { echo "Missing WebEngine resource: ${res}/${f}" >&2; exit 1; }
   done
@@ -336,7 +341,7 @@ debug_artifacts() {
 
 main() {
   cd "${REPO_ROOT}"
-  step "Repository root: ${REPO_ROOT}"
+  step "Repository root: ${REPO_ROOT} (arch=${ARCH_NAME})"
 
   ensure_homebrew
   install_formulae qtbase qtdeclarative qtwebchannel qtpositioning qtvirtualkeyboard qtsvg brotli ninja cmake
@@ -370,7 +375,7 @@ main() {
     -DQt6Network_DIR="${QT_PREFIX}/lib/cmake/Qt6Network" \
     -DQt6Positioning_DIR="${QT_POSITIONING_PREFIX}/lib/cmake/Qt6Positioning" \
     -DQt6WebEngineWidgets_DIR="${QT_WEBENGINE_PROP_PREFIX}/lib/cmake/Qt6WebEngineWidgets" \
-    -DCMAKE_OSX_ARCHITECTURES="arm64"
+    -DCMAKE_OSX_ARCHITECTURES="${MACOS_ARCH:-$ARCH_NAME}"
 
   step "Building Phraims"
   cmake --build "${BUILD_DIR}" --config Release

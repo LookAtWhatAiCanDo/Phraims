@@ -14,8 +14,9 @@ TAR_NAME="${TAR_BASE}.tar.xz"
 DOWNLOAD_URL="https://download.qt.io/official_releases/qt/${QT_SERIES}/${QTWEBENGINE_VER}/submodules/${TAR_NAME}"
 
 QTWEBENGINE_SRC="${REPO_ROOT}/3rdparty/${TAR_BASE}"
-QTWEBENGINE_BUILD="${REPO_ROOT}/build/qtwebengine-macos"
-QT_PROP_PREFIX_DEFAULT="${REPO_ROOT}/.qt/${QTWEBENGINE_VER}-prop-macos"
+MACOS_ARCH="${MACOS_ARCH:-$(uname -m)}"
+QTWEBENGINE_BUILD="${REPO_ROOT}/build/qtwebengine-macos-${MACOS_ARCH}"
+QT_PROP_PREFIX_DEFAULT="${REPO_ROOT}/.qt/${QTWEBENGINE_VER}-prop-macos-${MACOS_ARCH}"
 QT_PROP_PREFIX="${QT_PROP_PREFIX:-${QT_WEBENGINE_PROP_PREFIX:-${QT_PROP_PREFIX_DEFAULT}}}"
 QT_WEBENGINE_PROP_PREFIX="${QT_PROP_PREFIX}"
 
@@ -47,9 +48,6 @@ if [[ "$(uname)" != "Darwin" ]]; then
 fi
 
 ###############################################################################
-# macOS arch + deployment target
-###############################################################################
-MACOS_ARCH="${MACOS_ARCH:-$(uname -m)}"
 SYS_VER_RAW="$(sw_vers -productVersion | cut -d. -f1-2)"
 SYS_MAJOR="${SYS_VER_RAW%%.*}"
 
@@ -61,8 +59,10 @@ fi
 
 CMAKE_PLATFORM_FLAGS="-DCMAKE_OSX_ARCHITECTURES=${MACOS_ARCH} -DCMAKE_OSX_DEPLOYMENT_TARGET=${MACOS_DEPLOY}"
 
-echo "==> Ensuring Metal toolchain is present…"
-xcodebuild -downloadComponent MetalToolchain
+if [[ "${MACOS_ARCH}" = "arm64" ]]; then
+  echo "==> Ensuring Metal toolchain is present…"
+  xcodebuild -downloadComponent MetalToolchain
+fi
 #brew remove qtwebengine # We don't want the Homebrew QtWebEngine; we are building our own.
 brew install qtwebchannel
 brew install vulkan-headers
