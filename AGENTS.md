@@ -48,6 +48,10 @@ cmake -B build --target clean                       # remove compiled objects wh
                                                     # Run ci/build-qtwebengine-macos.sh first when the .qt prefix is missing/stale (mandatory before packaging).
                                                     # Override BUILD_ARCH/MACOS_ARCH to build x86_64 output (build dir becomes build_macos_<arch>).
 ```
+```powershell
+./ci/build-qtwebengine-windows.ps1                  # Windows-only: build QtWebEngine with proprietary codecs into .qt/<ver>-prop-win-<arch>
+                                                    # (Arch=x64|arm64; defaults from QT_ARCH/QTWEBENGINE_VER)
+```
 Use the same `build` tree for iterative work; regenerate only when toggling build options or Qt installs.
 
 ## Continuous Integration
@@ -63,6 +67,7 @@ The workflow is defined in `.github/workflows/build-macos.yml` and:
 Both build workflows run as a matrix on `macos-26` (arm64) and `macos-15-intel` (x86_64),
 producing per-arch QtWebEngine artifacts (`qtwebengine-macos-<ver>-<arch>`) and DMGs (`Phraims-macOS-<arch>`).
 Run the `Build QtWebEngine macOS` workflow whenever QtWebEngine is bumped to refresh the cached artifact used by the main build.
+Windows prefixes are built via `Build QtWebEngine Windows` (`.github/workflows/build-qtwebengine-windows.yml`).
 
 When modifying build requirements or dependencies, ensure the workflow file stays synchronized with local build instructions. Test the workflow by creating a pull request or triggering it manually from the GitHub Actions UI.
 

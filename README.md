@@ -51,6 +51,9 @@ When bumping QtWebEngine, run the `Build QtWebEngine macOS` workflow manually to
 Both workflows run in a matrix on `macos-26` (arm64) and `macos-15-intel` (x86_64), producing per-arch QtWebEngine artifacts
 (`qtwebengine-macos-<ver>-<arch>`) and DMGs (`Phraims-macOS-<arch>`).
 
+Windows QtWebEngine builds are handled separately by `Build QtWebEngine Windows` (`.github/workflows/build-qtwebengine-windows.yml`), which produces
+per-arch prefixes (`qtwebengine-windows-<ver>-x64` / `qtwebengine-windows-<ver>-arm64`) using `ci/build-qtwebengine-windows.ps1`.
+
 ### Local macOS packaging
 
 Packaging uses the custom QtWebEngine produced by `./ci/build-qtwebengine-macos.sh`
