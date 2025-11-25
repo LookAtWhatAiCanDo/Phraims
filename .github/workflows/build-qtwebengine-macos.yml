@@ -4,22 +4,31 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-qtwebengine-macos-arm64:
-    name: Build QtWebEngine macOS (arm64)
-    runs-on: macos-26
+  build-qtwebengine-macos:
+    name: Build QtWebEngine macOS (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-26
+          - arch: x86_64
+            runner: macos-15-intel
     env:
       QTWEBENGINE_VER: 6.9.3
+      MACOS_ARCH: ${{ matrix.arch }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Build QtWebEngine with proprietary codecs (arm64)
+      - name: Build QtWebEngine with proprietary codecs (${{ matrix.arch }})
         run: bash ci/build-qtwebengine-macos.sh
 
       - name: Upload QtWebEngine prefix artifact
         uses: actions/upload-artifact@v5
         with:
-          name: qtwebengine-macos-${{ env.QTWEBENGINE_VER }}
+          name: qtwebengine-macos-${{ env.QTWEBENGINE_VER }}-${{ matrix.arch }}
           path: .qt/${{ env.QTWEBENGINE_VER }}-prop-macos
           retention-days: 60
