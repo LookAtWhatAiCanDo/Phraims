@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
+# Bash build script for macOS Phraims app bundle and DMG creation.
+#
+# This file's logical sections are ordered and commented to mirror the
+# macOS script (`ci/build-phraims-macos.sh`) so side-by-side diffs line up.
+# Where a macOS section has no Windows equivalent, a no-op
+# placeholder is provided so the structure stays aligned.
+
+# Ensure errors stop execution
 set -euo pipefail
 
-DEBUG="${DEBUG:-0}" # DEBUG=1 for verbose diagnostics
-
+### SECTION: Initialization
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 ARCH_NAME="${BUILD_ARCH:-arm64}"
@@ -14,6 +21,12 @@ QTWEBENGINE_VER="${QTWEBENGINE_VER:-6.9.3}"
 QT_WEBENGINE_PROP_PREFIX="${QT_WEBENGINE_PROP_PREFIX:-${REPO_ROOT}/.qt/${QTWEBENGINE_VER}-prop-macos-${ARCH_NAME}}"
 QT_MODULES=(qtbase qtdeclarative qtwebchannel qtpositioning qtvirtualkeyboard qtsvg brotli)
 
+DEBUG="${DEBUG:-0}" # DEBUG=1 for verbose diagnostics
+if [ "$DEBUG" -eq 2 ]; then
+  set -x
+fi
+
+### SECTION: Utilities
 step() { printf "\n==> %s\n" "$*"; }
 debug() {
   if [ "$DEBUG" -eq 1 ]; then
@@ -22,6 +35,28 @@ debug() {
   return 0
 }
 
+### SECTION: Initialize environment
+initialize_environment() {
+  step "Initializing environment"
+
+  cd "${REPO_ROOT}"
+  step "Repository root: ${REPO_ROOT} (arch=${ARCH_NAME})"
+
+  # Ensure build dir exists
+  mkdir -p "${BUILD_DIR}"
+
+  # Ensure Metal toolchain is available for arm64 builds (needed by QtWebEngine/Chromium)
+  if [ "${ARCH_NAME}" = "arm64" ]; then
+    step "Ensuring Xcode Metal toolchain is installed (arm64)"
+    xcodebuild -downloadComponent MetalToolchain
+  fi
+
+  ensure_homebrew
+
+  ensure_hostqt qtbase qtdeclarative qtwebchannel qtpositioning qtvirtualkeyboard qtsvg qtserialport brotli ninja cmake
+}
+
+### SECTION: Ensure package manager
 ensure_homebrew() {
   if ! command -v brew >/dev/null 2>&1; then
     step "Homebrew not found; installing..."
@@ -58,7 +93,8 @@ ensure_homebrew() {
   fi
 }
 
-install_formulae() {
+### SECTION: Host Qt acquisition
+ensure_hostqt() {
   export HOMEBREW_NO_AUTO_UPDATE=1
   export HOMEBREW_NO_ENV_HINTS=1
   local packages=("$@")
@@ -77,19 +113,64 @@ install_formulae() {
   done
 }
 
+### SECTION: Ensure custom QtWebEngine
 require_custom_webengine() {
   local framework="${QT_WEBENGINE_PROP_PREFIX}/lib/QtWebEngineCore.framework/Versions/A/QtWebEngineCore"
   local cmake_cfg="${QT_WEBENGINE_PROP_PREFIX}/lib/cmake/Qt6WebEngineWidgets/Qt6WebEngineWidgetsConfig.cmake"
   if [ ! -f "$framework" ] || [ ! -f "$cmake_cfg" ]; then
     cat <<EOF
 Custom QtWebEngine not found at ${QT_WEBENGINE_PROP_PREFIX}
-Run ./ci/build-qtwebengine-macos.sh first (or set QT_WEBENGINE_PROP_PREFIX/QTWEBENGINE_VER to your install prefix).
+Fetch a proprietary-codec QtWebEngine prefix from the private LookAtWhatAiCanDo/QtWebEngineProprietaryCodecs repo,
+or set QT_WEBENGINE_PROP_PREFIX/QTWEBENGINE_VER to point at an existing install prefix.
 EOF
     exit 1
   fi
 }
 
-run_macdeployqt() {
+### SECTION: Prefix custom QtWebEngine
+prefix_custom_webengine() {
+  QT_PREFIX="$(brew --prefix qtbase || brew --prefix qt6)"
+  QT_DECLARATIVE_PREFIX="$(brew --prefix qtdeclarative)"
+  QT_WEBCHANNEL_PREFIX="$(brew --prefix qtwebchannel)"
+  QT_POSITIONING_PREFIX="$(brew --prefix qtpositioning)"
+  QT_META_PREFIX="$(brew --prefix qt 2>/dev/null || true)"
+
+  export PATH="${QT_PREFIX}/bin:${PATH}"
+  local -a cmake_prefixes=("${QT_WEBENGINE_PROP_PREFIX}" "${QT_PREFIX}" "${QT_DECLARATIVE_PREFIX}" "${QT_WEBCHANNEL_PREFIX}" "${QT_POSITIONING_PREFIX}")
+  if [ -n "${QT_META_PREFIX}" ] && [ -d "${QT_META_PREFIX}" ]; then
+    cmake_prefixes+=("${QT_META_PREFIX}")
+  fi
+  CMAKE_PREFIX_PATH="$(IFS=';'; echo "${cmake_prefixes[*]}")"
+  export CMAKE_PREFIX_PATH
+}
+
+### SECTION: Configure & Build
+configure_cmake() {
+  step "Configuring CMake (Release, Ninja)"
+  rm -f "${BUILD_DIR}/CMakeCache.txt"
+  cmake -S "${REPO_ROOT}" -B "${BUILD_DIR}" \
+    -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}" \
+    -DQt6Quick_DIR="${QT_DECLARATIVE_PREFIX}/lib/cmake/Qt6Quick" \
+    -DQt6QuickWidgets_DIR="${QT_DECLARATIVE_PREFIX}/lib/cmake/Qt6QuickWidgets" \
+    -DQt6WebChannel_DIR="${QT_WEBCHANNEL_PREFIX}/lib/cmake/Qt6WebChannel" \
+    -DQt6Qml_DIR="${QT_DECLARATIVE_PREFIX}/lib/cmake/Qt6Qml" \
+    -DQt6Network_DIR="${QT_PREFIX}/lib/cmake/Qt6Network" \
+    -DQt6Positioning_DIR="${QT_POSITIONING_PREFIX}/lib/cmake/Qt6Positioning" \
+    -DQt6WebEngineWidgets_DIR="${QT_WEBENGINE_PROP_PREFIX}/lib/cmake/Qt6WebEngineWidgets" \
+    -DCMAKE_OSX_ARCHITECTURES="${MACOS_ARCH:-$ARCH_NAME}"
+}
+
+build_project() {
+  step "Building Phraims"
+  cmake --build "${BUILD_DIR}" --config Release
+
+  [ -d "${APP_PATH}" ] || { echo "Expected app bundle at ${APP_PATH}" >&2; exit 1; }
+}
+
+### SECTION: Qt Platform Specific Deployment
+run_qt_platform_deployment() {
   mkdir -p "${STAGING_LIB_DIR}" "${APP_PATH}/Contents/Frameworks"
 
   local -a lib_paths=("${QT_WEBENGINE_PROP_PREFIX}/lib" "${QT_PREFIX}/lib" "${APP_PATH}/Contents/Frameworks")
@@ -123,6 +204,7 @@ run_macdeployqt() {
   fi
 }
 
+### SECTION: Materialize bundle symlinks
 materialize_bundle_symlinks() {
   step "Materializing external symlinks inside bundle"
   local targets=("${APP_PATH}/Contents/Frameworks" "${APP_PATH}/Contents/PlugIns")
@@ -140,11 +222,22 @@ materialize_bundle_symlinks() {
   done
 }
 
+### SECTION: Sync QtWebEngine payload
+sync_webengine_payload() {
+  step "Syncing QtWebEngine resources"
+  local src="${QT_WEBENGINE_PROP_PREFIX}/lib/QtWebEngineCore.framework/Versions/A"
+  local dest="${APP_PATH}/Contents/Frameworks/QtWebEngineCore.framework/Versions/A"
+  [ -d "${src}" ] || { echo "Missing QtWebEngineCore.framework under ${QT_WEBENGINE_PROP_PREFIX}" >&2; exit 1; }
+  rsync -a "${src}/Resources/" "${dest}/Resources/"
+  rsync -a "${src}/Helpers/QtWebEngineProcess.app/" "${dest}/Helpers/QtWebEngineProcess.app/"
+}
+
 ensure_rpath() {
   local file=$1 target=$2
   otool -l "$file" | grep -F "path $target" >/dev/null 2>&1 || install_name_tool -add_rpath "$target" "$file"
 }
 
+### SECTION: Fix rpaths
 fix_rpaths() {
   step "Normalizing install names and rpaths"
   local files=("${APP_PATH}/Contents/MacOS/Phraims")
@@ -198,6 +291,17 @@ fix_rpaths() {
         /opt/homebrew/*/lib/*.dylib)
           install_name_tool -change "$dep" "@loader_path/$(basename "$dep")" "$f"
           ;;
+        /usr/local/opt/*/lib/Qt*.framework/Versions/A/*)
+          local name; name="$(basename "$dep")"
+          install_name_tool -change "$dep" "@rpath/${name}.framework/Versions/A/${name}" "$f"
+          ;;
+        /usr/local/*/Qt*.framework/Versions/A/*)
+          local name; name="$(basename "$dep")"
+          install_name_tool -change "$dep" "@rpath/${name}.framework/Versions/A/${name}" "$f"
+          ;;
+        /usr/local/*/lib/*.dylib)
+          install_name_tool -change "$dep" "@loader_path/$(basename "$dep")" "$f"
+          ;;
         "${QT_WEBENGINE_PROP_PREFIX}"/lib/Qt*.framework/Versions/A/*)
           local name; name="$(basename "$dep")"
           install_name_tool -change "$dep" "@rpath/${name}.framework/Versions/A/${name}" "$f"
@@ -232,36 +336,7 @@ fix_rpaths() {
   fi
 }
 
-sync_webengine_payload() {
-  step "Syncing QtWebEngine resources"
-  local src="${QT_WEBENGINE_PROP_PREFIX}/lib/QtWebEngineCore.framework/Versions/A"
-  local dest="${APP_PATH}/Contents/Frameworks/QtWebEngineCore.framework/Versions/A"
-  [ -d "${src}" ] || { echo "Missing QtWebEngineCore.framework under ${QT_WEBENGINE_PROP_PREFIX}" >&2; exit 1; }
-  rsync -a "${src}/Resources/" "${dest}/Resources/"
-  rsync -a "${src}/Helpers/QtWebEngineProcess.app/" "${dest}/Helpers/QtWebEngineProcess.app/"
-}
-
-verify_webengine_payload() {
-  step "Verifying QtWebEngine payload"
-  local res="${APP_PATH}/Contents/Frameworks/QtWebEngineCore.framework/Versions/A/Resources"
-  local helper="${APP_PATH}/Contents/Frameworks/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess"
-  local snapshot="v8_context_snapshot.arm64.bin"
-  case "${MACOS_ARCH:-$ARCH_NAME}" in
-    x86_64) snapshot="v8_context_snapshot.x86_64.bin" ;;
-  esac
-  local required=(icudtl.dat qtwebengine_devtools_resources.pak qtwebengine_resources.pak qtwebengine_resources_100p.pak qtwebengine_resources_200p.pak "${snapshot}")
-  for f in "${required[@]}"; do
-    [ -f "${res}/${f}" ] || { echo "Missing WebEngine resource: ${res}/${f}" >&2; exit 1; }
-  done
-  [ -d "${res}/qtwebengine_locales" ] || { echo "Missing WebEngine locales: ${res}/qtwebengine_locales" >&2; exit 1; }
-  [ -x "${helper}" ] || { echo "QtWebEngineProcess missing/not executable: ${helper}" >&2; exit 1; }
-  if [ "$DEBUG" -eq 1 ]; then
-    ls -lh "${res}" || true
-    du -sh "${res}/qtwebengine_locales" || true
-    otool -L "${helper}" | head -n 20 || true
-  fi
-}
-
+### SECTION: Validate bundle links
 validate_bundle_links() {
   step "Validating bundled dependencies"
   local bad=0
@@ -292,6 +367,17 @@ validate_bundle_links() {
       case "$dep" in
         @executable_path/*|@loader_path/*|${APP_PATH}/*) ;;
         /System/*|/usr/lib/*) ;;
+        /usr/local/opt/*/lib/Qt*.framework/Versions/A/*)
+          local name; name="$(basename "$dep")"
+          install_name_tool -change "$dep" "@rpath/${name}.framework/Versions/A/${name}" "$f"
+          ;;
+        /usr/local/*/Qt*.framework/Versions/A/*)
+          local name; name="$(basename "$dep")"
+          install_name_tool -change "$dep" "@rpath/${name}.framework/Versions/A/${name}" "$f"
+          ;;
+        /usr/local/*/lib/*.dylib)
+          install_name_tool -change "$dep" "@loader_path/$(basename "$dep")" "$f"
+          ;;
         /opt/homebrew/*|/usr/local/*)
           echo "  [!] $f depends on $dep (Homebrew path)"
           bad=1
@@ -320,12 +406,36 @@ validate_bundle_links() {
   fi
 }
 
+### SECTION: Verify QtWebEngine payload
+verify_webengine_payload() {
+  step "Verifying QtWebEngine payload"
+  local res="${APP_PATH}/Contents/Frameworks/QtWebEngineCore.framework/Versions/A/Resources"
+  local helper="${APP_PATH}/Contents/Frameworks/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess"
+  local snapshot="v8_context_snapshot.arm64.bin"
+  case "${MACOS_ARCH:-$ARCH_NAME}" in
+    x86_64) snapshot="v8_context_snapshot.x86_64.bin" ;;
+  esac
+  local required=(icudtl.dat qtwebengine_devtools_resources.pak qtwebengine_resources.pak qtwebengine_resources_100p.pak qtwebengine_resources_200p.pak "${snapshot}")
+  for f in "${required[@]}"; do
+    [ -f "${res}/${f}" ] || { echo "Missing WebEngine resource: ${res}/${f}" >&2; exit 1; }
+  done
+  [ -d "${res}/qtwebengine_locales" ] || { echo "Missing WebEngine locales: ${res}/qtwebengine_locales" >&2; exit 1; }
+  [ -x "${helper}" ] || { echo "QtWebEngineProcess missing/not executable: ${helper}" >&2; exit 1; }
+  if [ "$DEBUG" -eq 1 ]; then
+    ls -lh "${res}" || true
+    du -sh "${res}/qtwebengine_locales" || true
+    otool -L "${helper}" | head -n 20 || true
+  fi
+}
+
+### SECTION: Signing
 adhoc_sign_bundle() {
   step "Ad-hoc signing app bundle (deep)"
   codesign --force --deep --sign - --timestamp=none "${APP_PATH}"
   codesign -vv "${APP_PATH}"
 }
 
+### SECTION: Debug artifacts
 debug_artifacts() {
   [ "$DEBUG" -ne 1 ] && return
   step "Debug: staging lib dir (${STAGING_LIB_DIR})"
@@ -339,49 +449,27 @@ debug_artifacts() {
   [ -f "$helper" ] && otool -l "$helper" | grep -A2 LC_RPATH || true
 }
 
-main() {
-  cd "${REPO_ROOT}"
-  step "Repository root: ${REPO_ROOT} (arch=${ARCH_NAME})"
+### SECTION: Create installer
+create_installer() {
+  step "Creating dmg"
+  rm -f "${BUILD_DIR}/Phraims.dmg"
+  hdiutil detach "/Volumes/Phraims" >/dev/null 2>&1 || true
+  hdiutil create -format UDZO -srcfolder "${APP_PATH}" -volname Phraims -ov "${BUILD_DIR}/Phraims.dmg"
+  step "Done. DMG available at ${BUILD_DIR}/Phraims.dmg"
+}
 
-  ensure_homebrew
-  install_formulae qtbase qtdeclarative qtwebchannel qtpositioning qtvirtualkeyboard qtsvg brotli ninja cmake
+### SECTION: Main orchestration
+main() {
+  initialize_environment
+
   require_custom_webengine
   step "QtWebEngine prefix: ${QT_WEBENGINE_PROP_PREFIX}"
+  prefix_custom_webengine
 
-  QT_PREFIX="$(brew --prefix qtbase || brew --prefix qt6)"
-  QT_DECLARATIVE_PREFIX="$(brew --prefix qtdeclarative)"
-  QT_WEBCHANNEL_PREFIX="$(brew --prefix qtwebchannel)"
-  QT_POSITIONING_PREFIX="$(brew --prefix qtpositioning)"
-  QT_META_PREFIX="$(brew --prefix qt 2>/dev/null || true)"
+  configure_cmake
+  build_project
 
-  export PATH="${QT_PREFIX}/bin:${PATH}"
-  local -a cmake_prefixes=("${QT_WEBENGINE_PROP_PREFIX}" "${QT_PREFIX}" "${QT_DECLARATIVE_PREFIX}" "${QT_WEBCHANNEL_PREFIX}" "${QT_POSITIONING_PREFIX}")
-  if [ -n "${QT_META_PREFIX}" ] && [ -d "${QT_META_PREFIX}" ]; then
-    cmake_prefixes+=("${QT_META_PREFIX}")
-  fi
-  CMAKE_PREFIX_PATH="$(IFS=';'; echo "${cmake_prefixes[*]}")"
-  export CMAKE_PREFIX_PATH
-
-  step "Configuring CMake (Release, Ninja, arm64)"
-  rm -f "${BUILD_DIR}/CMakeCache.txt"
-  cmake -S "${REPO_ROOT}" -B "${BUILD_DIR}" \
-    -G Ninja \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}" \
-    -DQt6Quick_DIR="${QT_DECLARATIVE_PREFIX}/lib/cmake/Qt6Quick" \
-    -DQt6QuickWidgets_DIR="${QT_DECLARATIVE_PREFIX}/lib/cmake/Qt6QuickWidgets" \
-    -DQt6WebChannel_DIR="${QT_WEBCHANNEL_PREFIX}/lib/cmake/Qt6WebChannel" \
-    -DQt6Qml_DIR="${QT_DECLARATIVE_PREFIX}/lib/cmake/Qt6Qml" \
-    -DQt6Network_DIR="${QT_PREFIX}/lib/cmake/Qt6Network" \
-    -DQt6Positioning_DIR="${QT_POSITIONING_PREFIX}/lib/cmake/Qt6Positioning" \
-    -DQt6WebEngineWidgets_DIR="${QT_WEBENGINE_PROP_PREFIX}/lib/cmake/Qt6WebEngineWidgets" \
-    -DCMAKE_OSX_ARCHITECTURES="${MACOS_ARCH:-$ARCH_NAME}"
-
-  step "Building Phraims"
-  cmake --build "${BUILD_DIR}" --config Release
-  [ -d "${APP_PATH}" ] || { echo "Expected app bundle at ${APP_PATH}" >&2; exit 1; }
-
-  run_macdeployqt
+  run_qt_platform_deployment
   materialize_bundle_symlinks
   sync_webengine_payload
   if [ ! -f "${APP_PATH}/Contents/Frameworks/libbrotlicommon.1.dylib" ] && [ -f "${QT_PREFIX}/../lib/libbrotlicommon.1.dylib" ]; then
@@ -390,14 +478,12 @@ main() {
   fix_rpaths
   validate_bundle_links
   verify_webengine_payload
+
   adhoc_sign_bundle
+  
   debug_artifacts
 
-  step "Creating dmg"
-  rm -f "${BUILD_DIR}/Phraims.dmg"
-  hdiutil detach "/Volumes/Phraims" >/dev/null 2>&1 || true
-  hdiutil create -format UDZO -srcfolder "${APP_PATH}" -volname Phraims -ov "${BUILD_DIR}/Phraims.dmg"
-  step "Done. DMG available at ${BUILD_DIR}/Phraims.dmg"
+  create_installer
 }
 
 main "$@"

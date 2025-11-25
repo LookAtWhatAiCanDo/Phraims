@@ -1,23 +1,41 @@
-Phraims
-======
+<p align="center">
+<img alt="Phraims web browser" src="./phraims_icon_1024.png" width="240"/>
+</p>
+
+# phraims
 
 Phraims is a web browser that divides each window into multiple resizable web page frames.
 
-## Code Organization
+Phraims is a Qt6 app based on QtWebEngine which uses Chromium WebKit.
 
-The codebase is organized into modular components for better maintainability:
+The eventual goal is to have fully dynamically dockable frames with a stretch goal of having most expected first-class browser features... and yes, including support for traditional tabs.
 
-- **main.cpp** - Application entry point and initialization
-- **SplitWindow** - Main window class with menu bar and splitter management
-- **SplitFrameWidget** - Individual web view frame with navigation controls
-- **MyWebEngineView** (header-only) - Custom QWebEngineView with context menu support
-- **DomPatch** - DOM patching system for CSS customizations
-- **EscapeFilter** (header-only) - Fullscreen escape key handler
-- **Utils** - Shared utilities and helper functions
+## Install
+### macOS
+* arm64 (M1 and above CPUs): Supported
+* x64 (Intel CPUs): Work In Progress
+### Windows
+* x64: Not Yet Supported - Work In Progress
+* arm64: Not Yet Supported - Work In Progress
+### Linux
+* x64: Not Yet Supported - Not Yet A Work In Progress
+* arm64: Not Yet Supported - Not Yet A Work In Progress
 
-Simple classes like `EscapeFilter` and `MyWebEngineView` use header-only implementations for easier maintenance.
+##
+Proper `Release Management` is still a Work In Progress.  
+The eventual goal is to be a fully signed release with first class auto-update.  
+Until then, installs are currently only available via:
+1. Navigate to the [Actions](./actions) tab.
+1. Click on the latest workflow run for your platform.
+1. Scroll down to the "Artifacts" section.
+1. Download the appropriate `Phraims` artifact.
+1. Extract and run the app; you will need to allow your system security to install:
+  * macOS: System Settings -> Privacy & Security -> ...
 
-Settings and Profiles are stored at:
+Artifacts are retained for 90 days.  
+The workflow can also be triggered manually via the "Run workflow" button for building release candidates.
+
+## Storage
 - macOS:
   - Settings: `~/Library/Application Support/LookAtWhatAiCanDo/Phraims/settings.ini`
   - Profile: `~/Library/Application Support/LookAtWhatAiCanDo/Phraims/profiles/`
@@ -28,59 +46,10 @@ Settings and Profiles are stored at:
   - Settings: `%APPDATA%/LookAtWhatAiCanDo/Phraims/settings.ini`
   - Profile: `%APPDATA%/LookAtWhatAiCanDo/Phraims/profiles/`
 
-Build (requires CMake + Qt 6 + WebEngine w/ proprietary codecs enabled; the Homebrew `qt6` package is confirmed to ship with `-DFEATURE_webengine_proprietary_codecs=ON`):
-* https://github.com/search?q=repo%3AHomebrew%2Fhomebrew-core%20DFEATURE_webengine_proprietary_codecs&type=code
-```bash
-# from repository root
-brew install qt6
-mkdir -p build && cd build
-cmake .. -DCMAKE_PREFIX_PATH="$(brew --prefix qt6)"
-cmake --build . --config Release
-./Phraims
-```
+## Features
+### Controls and Shortcuts
 
-macOS CI builds an arm64 app bundle in `build/macos-arm64/` using Homebrew Qt for base modules
-plus the custom QtWebEngine built by `ci/build-qtwebengine-macos.sh` (default prefix `.qt/6.9.3-prop-macos-<arch>`)
-and packages it as a DMG (Homebrew Qt bottles are arm64-only on Apple Silicon runners).  
-The primary workflow first tries to download a cached QtWebEngine prefix artifact
-produced by `Build QtWebEngine macOS` (`.github/workflows/build-qtwebengine-macos.yml`);
-if absent it rebuilds via `ci/build-qtwebengine-macos.sh`.
-macdeployqt receives both the Homebrew Qt module libpaths and the custom QtWebEngine prefix
-to avoid rpath resolution errors in plugins before creating the DMG.
-When bumping QtWebEngine, run the `Build QtWebEngine macOS` workflow manually to refresh the artifact.
-Both workflows run in a matrix on `macos-26` (arm64) and `macos-15-intel` (x86_64), producing per-arch QtWebEngine artifacts
-(`qtwebengine-macos-<ver>-<arch>`) and DMGs (`Phraims-macOS-<arch>`).
-Each prefix is stored under `.qt/<ver>-prop-macos-<arch>`.
-
-Windows QtWebEngine builds are handled separately by `Build QtWebEngine Windows` (`.github/workflows/build-qtwebengine-windows.yml`), which produces
-per-arch prefixes (`qtwebengine-windows-<ver>-x64` / `qtwebengine-windows-<ver>-arm64`) using `ci/build-qtwebengine-windows.ps1`.
-
-### Local macOS packaging
-
-Packaging uses the custom QtWebEngine produced by `./ci/build-qtwebengine-macos.sh`
-(default install prefix `.qt/6.9.3-prop-macos`; override with `QT_WEBENGINE_PROP_PREFIX`).
-Run that script first or after bumping QtWebEngine versions so the prefix exists locally.
-
-Run `./ci/build-phraims-macos.sh` to:
-1. update Homebrew
-1. install dependencies
-1. build Release with Ninja in `build/macos-<arch>` (default `build/macos-arm64`; override with `BUILD_ARCH`/`MACOS_ARCH`)
-1. run `macdeployqt`
-1. sync QtWebEngine resources
-1. fix rpaths
-1. sign
-1. emit `build/macos-<arch>/Phraims.dmg`.  
-
-It also validates that every dependency resolves inside the bundle and checks WebEngine resources.
-
-Set `FORCE_BREW_UPDATE=0` to skip `brew update` if needed.
-
-- Normal run: `./ci/build-phraims-macos.sh`
-- Debug info: `DEBUG=1 ./ci/build-phraims-macos.sh` (shows macdeployqt log, staging/Frameworks listings, and rpaths for the main binary and QtWebEngineProcess)
-
-## Controls and Shortcuts
-
-### Frame Management
+#### Frame Management
 - **New Frame**: Click the `+` button on any frame or press `⌘T` (Command-T on macOS) or `Ctrl+T` (other platforms) to add a new frame after the currently focused frame.  
   When adding a new frame the address bar is automatically focused so you can start typing immediately.
 - **Remove Frame**: Click the `-` button on any frame to remove it (confirmation required)
@@ -89,21 +58,19 @@ Set `FORCE_BREW_UPDATE=0` to skip `brew update` if needed.
 - **Reload Frame**: Press `⌘R` (macOS) or `Ctrl+R` (other platforms) to reload the focused frame, or use `View -> Reload Frame`.
 - **Reload Frame (Bypass Cache)**: Press `⌘⇧R` (macOS) or `Ctrl+Shift+R` (other platforms) to force-refresh the focused frame via `View -> Reload Frame (Bypass Cache)`.
 
-### Window Management
+#### Window Management
 - **New Window**: Press `⌘N` (Command-N on macOS) or `Ctrl+N` (other platforms)
 - **New Incognito Window**: Press `⇧⌘N` (Shift+Command-N on macOS) or `Shift+Ctrl+N` (other platforms) to open a private browsing window
 - **Toggle DevTools**: Press `F12` to toggle developer tools for the focused frame
 
-### Other Controls
+#### Other Controls
 - Each section is equally sized using layout stretch factors
 - Use the Layout menu to switch between Grid, Vertical, and Horizontal arrangements
 
-## Profiles
-
+### Profiles
 Phraims supports multiple browser profiles, each with its own separate browsing data, cookies, cache, and history. This allows you to maintain completely isolated browsing contexts within the same application.
 
-### Managing Profiles
-
+#### Managing Profiles
 Access profile management through the **Profiles** menu in the menu bar:
 
 - **New Profile...**: Create a new profile with a custom name
@@ -130,29 +97,24 @@ Access profile management through the **Profiles** menu in the menu bar:
   - The currently active profile is marked with a checkmark
   - Click any profile to switch to it immediately
 
-### Using Profiles
-
+#### Using Profiles
 - Each window title displays the current profile name (e.g., "Group 1 (3) - Work")
 - Each window remembers which profile it was using and restores it on app restart
 - When you switch profiles, all frames in the current window are rebuilt with the new profile
 - New windows use the most recently selected profile by default
 - Profile data is stored in your application data directory under `profiles/<profile-name>/`
 
-### Default Profile
-
+#### Default Profile
 When you first launch Phraims, a "Default" profile is automatically created and used. You can create additional profiles and switch between them at any time.
 
-## Incognito Mode
-
+### Incognito Mode
 Phraims supports Incognito (private) browsing windows for ephemeral sessions that do not persist history, cookies, or other browsing data.
 
-### Opening Incognito Windows
-
+#### Opening Incognito Windows
 - **Keyboard Shortcut**: Press `⇧⌘N` (Shift+Command-N on macOS) or `Shift+Ctrl+N` (other platforms)
 - **Menu**: Select `File -> New Incognito Window`
 
-### Incognito Window Behavior
-
+#### Incognito Window Behavior
 - **Isolated Storage**: Each Incognito window uses a separate off-the-record profile that does not persist to disk
 - **No History**: Browsing history, cookies, cache, and other data are discarded when the window closes
 - **Visual Indicator**: Incognito windows display "Incognito" in the title bar to distinguish them from normal windows
@@ -160,8 +122,7 @@ Phraims supports Incognito (private) browsing windows for ephemeral sessions tha
 - **No Profile Management**: The Profiles menu is not available in Incognito windows since they use ephemeral profiles
 - **Independent Operation**: Incognito and normal windows operate completely independently without cross-contamination
 
-### Use Cases
-
+#### Use Cases
 - **Temporary Browsing**: View websites without affecting your browsing history or saved data
 - **Multiple Logins**: Log into the same website with different accounts simultaneously
 - **Testing**: Test website behavior without cached data or cookies
@@ -172,8 +133,7 @@ Phraims supports Incognito (private) browsing windows for ephemeral sessions tha
 - The UI chrome stays at a consistent size so controls remain easy to target even when a page is zoomed way in/out.
 - Zoom choices are stored per frame in the current layout. Closing and reopening the app restores the last zoom factor for each saved slot.
 
-## DOM Patches
-
+### DOM Patches
 This application supports persisting small DOM CSS "patches" you create while using the inspector.  
 A patch is a site-scoped CSS tweak (for example hiding an element) that the app will automatically re-apply whenever a matching page is loaded or navigated to.
 
@@ -216,8 +176,7 @@ Removing or editing patches
 Privacy & safety
 - Patches run only locally in this application. They are not synced or sent anywhere.
 
-## Context Menu
-
+### Context Menu
 The web view context menu provides quick access to common actions:
 - **Navigation**: Back, Forward, Reload
 - **Editing**: Cut, Copy, Paste, Select All
@@ -227,21 +186,6 @@ The web view context menu provides quick access to common actions:
   - If no text is selected, opens full page translation
   - Opens in a new Phraims window
 - **Inspect…**: Opens DevTools for page inspection and debugging
-
-## Continuous Integration
-
-The project uses GitHub Actions to automatically build macOS binaries on every push to `main` and on pull requests. This ensures the codebase stays healthy and provides downloadable artifacts for testers.
-
-### Downloading Build Artifacts
-
-After each successful CI run, you can download the built macOS app bundle:
-1. Navigate to the [Actions tab](../../actions) in the repository
-2. Click on the latest workflow run
-3. Scroll down to the "Artifacts" section
-4. Download `Phraims-macOS` - this contains the `Phraims.app` bundle
-5. Extract and run the app (you may need to allow it in System Preferences > Security & Privacy)
-
-Artifacts are retained for 90 days. The workflow can also be triggered manually via the "Run workflow" button for building release candidates.
 
 ## TODOs
 - Improve Menu
@@ -273,17 +217,94 @@ Artifacts are retained for 90 days. The workflow can also be triggered manually 
 - Discord page blank white
 - messenger.com page not loading
 
-## Debugging
+## Code
+- **main.cpp** - Application entry point and initialization
+- **SplitWindow** - Main window class with menu bar and splitter management
+- **SplitFrameWidget** - Individual web view frame with navigation controls
+- **MyWebEngineView** (header-only) - Custom QWebEngineView with context menu support
+- **DomPatch** - DOM patching system for CSS customizations
+- **EscapeFilter** (header-only) - Fullscreen escape key handler
+- **Utils** - Shared utilities and helper functions
 
+Simple classes like `EscapeFilter` and `MyWebEngineView` use header-only implementations for easier maintenance.
+
+### Build
+Build (requires CMake + Qt 6 + WebEngine w/ proprietary codecs enabled; the Homebrew `qt6` package is confirmed to ship with `-DFEATURE_webengine_proprietary_codecs=ON`):
+* https://github.com/search?q=repo%3AHomebrew%2Fhomebrew-core%20DFEATURE_webengine_proprietary_codecs&type=code
+```bash
+# from repository root
+brew install qt6
+mkdir -p build && cd build
+cmake .. -DCMAKE_PREFIX_PATH="$(brew --prefix qt6)"
+cmake --build . --config Release
+./Phraims
+```
+
+#### macOS
+##### macOS Build
+- macOS CI builds an arm64 app bundle in `build/macos-arm64/` using Homebrew Qt for base modules
+  plus the custom QtWebEngine built in the private `LookAtWhatAiCanDo/QtWebEngineProprietaryCodecs` repo
+  (default prefix `.qt/6.9.3-prop-macos-<arch>`) and packages it as a DMG
+  (Homebrew Qt bottles are arm64-only on Apple Silicon runners).  
+- The primary workflow first tries to download a cached QtWebEngine prefix artifact
+  produced by the macOS workflow in the `QtWebEngineProprietaryCodecs` repository;
+  if absent it fails fast rather than rebuilding inline.
+- `macdeployqt` receives both the Homebrew Qt module libpaths and the custom QtWebEngine prefix
+  to avoid rpath resolution errors in plugins before creating the DMG.
+- When bumping QtWebEngine, run the `Build QtWebEngine macOS` workflow in the private repo to refresh the artifact.
+- Both workflows run in a matrix on `macos-26` (arm64) and `macos-15-intel` (x86_64),
+  producing per-arch QtWebEngine artifacts (`qtwebengine-macos-<ver>-<arch>`) and DMGs (`Phraims-macOS-<arch>`).
+- Each prefix is stored under `.qt/<ver>-prop-macos-<arch>`. The workflow downloads
+  `qtwebengine-macos-<ver>-<arch>` from the private `LookAtWhatAiCanDo/QtWebEngineProprietaryCodecs`
+  repo using `PRIVATE_QTWEBENGINE_TOKEN` before building, then packages to `build/macos-<arch>/Phraims.dmg`.
+- If the macOS workflow cannot download the QtWebEngine artifact (e.g., token expired),
+  refresh @paulpv’s PAT named `LAWACD QtWebEngineProprietaryCodecs`, then paste the new token
+  into the Phraims repository secret `PRIVATE_QTWEBENGINE_TOKEN` and rerun.
+  The current 366-day PAT was created 2025/11/26 and expires 2026/11/27.
+
+Windows QtWebEngine builds are produced by the private `Build QtWebEngine Windows` workflow; it emits per-arch prefixes
+(`qtwebengine-windows-<ver>-x64` / `qtwebengine-windows-<ver>-arm64`) that contain the built QtWebEngine runtime and resources.
+The public Windows workflow (`.github/workflows/build-phraims-windows.yml`) downloads the appropriate QtWebEngine artifact
+via `ci/get-qtwebengine-windows.ps1`, ensures a host Qt kit (via `qmake` on PATH or by installing one with `aqtinstall`),
+builds Phraims, runs `windeployqt` to assemble a `deploy` folder, and then applies a packaging-time replacement step:
+the proprietary QtWebEngine runtime files from the downloaded prefix are copied into the `deploy` folder (overwriting
+matching files) so the packaged application ships the proprietary WebEngine payload without modifying the host Qt kit.
+This approach avoids overwriting system Qt installs and reduces permission/ABI risks.
+
+##### macOS Packaging
+Packaging uses the custom QtWebEngine produced by the `QtWebEngineProprietaryCodecs` repository
+(default install prefix `.qt/6.9.3-prop-macos`; override with `QT_WEBENGINE_PROP_PREFIX` to point at the copied prefix).
+Download/copy the prefix from that repo first so the macOS bundle can be assembled locally.
+
+Run `./ci/build-phraims-macos.sh` to:
+1. update Homebrew
+1. install dependencies
+1. build Release with Ninja in `build/macos-<arch>` (default `build/macos-arm64`; override with `BUILD_ARCH`/`MACOS_ARCH`)
+1. run `macdeployqt`
+1. sync QtWebEngine resources
+1. fix rpaths
+1. sign
+1. emit `build/macos-<arch>/Phraims.dmg`.  
+
+It also validates that every dependency resolves inside the bundle and checks WebEngine resources.
+
+Set `FORCE_BREW_UPDATE=0` to skip `brew update` if needed.
+
+- Normal run: `./ci/build-phraims-macos.sh`
+- Debug info: `DEBUG=1 ./ci/build-phraims-macos.sh` (shows macdeployqt log, staging/Frameworks listings, and rpaths for the main binary and QtWebEngineProcess)
+
+### Continuous Integration
+The project uses GitHub Actions to automatically build macOS binaries on every push to `main` and on pull requests.  
+This ensures the codebase stays healthy and provides downloadable artifacts for testers.
+
+### Debugging
 ```
 open build/Qt_6_10_0_for_macOS-Debug/Phraims.app --args --webEngineArgs --remote-debugging-port=9222
 ```
 Open Chrome to [chrome://inspect](chrome://inspect)
 
-## Tests
-
-Acceptance tests / expected behavior
----------------------------------
+### Tests
+#### Acceptance tests / expected behavior
 These tests define the desired behavior for layout selection and splitter persistence.
 
 1) Setting a layout

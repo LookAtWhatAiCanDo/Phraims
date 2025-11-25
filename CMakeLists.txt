@@ -67,8 +67,6 @@ elseif(WIN32)
   # On Windows prefer a GUI subsystem build to avoid a console window.
   # This sets the WIN32_EXECUTABLE property so the linker uses the
   # WINDOWS subsystem instead of CONSOLE.
-  set_target_properties(Phraims PROPERTIES WIN32_EXECUTABLE TRUE)
-
   qt_add_executable(Phraims
     main.cpp
     AppSettings.h
@@ -85,6 +83,9 @@ elseif(WIN32)
     SplitWindow.h
     SplitWindow.cpp
   )
+
+  # Ensure the executable is built as a GUI subsystem without a console window
+  set_target_properties(Phraims PROPERTIES WIN32_EXECUTABLE TRUE)
 
 endif()
 

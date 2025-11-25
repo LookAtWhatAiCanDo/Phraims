@@ -13,3 +13,7 @@ build/
 scratch/
 
 simplebrowser-build/
+
+aqtinstall.log
+
+build.log

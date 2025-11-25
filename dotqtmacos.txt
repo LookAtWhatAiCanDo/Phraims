@@ -1,0 +1,2199 @@
+total 0
+drwxr-xr-x@  3 pv  staff    96 Nov 30 12:20 .
+drwxr-xr-x  36 pv  staff  1152 Nov 30 12:15 ..
+drwxr-xr-x@  5 pv  staff   160 Nov 26 10:53 6.9.3-prop-macos-arm64
+
+.qt/6.9.3-prop-macos-arm64:
+total 808520
+drwxr-xr-x@  5 pv  staff        160 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff         96 Nov 30 12:20 ..
+drwxr-xr-x@ 11 pv  staff        352 Nov 26 10:53 lib
+-rw-r--r--@  1 pv  staff  413961002 Nov 26 10:50 qtwebengine-macos-6.9.3-arm64.zip
+drwxr-xr-x@  3 pv  staff         96 Nov 26 10:53 share
+
+.qt/6.9.3-prop-macos-arm64/lib:
+total 0
+drwxr-xr-x@ 11 pv  staff  352 Nov 26 10:53 .
+drwxr-xr-x@  5 pv  staff  160 Nov 26 10:53 ..
+drwxr-xr-x@ 21 pv  staff  672 Nov 26 10:53 cmake
+drwxr-xr-x@  9 pv  staff  288 Nov 26 10:53 pkgconfig
+drwxr-xr-x@  6 pv  staff  192 Nov 26 10:53 QtPdf.framework
+drwxr-xr-x@  6 pv  staff  192 Nov 26 10:53 QtPdfQuick.framework
+drwxr-xr-x@  6 pv  staff  192 Nov 26 10:53 QtPdfWidgets.framework
+drwxr-xr-x@  7 pv  staff  224 Nov 26 10:53 QtWebEngineCore.framework
+drwxr-xr-x@  6 pv  staff  192 Nov 26 10:53 QtWebEngineQuick.framework
+drwxr-xr-x@  5 pv  staff  160 Nov 26 10:53 QtWebEngineQuickDelegatesQml.framework
+drwxr-xr-x@  6 pv  staff  192 Nov 26 10:53 QtWebEngineWidgets.framework
+
+.qt/6.9.3-prop-macos-arm64/lib/cmake:
+total 0
+drwxr-xr-x@ 21 pv  staff  672 Nov 26 10:53 .
+drwxr-xr-x@ 11 pv  staff  352 Nov 26 10:53 ..
+drwxr-xr-x@  8 pv  staff  256 Nov 26 10:53 Qt6
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 Qt6BuildInternals
+drwxr-xr-x@  8 pv  staff  256 Nov 26 10:53 Qt6Gui
+drwxr-xr-x@ 11 pv  staff  352 Nov 26 10:53 Qt6Pdf
+drwxr-xr-x@ 10 pv  staff  320 Nov 26 10:53 Qt6PdfPrivate
+drwxr-xr-x@ 11 pv  staff  352 Nov 26 10:53 Qt6PdfQuick
+drwxr-xr-x@ 10 pv  staff  320 Nov 26 10:53 Qt6PdfQuickPrivate
+drwxr-xr-x@ 11 pv  staff  352 Nov 26 10:53 Qt6PdfWidgets
+drwxr-xr-x@ 10 pv  staff  320 Nov 26 10:53 Qt6PdfWidgetsPrivate
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 Qt6Qml
+drwxr-xr-x@ 13 pv  staff  416 Nov 26 10:53 Qt6WebEngineCore
+drwxr-xr-x@ 10 pv  staff  320 Nov 26 10:53 Qt6WebEngineCorePrivate
+drwxr-xr-x@ 10 pv  staff  320 Nov 26 10:53 Qt6WebEngineCoreTools
+drwxr-xr-x@ 11 pv  staff  352 Nov 26 10:53 Qt6WebEngineQuick
+drwxr-xr-x@ 10 pv  staff  320 Nov 26 10:53 Qt6WebEngineQuickDelegatesQml
+drwxr-xr-x@ 10 pv  staff  320 Nov 26 10:53 Qt6WebEngineQuickDelegatesQmlPrivate
+drwxr-xr-x@ 10 pv  staff  320 Nov 26 10:53 Qt6WebEngineQuickPrivate
+drwxr-xr-x@ 11 pv  staff  352 Nov 26 10:53 Qt6WebEngineWidgets
+drwxr-xr-x@ 10 pv  staff  320 Nov 26 10:53 Qt6WebEngineWidgetsPrivate
+
+.qt/6.9.3-prop-macos-arm64/lib/cmake/Qt6:
+total 48
+drwxr-xr-x@  8 pv  staff   256 Nov 26 10:53 .
+drwxr-xr-x@ 21 pv  staff   672 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff  1689 Sep 25 11:10 FindGn.cmake
+-rw-r--r--@  1 pv  staff   633 Sep 25 11:10 FindGPerf.cmake
+-rw-r--r--@  1 pv  staff  1028 Sep 25 11:10 FindNinja.cmake
+-rw-r--r--@  1 pv  staff  1135 Sep 25 11:10 FindNodejs.cmake
+-rw-r--r--@  1 pv  staff  1625 Sep 25 11:10 FindPkgConfigHost.cmake
+-rw-r--r--@  1 pv  staff  1059 Sep 25 11:10 FindSnappy.cmake
+
+.qt/6.9.3-prop-macos-arm64/lib/cmake/Qt6BuildInternals:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 21 pv  staff  672 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 StandaloneTests
+
+.qt/6.9.3-prop-macos-arm64/lib/cmake/Qt6BuildInternals/StandaloneTests:
+total 8
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  436 Nov 26 09:06 QtWebEngineTestsConfig.cmake
+
+.qt/6.9.3-prop-macos-arm64/lib/cmake/Qt6Gui:
+total 56
+drwxr-xr-x@  8 pv  staff   256 Nov 26 10:53 .
+drwxr-xr-x@ 21 pv  staff   672 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff  1556 Nov 26 09:06 Qt6QPdfPluginAdditionalTargetInfo.cmake
+-rw-r--r--@  1 pv  staff  2103 Nov 26 09:06 Qt6QPdfPluginConfig.cmake
+-rw-r--r--@  1 pv  staff  3015 Nov 26 09:06 Qt6QPdfPluginConfigVersion.cmake
+-rw-r--r--@  1 pv  staff  1861 Nov 26 09:06 Qt6QPdfPluginConfigVersionImpl.cmake
+-rw-r--r--@  1 pv  staff   936 Nov 26 09:06 Qt6QPdfPluginTargets-release.cmake
+-rw-r--r--@  1 pv  staff  4640 Nov 26 09:06 Qt6QPdfPluginTargets.cmake
+
+.qt/6.9.3-prop-macos-arm64/lib/cmake/Qt6Pdf:
+total 96
+drwxr-xr-x@ 11 pv  staff   352 Nov 26 10:53 .
+drwxr-xr-x@ 21 pv  staff   672 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff  2803 Nov 26 09:06 Qt6PdfAdditionalTargetInfo.cmake
+-rw-r--r--@  1 pv  staff  9203 Nov 26 09:06 Qt6PdfConfig.cmake
+-rw-r--r--@  1 pv  staff  3008 Nov 26 09:06 Qt6PdfConfigVersion.cmake
+-rw-r--r--@  1 pv  staff  1861 Nov 26 09:06 Qt6PdfConfigVersionImpl.cmake
+-rw-r--r--@  1 pv  staff  1841 Nov 26 09:06 Qt6PdfDependencies.cmake
+-rw-r--r--@  1 pv  staff   932 Nov 26 09:06 Qt6PdfTargets-release.cmake
+-rw-r--r--@  1 pv  staff  5520 Nov 26 09:06 Qt6PdfTargets.cmake
+-rw-r--r--@  1 pv  staff   281 Nov 26 09:06 Qt6PdfVersionlessAliasTargets.cmake
+-rw-r--r--@  1 pv  staff   275 Nov 26 09:06 Qt6PdfVersionlessTargets.cmake
+
+.qt/6.9.3-prop-macos-arm64/lib/cmake/Qt6PdfPrivate:
+total 72
+drwxr-xr-x@ 10 pv  staff   320 Nov 26 10:53 .
+drwxr-xr-x@ 21 pv  staff   672 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff   219 Nov 26 09:06 Qt6PdfPrivateAdditionalTargetInfo.cmake
+-rw-r--r--@  1 pv  staff  2894 Nov 26 09:06 Qt6PdfPrivateConfig.cmake
+-rw-r--r--@  1 pv  staff  3015 Nov 26 09:06 Qt6PdfPrivateConfigVersion.cmake
+-rw-r--r--@  1 pv  staff  1861 Nov 26 09:06 Qt6PdfPrivateConfigVersionImpl.cmake
+-rw-r--r--@  1 pv  staff  1921 Nov 26 09:06 Qt6PdfPrivateDependencies.cmake
+-rw-r--r--@  1 pv  staff  5800 Nov 26 09:06 Qt6PdfPrivateTargets.cmake
+-rw-r--r--@  1 pv  staff   288 Nov 26 09:06 Qt6PdfPrivateVersionlessAliasTargets.cmake
+-rw-r--r--@  1 pv  staff   282 Nov 26 09:06 Qt6PdfPrivateVersionlessTargets.cmake
+
+.qt/6.9.3-prop-macos-arm64/lib/cmake/Qt6PdfQuick:
+total 96
+drwxr-xr-x@ 11 pv  staff   352 Nov 26 10:53 .
+drwxr-xr-x@ 21 pv  staff   672 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff  2908 Nov 26 09:06 Qt6PdfQuickAdditionalTargetInfo.cmake
+-rw-r--r--@  1 pv  staff  9613 Nov 26 09:06 Qt6PdfQuickConfig.cmake
+-rw-r--r--@  1 pv  staff  3013 Nov 26 09:06 Qt6PdfQuickConfigVersion.cmake
+-rw-r--r--@  1 pv  staff  1861 Nov 26 09:06 Qt6PdfQuickConfigVersionImpl.cmake
+-rw-r--r--@  1 pv  staff  1963 Nov 26 09:06 Qt6PdfQuickDependencies.cmake
+-rw-r--r--@  1 pv  staff   928 Nov 26 09:06 Qt6PdfQuickTargets-release.cmake
+-rw-r--r--@  1 pv  staff  6535 Nov 26 09:06 Qt6PdfQuickTargets.cmake
+-rw-r--r--@  1 pv  staff   286 Nov 26 09:06 Qt6PdfQuickVersionlessAliasTargets.cmake
+-rw-r--r--@  1 pv  staff   280 Nov 26 09:06 Qt6PdfQuickVersionlessTargets.cmake
+
+.qt/6.9.3-prop-macos-arm64/lib/cmake/Qt6PdfQuickPrivate:
+total 72
+drwxr-xr-x@ 10 pv  staff   320 Nov 26 10:53 .
+drwxr-xr-x@ 21 pv  staff   672 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff   229 Nov 26 09:06 Qt6PdfQuickPrivateAdditionalTargetInfo.cmake
+-rw-r--r--@  1 pv  staff  2999 Nov 26 09:06 Qt6PdfQuickPrivateConfig.cmake
+-rw-r--r--@  1 pv  staff  3020 Nov 26 09:06 Qt6PdfQuickPrivateConfigVersion.cmake
+-rw-r--r--@  1 pv  staff  1861 Nov 26 09:06 Qt6PdfQuickPrivateConfigVersionImpl.cmake
+-rw-r--r--@  1 pv  staff  2089 Nov 26 09:06 Qt6PdfQuickPrivateDependencies.cmake
+-rw-r--r--@  1 pv  staff  5942 Nov 26 09:06 Qt6PdfQuickPrivateTargets.cmake
+-rw-r--r--@  1 pv  staff   293 Nov 26 09:06 Qt6PdfQuickPrivateVersionlessAliasTargets.cmake
+-rw-r--r--@  1 pv  staff   287 Nov 26 09:06 Qt6PdfQuickPrivateVersionlessTargets.cmake
+
+.qt/6.9.3-prop-macos-arm64/lib/cmake/Qt6PdfWidgets:
+total 96
+drwxr-xr-x@ 11 pv  staff   352 Nov 26 10:53 .
+drwxr-xr-x@ 21 pv  staff   672 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff  2950 Nov 26 09:06 Qt6PdfWidgetsAdditionalTargetInfo.cmake
+-rw-r--r--@  1 pv  staff  9777 Nov 26 09:06 Qt6PdfWidgetsConfig.cmake
+-rw-r--r--@  1 pv  staff  3015 Nov 26 09:06 Qt6PdfWidgetsConfigVersion.cmake
+-rw-r--r--@  1 pv  staff  1861 Nov 26 09:06 Qt6PdfWidgetsConfigVersionImpl.cmake
+-rw-r--r--@  1 pv  staff  1985 Nov 26 09:06 Qt6PdfWidgetsDependencies.cmake
+-rw-r--r--@  1 pv  staff   950 Nov 26 09:06 Qt6PdfWidgetsTargets-release.cmake
+-rw-r--r--@  1 pv  staff  6120 Nov 26 09:06 Qt6PdfWidgetsTargets.cmake
+-rw-r--r--@  1 pv  staff   288 Nov 26 09:06 Qt6PdfWidgetsVersionlessAliasTargets.cmake
+-rw-r--r--@  1 pv  staff   282 Nov 26 09:06 Qt6PdfWidgetsVersionlessTargets.cmake
+
+.qt/6.9.3-prop-macos-arm64/lib/cmake/Qt6PdfWidgetsPrivate:
+total 72
+drwxr-xr-x@ 10 pv  staff   320 Nov 26 10:53 .
+drwxr-xr-x@ 21 pv  staff   672 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff   233 Nov 26 09:06 Qt6PdfWidgetsPrivateAdditionalTargetInfo.cmake
+-rw-r--r--@  1 pv  staff  3041 Nov 26 09:06 Qt6PdfWidgetsPrivateConfig.cmake
+-rw-r--r--@  1 pv  staff  3022 Nov 26 09:06 Qt6PdfWidgetsPrivateConfigVersion.cmake
+-rw-r--r--@  1 pv  staff  1861 Nov 26 09:06 Qt6PdfWidgetsPrivateConfigVersionImpl.cmake
+-rw-r--r--@  1 pv  staff  2061 Nov 26 09:06 Qt6PdfWidgetsPrivateDependencies.cmake
+-rw-r--r--@  1 pv  staff  5926 Nov 26 09:06 Qt6PdfWidgetsPrivateTargets.cmake
+-rw-r--r--@  1 pv  staff   295 Nov 26 09:06 Qt6PdfWidgetsPrivateVersionlessAliasTargets.cmake
+-rw-r--r--@  1 pv  staff   289 Nov 26 09:06 Qt6PdfWidgetsPrivateVersionlessTargets.cmake
+
+.qt/6.9.3-prop-macos-arm64/lib/cmake/Qt6Qml:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 21 pv  staff  672 Nov 26 10:53 ..
+drwxr-xr-x@ 20 pv  staff  640 Nov 26 10:53 QmlPlugins
+
+.qt/6.9.3-prop-macos-arm64/lib/cmake/Qt6Qml/QmlPlugins:
+total 168
+drwxr-xr-x@ 20 pv  staff   640 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff  1600 Nov 26 09:06 Qt6PdfQuickpluginAdditionalTargetInfo.cmake
+-rw-r--r--@  1 pv  staff  2130 Nov 26 09:06 Qt6PdfQuickpluginConfig.cmake
+-rw-r--r--@  1 pv  staff  3019 Nov 26 09:06 Qt6PdfQuickpluginConfigVersion.cmake
+-rw-r--r--@  1 pv  staff  1861 Nov 26 09:06 Qt6PdfQuickpluginConfigVersionImpl.cmake
+-rw-r--r--@  1 pv  staff   966 Nov 26 09:06 Qt6PdfQuickpluginTargets-release.cmake
+-rw-r--r--@  1 pv  staff  5217 Nov 26 09:06 Qt6PdfQuickpluginTargets.cmake
+-rw-r--r--@  1 pv  staff  1787 Nov 26 09:06 Qt6qtwebenginequickdelegatespluginAdditionalTargetInfo.cmake
+-rw-r--r--@  1 pv  staff  2232 Nov 26 09:06 Qt6qtwebenginequickdelegatespluginConfig.cmake
+-rw-r--r--@  1 pv  staff  3036 Nov 26 09:06 Qt6qtwebenginequickdelegatespluginConfigVersion.cmake
+-rw-r--r--@  1 pv  staff  1861 Nov 26 09:06 Qt6qtwebenginequickdelegatespluginConfigVersionImpl.cmake
+-rw-r--r--@  1 pv  staff  1121 Nov 26 09:06 Qt6qtwebenginequickdelegatespluginTargets-release.cmake
+-rw-r--r--@  1 pv  staff  5451 Nov 26 09:06 Qt6qtwebenginequickdelegatespluginTargets.cmake
+-rw-r--r--@  1 pv  staff  1688 Nov 26 09:06 Qt6qtwebenginequickpluginAdditionalTargetInfo.cmake
+-rw-r--r--@  1 pv  staff  2178 Nov 26 09:06 Qt6qtwebenginequickpluginConfig.cmake
+-rw-r--r--@  1 pv  staff  3027 Nov 26 09:06 Qt6qtwebenginequickpluginConfigVersion.cmake
+-rw-r--r--@  1 pv  staff  1861 Nov 26 09:06 Qt6qtwebenginequickpluginConfigVersionImpl.cmake
+-rw-r--r--@  1 pv  staff  1022 Nov 26 09:06 Qt6qtwebenginequickpluginTargets-release.cmake
+-rw-r--r--@  1 pv  staff  5301 Nov 26 09:06 Qt6qtwebenginequickpluginTargets.cmake
+
+.qt/6.9.3-prop-macos-arm64/lib/cmake/Qt6WebEngineCore:
+total 128
+drwxr-xr-x@ 13 pv  staff    416 Nov 26 10:53 .
+drwxr-xr-x@ 21 pv  staff    672 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff   3013 Nov 26 09:06 Qt6WebEngineCoreAdditionalTargetInfo.cmake
+-rw-r--r--@  1 pv  staff  10051 Nov 26 09:06 Qt6WebEngineCoreConfig.cmake
+-rw-r--r--@  1 pv  staff   3018 Nov 26 09:06 Qt6WebEngineCoreConfigVersion.cmake
+-rw-r--r--@  1 pv  staff   1861 Nov 26 09:06 Qt6WebEngineCoreConfigVersionImpl.cmake
+-rw-r--r--@  1 pv  staff   2137 Nov 26 09:06 Qt6WebEngineCoreDependencies.cmake
+-rw-r--r--@  1 pv  staff   9412 Sep 25 11:10 Qt6WebEngineCoreDeploySupport.cmake
+-rw-r--r--@  1 pv  staff   3152 Sep 25 11:10 Qt6WebEngineCoreMacros.cmake
+-rw-r--r--@  1 pv  staff    983 Nov 26 09:06 Qt6WebEngineCoreTargets-release.cmake
+-rw-r--r--@  1 pv  staff   6174 Nov 26 09:06 Qt6WebEngineCoreTargets.cmake
+-rw-r--r--@  1 pv  staff    291 Nov 26 09:06 Qt6WebEngineCoreVersionlessAliasTargets.cmake
+-rw-r--r--@  1 pv  staff    285 Nov 26 09:06 Qt6WebEngineCoreVersionlessTargets.cmake
+
+.qt/6.9.3-prop-macos-arm64/lib/cmake/Qt6WebEngineCorePrivate:
+total 72
+drwxr-xr-x@ 10 pv  staff   320 Nov 26 10:53 .
+drwxr-xr-x@ 21 pv  staff   672 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff   239 Nov 26 09:06 Qt6WebEngineCorePrivateAdditionalTargetInfo.cmake
+-rw-r--r--@  1 pv  staff  3104 Nov 26 09:06 Qt6WebEngineCorePrivateConfig.cmake
+-rw-r--r--@  1 pv  staff  3025 Nov 26 09:06 Qt6WebEngineCorePrivateConfigVersion.cmake
+-rw-r--r--@  1 pv  staff  1861 Nov 26 09:06 Qt6WebEngineCorePrivateConfigVersionImpl.cmake
+-rw-r--r--@  1 pv  staff  2121 Nov 26 09:06 Qt6WebEngineCorePrivateDependencies.cmake
+-rw-r--r--@  1 pv  staff  6004 Nov 26 09:06 Qt6WebEngineCorePrivateTargets.cmake
+-rw-r--r--@  1 pv  staff   298 Nov 26 09:06 Qt6WebEngineCorePrivateVersionlessAliasTargets.cmake
+-rw-r--r--@  1 pv  staff   292 Nov 26 09:06 Qt6WebEngineCorePrivateVersionlessTargets.cmake
+
+.qt/6.9.3-prop-macos-arm64/lib/cmake/Qt6WebEngineCoreTools:
+total 72
+drwxr-xr-x@ 10 pv  staff   320 Nov 26 10:53 .
+drwxr-xr-x@ 21 pv  staff   672 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff  1617 Nov 26 09:06 Qt6WebEngineCoreToolsAdditionalTargetInfo.cmake
+-rw-r--r--@  1 pv  staff  2165 Nov 26 09:06 Qt6WebEngineCoreToolsConfig.cmake
+-rw-r--r--@  1 pv  staff  3023 Nov 26 09:06 Qt6WebEngineCoreToolsConfigVersion.cmake
+-rw-r--r--@  1 pv  staff  1402 Nov 26 09:06 Qt6WebEngineCoreToolsConfigVersionImpl.cmake
+-rw-r--r--@  1 pv  staff   494 Nov 26 09:06 Qt6WebEngineCoreToolsDependencies.cmake
+-rw-r--r--@  1 pv  staff   913 Nov 26 09:06 Qt6WebEngineCoreToolsTargets-release.cmake
+-rw-r--r--@  1 pv  staff  4648 Nov 26 09:06 Qt6WebEngineCoreToolsTargets.cmake
+-rw-r--r--@  1 pv  staff  1042 Nov 26 09:06 Qt6WebEngineCoreToolsVersionlessTargets.cmake
+
+.qt/6.9.3-prop-macos-arm64/lib/cmake/Qt6WebEngineQuick:
+total 96
+drwxr-xr-x@ 11 pv  staff    352 Nov 26 10:53 .
+drwxr-xr-x@ 21 pv  staff    672 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff   3034 Nov 26 09:06 Qt6WebEngineQuickAdditionalTargetInfo.cmake
+-rw-r--r--@  1 pv  staff  10105 Nov 26 09:06 Qt6WebEngineQuickConfig.cmake
+-rw-r--r--@  1 pv  staff   3019 Nov 26 09:06 Qt6WebEngineQuickConfigVersion.cmake
+-rw-r--r--@  1 pv  staff   1861 Nov 26 09:06 Qt6WebEngineQuickConfigVersionImpl.cmake
+-rw-r--r--@  1 pv  staff   2133 Nov 26 09:06 Qt6WebEngineQuickDependencies.cmake
+-rw-r--r--@  1 pv  staff    994 Nov 26 09:06 Qt6WebEngineQuickTargets-release.cmake
+-rw-r--r--@  1 pv  staff   6998 Nov 26 09:06 Qt6WebEngineQuickTargets.cmake
+-rw-r--r--@  1 pv  staff    292 Nov 26 09:06 Qt6WebEngineQuickVersionlessAliasTargets.cmake
+-rw-r--r--@  1 pv  staff    286 Nov 26 09:06 Qt6WebEngineQuickVersionlessTargets.cmake
+
+.qt/6.9.3-prop-macos-arm64/lib/cmake/Qt6WebEngineQuickDelegatesQml:
+total 88
+drwxr-xr-x@ 10 pv  staff    320 Nov 26 10:53 .
+drwxr-xr-x@ 21 pv  staff    672 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff   3286 Nov 26 09:06 Qt6WebEngineQuickDelegatesQmlAdditionalTargetInfo.cmake
+-rw-r--r--@  1 pv  staff  11089 Nov 26 09:06 Qt6WebEngineQuickDelegatesQmlConfig.cmake
+-rw-r--r--@  1 pv  staff   3031 Nov 26 09:06 Qt6WebEngineQuickDelegatesQmlConfigVersion.cmake
+-rw-r--r--@  1 pv  staff   1861 Nov 26 09:06 Qt6WebEngineQuickDelegatesQmlConfigVersionImpl.cmake
+-rw-r--r--@  1 pv  staff   1191 Nov 26 09:06 Qt6WebEngineQuickDelegatesQmlTargets-release.cmake
+-rw-r--r--@  1 pv  staff   6000 Nov 26 09:06 Qt6WebEngineQuickDelegatesQmlTargets.cmake
+-rw-r--r--@  1 pv  staff    304 Nov 26 09:06 Qt6WebEngineQuickDelegatesQmlVersionlessAliasTargets.cmake
+-rw-r--r--@  1 pv  staff    298 Nov 26 09:06 Qt6WebEngineQuickDelegatesQmlVersionlessTargets.cmake
+
+.qt/6.9.3-prop-macos-arm64/lib/cmake/Qt6WebEngineQuickDelegatesQmlPrivate:
+total 72
+drwxr-xr-x@ 10 pv  staff   320 Nov 26 10:53 .
+drwxr-xr-x@ 21 pv  staff   672 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff   265 Nov 26 09:06 Qt6WebEngineQuickDelegatesQmlPrivateAdditionalTargetInfo.cmake
+-rw-r--r--@  1 pv  staff  3377 Nov 26 09:06 Qt6WebEngineQuickDelegatesQmlPrivateConfig.cmake
+-rw-r--r--@  1 pv  staff  3038 Nov 26 09:06 Qt6WebEngineQuickDelegatesQmlPrivateConfigVersion.cmake
+-rw-r--r--@  1 pv  staff  1861 Nov 26 09:06 Qt6WebEngineQuickDelegatesQmlPrivateConfigVersionImpl.cmake
+-rw-r--r--@  1 pv  staff  2381 Nov 26 09:06 Qt6WebEngineQuickDelegatesQmlPrivateDependencies.cmake
+-rw-r--r--@  1 pv  staff  5617 Nov 26 09:06 Qt6WebEngineQuickDelegatesQmlPrivateTargets.cmake
+-rw-r--r--@  1 pv  staff   311 Nov 26 09:06 Qt6WebEngineQuickDelegatesQmlPrivateVersionlessAliasTargets.cmake
+-rw-r--r--@  1 pv  staff   305 Nov 26 09:06 Qt6WebEngineQuickDelegatesQmlPrivateVersionlessTargets.cmake
+
+.qt/6.9.3-prop-macos-arm64/lib/cmake/Qt6WebEngineQuickPrivate:
+total 72
+drwxr-xr-x@ 10 pv  staff   320 Nov 26 10:53 .
+drwxr-xr-x@ 21 pv  staff   672 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff   241 Nov 26 09:06 Qt6WebEngineQuickPrivateAdditionalTargetInfo.cmake
+-rw-r--r--@  1 pv  staff  3125 Nov 26 09:06 Qt6WebEngineQuickPrivateConfig.cmake
+-rw-r--r--@  1 pv  staff  3026 Nov 26 09:06 Qt6WebEngineQuickPrivateConfigVersion.cmake
+-rw-r--r--@  1 pv  staff  1861 Nov 26 09:06 Qt6WebEngineQuickPrivateConfigVersionImpl.cmake
+-rw-r--r--@  1 pv  staff  2141 Nov 26 09:06 Qt6WebEngineQuickPrivateDependencies.cmake
+-rw-r--r--@  1 pv  staff  6022 Nov 26 09:06 Qt6WebEngineQuickPrivateTargets.cmake
+-rw-r--r--@  1 pv  staff   299 Nov 26 09:06 Qt6WebEngineQuickPrivateVersionlessAliasTargets.cmake
+-rw-r--r--@  1 pv  staff   293 Nov 26 09:06 Qt6WebEngineQuickPrivateVersionlessTargets.cmake
+
+.qt/6.9.3-prop-macos-arm64/lib/cmake/Qt6WebEngineWidgets:
+total 96
+drwxr-xr-x@ 11 pv  staff    352 Nov 26 10:53 .
+drwxr-xr-x@ 21 pv  staff    672 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff   3076 Nov 26 09:06 Qt6WebEngineWidgetsAdditionalTargetInfo.cmake
+-rw-r--r--@  1 pv  staff  10269 Nov 26 09:06 Qt6WebEngineWidgetsConfig.cmake
+-rw-r--r--@  1 pv  staff   3021 Nov 26 09:06 Qt6WebEngineWidgetsConfigVersion.cmake
+-rw-r--r--@  1 pv  staff   1861 Nov 26 09:06 Qt6WebEngineWidgetsConfigVersionImpl.cmake
+-rw-r--r--@  1 pv  staff   2207 Nov 26 09:06 Qt6WebEngineWidgetsDependencies.cmake
+-rw-r--r--@  1 pv  staff   1091 Nov 26 09:06 Qt6WebEngineWidgetsTargets-release.cmake
+-rw-r--r--@  1 pv  staff   6278 Nov 26 09:06 Qt6WebEngineWidgetsTargets.cmake
+-rw-r--r--@  1 pv  staff    294 Nov 26 09:06 Qt6WebEngineWidgetsVersionlessAliasTargets.cmake
+-rw-r--r--@  1 pv  staff    288 Nov 26 09:06 Qt6WebEngineWidgetsVersionlessTargets.cmake
+
+.qt/6.9.3-prop-macos-arm64/lib/cmake/Qt6WebEngineWidgetsPrivate:
+total 72
+drwxr-xr-x@ 10 pv  staff   320 Nov 26 10:53 .
+drwxr-xr-x@ 21 pv  staff   672 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff   245 Nov 26 09:06 Qt6WebEngineWidgetsPrivateAdditionalTargetInfo.cmake
+-rw-r--r--@  1 pv  staff  3167 Nov 26 09:06 Qt6WebEngineWidgetsPrivateConfig.cmake
+-rw-r--r--@  1 pv  staff  3028 Nov 26 09:06 Qt6WebEngineWidgetsPrivateConfigVersion.cmake
+-rw-r--r--@  1 pv  staff  1861 Nov 26 09:06 Qt6WebEngineWidgetsPrivateConfigVersionImpl.cmake
+-rw-r--r--@  1 pv  staff  2181 Nov 26 09:06 Qt6WebEngineWidgetsPrivateDependencies.cmake
+-rw-r--r--@  1 pv  staff  6058 Nov 26 09:06 Qt6WebEngineWidgetsPrivateTargets.cmake
+-rw-r--r--@  1 pv  staff   301 Nov 26 09:06 Qt6WebEngineWidgetsPrivateVersionlessAliasTargets.cmake
+-rw-r--r--@  1 pv  staff   295 Nov 26 09:06 Qt6WebEngineWidgetsPrivateVersionlessTargets.cmake
+
+.qt/6.9.3-prop-macos-arm64/lib/pkgconfig:
+total 56
+drwxr-xr-x@  9 pv  staff  288 Nov 26 10:53 .
+drwxr-xr-x@ 11 pv  staff  352 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff  479 Nov 26 09:44 Qt6Pdf.pc
+-rw-r--r--@  1 pv  staff  532 Nov 26 09:44 Qt6PdfQuick.pc
+-rw-r--r--@  1 pv  staff  539 Nov 26 09:44 Qt6PdfWidgets.pc
+-rw-r--r--@  1 pv  staff  588 Nov 26 09:43 Qt6WebEngineCore.pc
+-rw-r--r--@  1 pv  staff  597 Nov 26 09:43 Qt6WebEngineQuick.pc
+-rw-r--r--@  1 pv  staff  592 Nov 26 09:06 Qt6WebEngineQuickDelegatesQml.pc
+-rw-r--r--@  1 pv  staff  601 Nov 26 09:43 Qt6WebEngineWidgets.pc
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdf.framework:
+total 22088
+drwxr-xr-x@  6 pv  staff       192 Nov 26 10:53 .
+drwxr-xr-x@ 11 pv  staff       352 Nov 26 10:53 ..
+drwxr-xr-x@ 29 pv  staff       928 Nov 26 10:53 Headers
+-rwxr-xr-x@  1 pv  staff  11305672 Nov 26 09:44 QtPdf
+drwxr-xr-x@  5 pv  staff       160 Nov 26 10:53 Resources
+drwxr-xr-x@  4 pv  staff       128 Nov 26 10:53 Versions
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdf.framework/Headers:
+total 200
+drwxr-xr-x@ 29 pv  staff   928 Nov 26 10:53 .
+drwxr-xr-x@  6 pv  staff   192 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 6.9.3
+-rw-r--r--@  1 pv  staff    20 Nov 26 09:06 Pdf_fake_header.h
+-rw-r--r--@  1 pv  staff    54 Nov 26 09:06 QPdfBookmarkModel
+-rw-r--r--@  1 pv  staff  1616 Nov 26 09:06 qpdfbookmarkmodel.h
+-rw-r--r--@  1 pv  staff    49 Nov 26 09:06 QPdfDocument
+-rw-r--r--@  1 pv  staff  3234 Nov 26 09:06 qpdfdocument.h
+-rw-r--r--@  1 pv  staff    62 Nov 26 09:06 QPdfDocumentRenderOptions
+-rw-r--r--@  1 pv  staff  2847 Nov 26 09:06 qpdfdocumentrenderoptions.h
+-rw-r--r--@  1 pv  staff    45 Nov 26 09:06 QPdfLink
+-rw-r--r--@  1 pv  staff  2376 Nov 26 09:06 qpdflink.h
+-rw-r--r--@  1 pv  staff    50 Nov 26 09:06 QPdfLinkModel
+-rw-r--r--@  1 pv  staff  1568 Nov 26 09:06 qpdflinkmodel.h
+-rw-r--r--@  1 pv  staff    54 Nov 26 09:06 QPdfPageNavigator
+-rw-r--r--@  1 pv  staff  1815 Nov 26 09:06 qpdfpagenavigator.h
+-rw-r--r--@  1 pv  staff    53 Nov 26 09:06 QPdfPageRenderer
+-rw-r--r--@  1 pv  staff  1751 Nov 26 09:06 qpdfpagerenderer.h
+-rw-r--r--@  1 pv  staff    52 Nov 26 09:06 QPdfSearchModel
+-rw-r--r--@  1 pv  staff  1898 Nov 26 09:06 qpdfsearchmodel.h
+-rw-r--r--@  1 pv  staff    50 Nov 26 09:06 QPdfSelection
+-rw-r--r--@  1 pv  staff  1903 Nov 26 09:06 qpdfselection.h
+-rw-r--r--@  1 pv  staff   402 Nov 26 09:06 QtPdf
+-rw-r--r--@  1 pv  staff     0 Nov 26 09:06 qtpdf-config.h
+-rw-r--r--@  1 pv  staff   181 Nov 26 09:06 QtPdfDepends
+-r--r--r--@  1 pv  staff  1777 Nov 26 09:06 qtpdfexports.h
+-rw-r--r--@  1 pv  staff   276 Nov 26 09:06 qtpdfglobal.h
+-rw-r--r--@  1 pv  staff    49 Nov 26 09:06 QtPdfVersion
+-rw-r--r--@  1 pv  staff   192 Nov 26 09:06 qtpdfversion.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdf.framework/Headers/6.9.3:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 29 pv  staff  928 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 QtPdf
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdf.framework/Headers/6.9.3/QtPdf:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 ..
+drwxr-xr-x@ 10 pv  staff  320 Nov 26 10:53 private
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdf.framework/Headers/6.9.3/QtPdf/private:
+total 64
+drwxr-xr-x@ 10 pv  staff   320 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff  3835 Nov 26 09:06 qpdfdocument_p.h
+-rw-r--r--@  1 pv  staff   744 Nov 26 09:06 qpdffile_p.h
+-rw-r--r--@  1 pv  staff  1272 Nov 26 09:06 qpdflink_p.h
+-rw-r--r--@  1 pv  staff   902 Nov 26 09:06 qpdflinkmodel_p.h
+-rw-r--r--@  1 pv  staff  1272 Nov 26 09:06 qpdfsearchmodel_p.h
+-rw-r--r--@  1 pv  staff  1063 Nov 26 09:06 qpdfselection_p.h
+-rw-r--r--@  1 pv  staff   279 Nov 26 09:06 qtpdf-config_p.h
+-rw-r--r--@  1 pv  staff  1215 Nov 26 09:06 qtpdfglobal_p.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdf.framework/Resources:
+total 24
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 .
+drwxr-xr-x@ 6 pv  staff  192 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  806 Nov 26 09:06 Info.plist
+-r--r--r--@ 1 pv  staff  343 Nov 26 09:06 PrivacyInfo.xcprivacy
+-rw-r--r--@ 1 pv  staff  546 Nov 26 09:44 QtPdf.prl
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdf.framework/Versions:
+total 0
+drwxr-xr-x@ 4 pv  staff  128 Nov 26 10:53 .
+drwxr-xr-x@ 6 pv  staff  192 Nov 26 10:53 ..
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 A
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 Current
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdf.framework/Versions/A:
+total 22088
+drwxr-xr-x@  5 pv  staff       160 Nov 26 10:53 .
+drwxr-xr-x@  4 pv  staff       128 Nov 26 10:53 ..
+drwxr-xr-x@ 29 pv  staff       928 Nov 26 10:53 Headers
+-rwxr-xr-x@  1 pv  staff  11305672 Nov 26 09:44 QtPdf
+drwxr-xr-x@  5 pv  staff       160 Nov 26 10:53 Resources
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdf.framework/Versions/A/Headers:
+total 200
+drwxr-xr-x@ 29 pv  staff   928 Nov 26 10:53 .
+drwxr-xr-x@  5 pv  staff   160 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 6.9.3
+-rw-r--r--@  1 pv  staff    20 Nov 26 09:06 Pdf_fake_header.h
+-rw-r--r--@  1 pv  staff    54 Nov 26 09:06 QPdfBookmarkModel
+-rw-r--r--@  1 pv  staff  1616 Nov 26 09:06 qpdfbookmarkmodel.h
+-rw-r--r--@  1 pv  staff    49 Nov 26 09:06 QPdfDocument
+-rw-r--r--@  1 pv  staff  3234 Nov 26 09:06 qpdfdocument.h
+-rw-r--r--@  1 pv  staff    62 Nov 26 09:06 QPdfDocumentRenderOptions
+-rw-r--r--@  1 pv  staff  2847 Nov 26 09:06 qpdfdocumentrenderoptions.h
+-rw-r--r--@  1 pv  staff    45 Nov 26 09:06 QPdfLink
+-rw-r--r--@  1 pv  staff  2376 Nov 26 09:06 qpdflink.h
+-rw-r--r--@  1 pv  staff    50 Nov 26 09:06 QPdfLinkModel
+-rw-r--r--@  1 pv  staff  1568 Nov 26 09:06 qpdflinkmodel.h
+-rw-r--r--@  1 pv  staff    54 Nov 26 09:06 QPdfPageNavigator
+-rw-r--r--@  1 pv  staff  1815 Nov 26 09:06 qpdfpagenavigator.h
+-rw-r--r--@  1 pv  staff    53 Nov 26 09:06 QPdfPageRenderer
+-rw-r--r--@  1 pv  staff  1751 Nov 26 09:06 qpdfpagerenderer.h
+-rw-r--r--@  1 pv  staff    52 Nov 26 09:06 QPdfSearchModel
+-rw-r--r--@  1 pv  staff  1898 Nov 26 09:06 qpdfsearchmodel.h
+-rw-r--r--@  1 pv  staff    50 Nov 26 09:06 QPdfSelection
+-rw-r--r--@  1 pv  staff  1903 Nov 26 09:06 qpdfselection.h
+-rw-r--r--@  1 pv  staff   402 Nov 26 09:06 QtPdf
+-rw-r--r--@  1 pv  staff     0 Nov 26 09:06 qtpdf-config.h
+-rw-r--r--@  1 pv  staff   181 Nov 26 09:06 QtPdfDepends
+-r--r--r--@  1 pv  staff  1777 Nov 26 09:06 qtpdfexports.h
+-rw-r--r--@  1 pv  staff   276 Nov 26 09:06 qtpdfglobal.h
+-rw-r--r--@  1 pv  staff    49 Nov 26 09:06 QtPdfVersion
+-rw-r--r--@  1 pv  staff   192 Nov 26 09:06 qtpdfversion.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdf.framework/Versions/A/Headers/6.9.3:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 29 pv  staff  928 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 QtPdf
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdf.framework/Versions/A/Headers/6.9.3/QtPdf:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 ..
+drwxr-xr-x@ 10 pv  staff  320 Nov 26 10:53 private
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdf.framework/Versions/A/Headers/6.9.3/QtPdf/private:
+total 64
+drwxr-xr-x@ 10 pv  staff   320 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff  3835 Nov 26 09:06 qpdfdocument_p.h
+-rw-r--r--@  1 pv  staff   744 Nov 26 09:06 qpdffile_p.h
+-rw-r--r--@  1 pv  staff  1272 Nov 26 09:06 qpdflink_p.h
+-rw-r--r--@  1 pv  staff   902 Nov 26 09:06 qpdflinkmodel_p.h
+-rw-r--r--@  1 pv  staff  1272 Nov 26 09:06 qpdfsearchmodel_p.h
+-rw-r--r--@  1 pv  staff  1063 Nov 26 09:06 qpdfselection_p.h
+-rw-r--r--@  1 pv  staff   279 Nov 26 09:06 qtpdf-config_p.h
+-rw-r--r--@  1 pv  staff  1215 Nov 26 09:06 qtpdfglobal_p.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdf.framework/Versions/A/Resources:
+total 24
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 .
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  806 Nov 26 09:06 Info.plist
+-r--r--r--@ 1 pv  staff  343 Nov 26 09:06 PrivacyInfo.xcprivacy
+-rw-r--r--@ 1 pv  staff  546 Nov 26 09:44 QtPdf.prl
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdf.framework/Versions/Current:
+total 22088
+drwxr-xr-x@  5 pv  staff       160 Nov 26 10:53 .
+drwxr-xr-x@  4 pv  staff       128 Nov 26 10:53 ..
+drwxr-xr-x@ 29 pv  staff       928 Nov 26 10:53 Headers
+-rwxr-xr-x@  1 pv  staff  11305672 Nov 26 09:44 QtPdf
+drwxr-xr-x@  5 pv  staff       160 Nov 26 10:53 Resources
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdf.framework/Versions/Current/Headers:
+total 200
+drwxr-xr-x@ 29 pv  staff   928 Nov 26 10:53 .
+drwxr-xr-x@  5 pv  staff   160 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 6.9.3
+-rw-r--r--@  1 pv  staff    20 Nov 26 09:06 Pdf_fake_header.h
+-rw-r--r--@  1 pv  staff    54 Nov 26 09:06 QPdfBookmarkModel
+-rw-r--r--@  1 pv  staff  1616 Nov 26 09:06 qpdfbookmarkmodel.h
+-rw-r--r--@  1 pv  staff    49 Nov 26 09:06 QPdfDocument
+-rw-r--r--@  1 pv  staff  3234 Nov 26 09:06 qpdfdocument.h
+-rw-r--r--@  1 pv  staff    62 Nov 26 09:06 QPdfDocumentRenderOptions
+-rw-r--r--@  1 pv  staff  2847 Nov 26 09:06 qpdfdocumentrenderoptions.h
+-rw-r--r--@  1 pv  staff    45 Nov 26 09:06 QPdfLink
+-rw-r--r--@  1 pv  staff  2376 Nov 26 09:06 qpdflink.h
+-rw-r--r--@  1 pv  staff    50 Nov 26 09:06 QPdfLinkModel
+-rw-r--r--@  1 pv  staff  1568 Nov 26 09:06 qpdflinkmodel.h
+-rw-r--r--@  1 pv  staff    54 Nov 26 09:06 QPdfPageNavigator
+-rw-r--r--@  1 pv  staff  1815 Nov 26 09:06 qpdfpagenavigator.h
+-rw-r--r--@  1 pv  staff    53 Nov 26 09:06 QPdfPageRenderer
+-rw-r--r--@  1 pv  staff  1751 Nov 26 09:06 qpdfpagerenderer.h
+-rw-r--r--@  1 pv  staff    52 Nov 26 09:06 QPdfSearchModel
+-rw-r--r--@  1 pv  staff  1898 Nov 26 09:06 qpdfsearchmodel.h
+-rw-r--r--@  1 pv  staff    50 Nov 26 09:06 QPdfSelection
+-rw-r--r--@  1 pv  staff  1903 Nov 26 09:06 qpdfselection.h
+-rw-r--r--@  1 pv  staff   402 Nov 26 09:06 QtPdf
+-rw-r--r--@  1 pv  staff     0 Nov 26 09:06 qtpdf-config.h
+-rw-r--r--@  1 pv  staff   181 Nov 26 09:06 QtPdfDepends
+-r--r--r--@  1 pv  staff  1777 Nov 26 09:06 qtpdfexports.h
+-rw-r--r--@  1 pv  staff   276 Nov 26 09:06 qtpdfglobal.h
+-rw-r--r--@  1 pv  staff    49 Nov 26 09:06 QtPdfVersion
+-rw-r--r--@  1 pv  staff   192 Nov 26 09:06 qtpdfversion.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdf.framework/Versions/Current/Headers/6.9.3:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 29 pv  staff  928 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 QtPdf
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdf.framework/Versions/Current/Headers/6.9.3/QtPdf:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 ..
+drwxr-xr-x@ 10 pv  staff  320 Nov 26 10:53 private
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdf.framework/Versions/Current/Headers/6.9.3/QtPdf/private:
+total 64
+drwxr-xr-x@ 10 pv  staff   320 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff  3835 Nov 26 09:06 qpdfdocument_p.h
+-rw-r--r--@  1 pv  staff   744 Nov 26 09:06 qpdffile_p.h
+-rw-r--r--@  1 pv  staff  1272 Nov 26 09:06 qpdflink_p.h
+-rw-r--r--@  1 pv  staff   902 Nov 26 09:06 qpdflinkmodel_p.h
+-rw-r--r--@  1 pv  staff  1272 Nov 26 09:06 qpdfsearchmodel_p.h
+-rw-r--r--@  1 pv  staff  1063 Nov 26 09:06 qpdfselection_p.h
+-rw-r--r--@  1 pv  staff   279 Nov 26 09:06 qtpdf-config_p.h
+-rw-r--r--@  1 pv  staff  1215 Nov 26 09:06 qtpdfglobal_p.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdf.framework/Versions/Current/Resources:
+total 24
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 .
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  806 Nov 26 09:06 Info.plist
+-r--r--r--@ 1 pv  staff  343 Nov 26 09:06 PrivacyInfo.xcprivacy
+-rw-r--r--@ 1 pv  staff  546 Nov 26 09:44 QtPdf.prl
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfQuick.framework:
+total 1880
+drwxr-xr-x@  6 pv  staff     192 Nov 26 10:53 .
+drwxr-xr-x@ 11 pv  staff     352 Nov 26 10:53 ..
+drwxr-xr-x@  8 pv  staff     256 Nov 26 10:53 Headers
+-rwxr-xr-x@  1 pv  staff  961688 Nov 26 09:44 QtPdfQuick
+drwxr-xr-x@  5 pv  staff     160 Nov 26 10:53 Resources
+drwxr-xr-x@  4 pv  staff     128 Nov 26 10:53 Versions
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfQuick.framework/Headers:
+total 40
+drwxr-xr-x@ 8 pv  staff  256 Nov 26 10:53 .
+drwxr-xr-x@ 6 pv  staff  192 Nov 26 10:53 ..
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 6.9.3
+-rw-r--r--@ 1 pv  staff   20 Nov 26 09:06 PdfQuick_fake_header.h
+-rw-r--r--@ 1 pv  staff  140 Nov 26 09:06 QtPdfQuick
+-rw-r--r--@ 1 pv  staff  265 Nov 26 09:06 QtPdfQuickDepends
+-rw-r--r--@ 1 pv  staff   54 Nov 26 09:06 QtPdfQuickVersion
+-rw-r--r--@ 1 pv  staff  217 Nov 26 09:06 qtpdfquickversion.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfQuick.framework/Headers/6.9.3:
+total 0
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 8 pv  staff  256 Nov 26 10:53 ..
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 QtPdfQuick
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfQuick.framework/Headers/6.9.3/QtPdfQuick:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 ..
+drwxr-xr-x@ 10 pv  staff  320 Nov 26 10:53 private
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfQuick.framework/Headers/6.9.3/QtPdfQuick/private:
+total 64
+drwxr-xr-x@ 10 pv  staff   320 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff  1346 Nov 26 09:06 qquickpdfbookmarkmodel_p.h
+-rw-r--r--@  1 pv  staff  3753 Nov 26 09:06 qquickpdfdocument_p.h
+-rw-r--r--@  1 pv  staff  1278 Nov 26 09:06 qquickpdflinkmodel_p.h
+-rw-r--r--@  1 pv  staff  1287 Nov 26 09:06 qquickpdfpageimage_p.h
+-rw-r--r--@  1 pv  staff  1267 Nov 26 09:06 qquickpdfpagenavigator_p.h
+-rw-r--r--@  1 pv  staff  2914 Nov 26 09:06 qquickpdfsearchmodel_p.h
+-rw-r--r--@  1 pv  staff  3628 Nov 26 09:06 qquickpdfselection_p.h
+-rw-r--r--@  1 pv  staff   760 Nov 26 09:06 qtpdfquickglobal_p.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfQuick.framework/Resources:
+total 24
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 .
+drwxr-xr-x@ 6 pv  staff  192 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  816 Nov 26 09:06 Info.plist
+-r--r--r--@ 1 pv  staff  343 Nov 26 09:06 PrivacyInfo.xcprivacy
+-rw-r--r--@ 1 pv  staff  885 Nov 26 09:44 QtPdfQuick.prl
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfQuick.framework/Versions:
+total 0
+drwxr-xr-x@ 4 pv  staff  128 Nov 26 10:53 .
+drwxr-xr-x@ 6 pv  staff  192 Nov 26 10:53 ..
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 A
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 Current
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfQuick.framework/Versions/A:
+total 1880
+drwxr-xr-x@ 5 pv  staff     160 Nov 26 10:53 .
+drwxr-xr-x@ 4 pv  staff     128 Nov 26 10:53 ..
+drwxr-xr-x@ 8 pv  staff     256 Nov 26 10:53 Headers
+-rwxr-xr-x@ 1 pv  staff  961688 Nov 26 09:44 QtPdfQuick
+drwxr-xr-x@ 5 pv  staff     160 Nov 26 10:53 Resources
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfQuick.framework/Versions/A/Headers:
+total 40
+drwxr-xr-x@ 8 pv  staff  256 Nov 26 10:53 .
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 ..
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 6.9.3
+-rw-r--r--@ 1 pv  staff   20 Nov 26 09:06 PdfQuick_fake_header.h
+-rw-r--r--@ 1 pv  staff  140 Nov 26 09:06 QtPdfQuick
+-rw-r--r--@ 1 pv  staff  265 Nov 26 09:06 QtPdfQuickDepends
+-rw-r--r--@ 1 pv  staff   54 Nov 26 09:06 QtPdfQuickVersion
+-rw-r--r--@ 1 pv  staff  217 Nov 26 09:06 qtpdfquickversion.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfQuick.framework/Versions/A/Headers/6.9.3:
+total 0
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 8 pv  staff  256 Nov 26 10:53 ..
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 QtPdfQuick
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfQuick.framework/Versions/A/Headers/6.9.3/QtPdfQuick:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 ..
+drwxr-xr-x@ 10 pv  staff  320 Nov 26 10:53 private
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfQuick.framework/Versions/A/Headers/6.9.3/QtPdfQuick/private:
+total 64
+drwxr-xr-x@ 10 pv  staff   320 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff  1346 Nov 26 09:06 qquickpdfbookmarkmodel_p.h
+-rw-r--r--@  1 pv  staff  3753 Nov 26 09:06 qquickpdfdocument_p.h
+-rw-r--r--@  1 pv  staff  1278 Nov 26 09:06 qquickpdflinkmodel_p.h
+-rw-r--r--@  1 pv  staff  1287 Nov 26 09:06 qquickpdfpageimage_p.h
+-rw-r--r--@  1 pv  staff  1267 Nov 26 09:06 qquickpdfpagenavigator_p.h
+-rw-r--r--@  1 pv  staff  2914 Nov 26 09:06 qquickpdfsearchmodel_p.h
+-rw-r--r--@  1 pv  staff  3628 Nov 26 09:06 qquickpdfselection_p.h
+-rw-r--r--@  1 pv  staff   760 Nov 26 09:06 qtpdfquickglobal_p.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfQuick.framework/Versions/A/Resources:
+total 24
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 .
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  816 Nov 26 09:06 Info.plist
+-r--r--r--@ 1 pv  staff  343 Nov 26 09:06 PrivacyInfo.xcprivacy
+-rw-r--r--@ 1 pv  staff  885 Nov 26 09:44 QtPdfQuick.prl
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfQuick.framework/Versions/Current:
+total 1880
+drwxr-xr-x@ 5 pv  staff     160 Nov 26 10:53 .
+drwxr-xr-x@ 4 pv  staff     128 Nov 26 10:53 ..
+drwxr-xr-x@ 8 pv  staff     256 Nov 26 10:53 Headers
+-rwxr-xr-x@ 1 pv  staff  961688 Nov 26 09:44 QtPdfQuick
+drwxr-xr-x@ 5 pv  staff     160 Nov 26 10:53 Resources
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfQuick.framework/Versions/Current/Headers:
+total 40
+drwxr-xr-x@ 8 pv  staff  256 Nov 26 10:53 .
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 ..
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 6.9.3
+-rw-r--r--@ 1 pv  staff   20 Nov 26 09:06 PdfQuick_fake_header.h
+-rw-r--r--@ 1 pv  staff  140 Nov 26 09:06 QtPdfQuick
+-rw-r--r--@ 1 pv  staff  265 Nov 26 09:06 QtPdfQuickDepends
+-rw-r--r--@ 1 pv  staff   54 Nov 26 09:06 QtPdfQuickVersion
+-rw-r--r--@ 1 pv  staff  217 Nov 26 09:06 qtpdfquickversion.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfQuick.framework/Versions/Current/Headers/6.9.3:
+total 0
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 8 pv  staff  256 Nov 26 10:53 ..
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 QtPdfQuick
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfQuick.framework/Versions/Current/Headers/6.9.3/QtPdfQuick:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 ..
+drwxr-xr-x@ 10 pv  staff  320 Nov 26 10:53 private
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfQuick.framework/Versions/Current/Headers/6.9.3/QtPdfQuick/private:
+total 64
+drwxr-xr-x@ 10 pv  staff   320 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff  1346 Nov 26 09:06 qquickpdfbookmarkmodel_p.h
+-rw-r--r--@  1 pv  staff  3753 Nov 26 09:06 qquickpdfdocument_p.h
+-rw-r--r--@  1 pv  staff  1278 Nov 26 09:06 qquickpdflinkmodel_p.h
+-rw-r--r--@  1 pv  staff  1287 Nov 26 09:06 qquickpdfpageimage_p.h
+-rw-r--r--@  1 pv  staff  1267 Nov 26 09:06 qquickpdfpagenavigator_p.h
+-rw-r--r--@  1 pv  staff  2914 Nov 26 09:06 qquickpdfsearchmodel_p.h
+-rw-r--r--@  1 pv  staff  3628 Nov 26 09:06 qquickpdfselection_p.h
+-rw-r--r--@  1 pv  staff   760 Nov 26 09:06 qtpdfquickglobal_p.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfQuick.framework/Versions/Current/Resources:
+total 24
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 .
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  816 Nov 26 09:06 Info.plist
+-r--r--r--@ 1 pv  staff  343 Nov 26 09:06 PrivacyInfo.xcprivacy
+-rw-r--r--@ 1 pv  staff  885 Nov 26 09:44 QtPdfQuick.prl
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfWidgets.framework:
+total 288
+drwxr-xr-x@  6 pv  staff     192 Nov 26 10:53 .
+drwxr-xr-x@ 11 pv  staff     352 Nov 26 10:53 ..
+drwxr-xr-x@ 13 pv  staff     416 Nov 26 10:53 Headers
+-rwxr-xr-x@  1 pv  staff  145248 Nov 26 09:44 QtPdfWidgets
+drwxr-xr-x@  5 pv  staff     160 Nov 26 10:53 Resources
+drwxr-xr-x@  4 pv  staff     128 Nov 26 10:53 Versions
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfWidgets.framework/Headers:
+total 80
+drwxr-xr-x@ 13 pv  staff   416 Nov 26 10:53 .
+drwxr-xr-x@  6 pv  staff   192 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 6.9.3
+-rw-r--r--@  1 pv  staff    20 Nov 26 09:06 PdfWidgets_fake_header.h
+-rw-r--r--@  1 pv  staff    53 Nov 26 09:06 QPdfPageSelector
+-rw-r--r--@  1 pv  staff  1405 Nov 26 09:06 qpdfpageselector.h
+-rw-r--r--@  1 pv  staff    45 Nov 26 09:06 QPdfView
+-rw-r--r--@  1 pv  staff  3382 Nov 26 09:06 qpdfview.h
+-rw-r--r--@  1 pv  staff   234 Nov 26 09:06 QtPdfWidgets
+-rw-r--r--@  1 pv  staff   246 Nov 26 09:06 QtPdfWidgetsDepends
+-rw-r--r--@  1 pv  staff   570 Nov 26 09:06 qtpdfwidgetsglobal.h
+-rw-r--r--@  1 pv  staff    56 Nov 26 09:06 QtPdfWidgetsVersion
+-rw-r--r--@  1 pv  staff   227 Nov 26 09:06 qtpdfwidgetsversion.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfWidgets.framework/Headers/6.9.3:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 13 pv  staff  416 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 QtPdfWidgets
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfWidgets.framework/Headers/6.9.3/QtPdfWidgets:
+total 0
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 ..
+drwxr-xr-x@ 4 pv  staff  128 Nov 26 10:53 private
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfWidgets.framework/Headers/6.9.3/QtPdfWidgets/private:
+total 16
+drwxr-xr-x@ 4 pv  staff   128 Nov 26 10:53 .
+drwxr-xr-x@ 3 pv  staff    96 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  1443 Nov 26 09:06 qpdfpageselector_p.h
+-rw-r--r--@ 1 pv  staff  2312 Nov 26 09:06 qpdfview_p.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfWidgets.framework/Resources:
+total 24
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 .
+drwxr-xr-x@ 6 pv  staff  192 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  820 Nov 26 09:06 Info.plist
+-r--r--r--@ 1 pv  staff  343 Nov 26 09:06 PrivacyInfo.xcprivacy
+-rw-r--r--@ 1 pv  staff  629 Nov 26 09:44 QtPdfWidgets.prl
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfWidgets.framework/Versions:
+total 0
+drwxr-xr-x@ 4 pv  staff  128 Nov 26 10:53 .
+drwxr-xr-x@ 6 pv  staff  192 Nov 26 10:53 ..
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 A
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 Current
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfWidgets.framework/Versions/A:
+total 288
+drwxr-xr-x@  5 pv  staff     160 Nov 26 10:53 .
+drwxr-xr-x@  4 pv  staff     128 Nov 26 10:53 ..
+drwxr-xr-x@ 13 pv  staff     416 Nov 26 10:53 Headers
+-rwxr-xr-x@  1 pv  staff  145248 Nov 26 09:44 QtPdfWidgets
+drwxr-xr-x@  5 pv  staff     160 Nov 26 10:53 Resources
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfWidgets.framework/Versions/A/Headers:
+total 80
+drwxr-xr-x@ 13 pv  staff   416 Nov 26 10:53 .
+drwxr-xr-x@  5 pv  staff   160 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 6.9.3
+-rw-r--r--@  1 pv  staff    20 Nov 26 09:06 PdfWidgets_fake_header.h
+-rw-r--r--@  1 pv  staff    53 Nov 26 09:06 QPdfPageSelector
+-rw-r--r--@  1 pv  staff  1405 Nov 26 09:06 qpdfpageselector.h
+-rw-r--r--@  1 pv  staff    45 Nov 26 09:06 QPdfView
+-rw-r--r--@  1 pv  staff  3382 Nov 26 09:06 qpdfview.h
+-rw-r--r--@  1 pv  staff   234 Nov 26 09:06 QtPdfWidgets
+-rw-r--r--@  1 pv  staff   246 Nov 26 09:06 QtPdfWidgetsDepends
+-rw-r--r--@  1 pv  staff   570 Nov 26 09:06 qtpdfwidgetsglobal.h
+-rw-r--r--@  1 pv  staff    56 Nov 26 09:06 QtPdfWidgetsVersion
+-rw-r--r--@  1 pv  staff   227 Nov 26 09:06 qtpdfwidgetsversion.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfWidgets.framework/Versions/A/Headers/6.9.3:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 13 pv  staff  416 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 QtPdfWidgets
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfWidgets.framework/Versions/A/Headers/6.9.3/QtPdfWidgets:
+total 0
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 ..
+drwxr-xr-x@ 4 pv  staff  128 Nov 26 10:53 private
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfWidgets.framework/Versions/A/Headers/6.9.3/QtPdfWidgets/private:
+total 16
+drwxr-xr-x@ 4 pv  staff   128 Nov 26 10:53 .
+drwxr-xr-x@ 3 pv  staff    96 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  1443 Nov 26 09:06 qpdfpageselector_p.h
+-rw-r--r--@ 1 pv  staff  2312 Nov 26 09:06 qpdfview_p.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfWidgets.framework/Versions/A/Resources:
+total 24
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 .
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  820 Nov 26 09:06 Info.plist
+-r--r--r--@ 1 pv  staff  343 Nov 26 09:06 PrivacyInfo.xcprivacy
+-rw-r--r--@ 1 pv  staff  629 Nov 26 09:44 QtPdfWidgets.prl
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfWidgets.framework/Versions/Current:
+total 288
+drwxr-xr-x@  5 pv  staff     160 Nov 26 10:53 .
+drwxr-xr-x@  4 pv  staff     128 Nov 26 10:53 ..
+drwxr-xr-x@ 13 pv  staff     416 Nov 26 10:53 Headers
+-rwxr-xr-x@  1 pv  staff  145248 Nov 26 09:44 QtPdfWidgets
+drwxr-xr-x@  5 pv  staff     160 Nov 26 10:53 Resources
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfWidgets.framework/Versions/Current/Headers:
+total 80
+drwxr-xr-x@ 13 pv  staff   416 Nov 26 10:53 .
+drwxr-xr-x@  5 pv  staff   160 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 6.9.3
+-rw-r--r--@  1 pv  staff    20 Nov 26 09:06 PdfWidgets_fake_header.h
+-rw-r--r--@  1 pv  staff    53 Nov 26 09:06 QPdfPageSelector
+-rw-r--r--@  1 pv  staff  1405 Nov 26 09:06 qpdfpageselector.h
+-rw-r--r--@  1 pv  staff    45 Nov 26 09:06 QPdfView
+-rw-r--r--@  1 pv  staff  3382 Nov 26 09:06 qpdfview.h
+-rw-r--r--@  1 pv  staff   234 Nov 26 09:06 QtPdfWidgets
+-rw-r--r--@  1 pv  staff   246 Nov 26 09:06 QtPdfWidgetsDepends
+-rw-r--r--@  1 pv  staff   570 Nov 26 09:06 qtpdfwidgetsglobal.h
+-rw-r--r--@  1 pv  staff    56 Nov 26 09:06 QtPdfWidgetsVersion
+-rw-r--r--@  1 pv  staff   227 Nov 26 09:06 qtpdfwidgetsversion.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfWidgets.framework/Versions/Current/Headers/6.9.3:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 13 pv  staff  416 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 QtPdfWidgets
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfWidgets.framework/Versions/Current/Headers/6.9.3/QtPdfWidgets:
+total 0
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 ..
+drwxr-xr-x@ 4 pv  staff  128 Nov 26 10:53 private
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfWidgets.framework/Versions/Current/Headers/6.9.3/QtPdfWidgets/private:
+total 16
+drwxr-xr-x@ 4 pv  staff   128 Nov 26 10:53 .
+drwxr-xr-x@ 3 pv  staff    96 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  1443 Nov 26 09:06 qpdfpageselector_p.h
+-rw-r--r--@ 1 pv  staff  2312 Nov 26 09:06 qpdfview_p.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtPdfWidgets.framework/Versions/Current/Resources:
+total 24
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 .
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  820 Nov 26 09:06 Info.plist
+-r--r--r--@ 1 pv  staff  343 Nov 26 09:06 PrivacyInfo.xcprivacy
+-rw-r--r--@ 1 pv  staff  629 Nov 26 09:44 QtPdfWidgets.prl
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework:
+total 719512
+drwxr-xr-x@  7 pv  staff        224 Nov 26 10:53 .
+drwxr-xr-x@ 11 pv  staff        352 Nov 26 10:53 ..
+drwxr-xr-x@ 81 pv  staff       2592 Nov 26 10:53 Headers
+drwxr-xr-x@  3 pv  staff         96 Nov 26 10:53 Helpers
+-rwxr-xr-x@  1 pv  staff  368386592 Nov 26 09:44 QtWebEngineCore
+drwxr-xr-x@ 12 pv  staff        384 Nov 26 10:53 Resources
+drwxr-xr-x@  4 pv  staff        128 Nov 26 10:53 Versions
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Headers:
+total 680
+drwxr-xr-x@ 81 pv  staff   2592 Nov 26 10:53 .
+drwxr-xr-x@  7 pv  staff    224 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff     96 Nov 26 10:53 6.9.3
+-rw-r--r--@  1 pv  staff   1497 Nov 26 09:06 QtWebEngineCore
+-rw-r--r--@  1 pv  staff    265 Nov 26 09:06 qtwebenginecore-config.h
+-rw-r--r--@  1 pv  staff    333 Nov 26 09:06 QtWebEngineCoreDepends
+-rw-r--r--@  1 pv  staff   1153 Nov 26 09:06 qtwebenginecoreglobal.h
+-rw-r--r--@  1 pv  staff     59 Nov 26 09:06 QtWebEngineCoreVersion
+-rw-r--r--@  1 pv  staff    242 Nov 26 09:06 qtwebenginecoreversion.h
+-rw-r--r--@  1 pv  staff     63 Nov 26 09:06 QWebEngineCertificateError
+-rw-r--r--@  1 pv  staff   2820 Nov 26 09:06 qwebenginecertificateerror.h
+-rw-r--r--@  1 pv  staff     73 Nov 26 09:06 QWebEngineClientCertificateSelection
+-rw-r--r--@  1 pv  staff   1313 Nov 26 09:06 qwebengineclientcertificateselection.h
+-rw-r--r--@  1 pv  staff     69 Nov 26 09:06 QWebEngineClientCertificateStore
+-rw-r--r--@  1 pv  staff   1298 Nov 26 09:06 qwebengineclientcertificatestore.h
+-rw-r--r--@  1 pv  staff     58 Nov 26 09:06 QWebEngineClientHints
+-rw-r--r--@  1 pv  staff   2494 Nov 26 09:06 qwebengineclienthints.h
+-rw-r--r--@  1 pv  staff     65 Nov 26 09:06 QWebEngineContextMenuRequest
+-rw-r--r--@  1 pv  staff   4229 Nov 26 09:06 qwebenginecontextmenurequest.h
+-rw-r--r--@  1 pv  staff     58 Nov 26 09:06 QWebEngineCookieStore
+-rw-r--r--@  1 pv  staff   1987 Nov 26 09:06 qwebenginecookiestore.h
+-rw-r--r--@  1 pv  staff     66 Nov 26 09:06 QWebEngineDesktopMediaRequest
+-rw-r--r--@  1 pv  staff   2381 Nov 26 09:06 qwebenginedesktopmediarequest.h
+-rw-r--r--@  1 pv  staff     62 Nov 26 09:06 QWebEngineDownloadRequest
+-rw-r--r--@  1 pv  staff   4720 Nov 26 09:06 qwebenginedownloadrequest.h
+-rw-r--r--@  1 pv  staff     70 Nov 26 09:06 QWebEngineFileSystemAccessRequest
+-rw-r--r--@  1 pv  staff   2722 Nov 26 09:06 qwebenginefilesystemaccessrequest.h
+-rw-r--r--@  1 pv  staff     61 Nov 26 09:06 QWebEngineFindTextResult
+-rw-r--r--@  1 pv  staff   1274 Nov 26 09:06 qwebenginefindtextresult.h
+-rw-r--r--@  1 pv  staff     52 Nov 26 09:06 QWebEngineFrame
+-rw-r--r--@  1 pv  staff   3158 Nov 26 09:06 qwebengineframe.h
+-rw-r--r--@  1 pv  staff     64 Nov 26 09:06 QWebEngineFullScreenRequest
+-rw-r--r--@  1 pv  staff   1559 Nov 26 09:06 qwebenginefullscreenrequest.h
+-rw-r--r--@  1 pv  staff     61 Nov 26 09:06 QWebEngineGlobalSettings
+-rw-r--r--@  1 pv  staff    845 Nov 26 09:06 qwebengineglobalsettings.h
+-rw-r--r--@  1 pv  staff     54 Nov 26 09:06 QWebEngineHistory
+-rw-r--r--@  1 pv  staff   4283 Nov 26 09:06 qwebenginehistory.h
+-rw-r--r--@  1 pv  staff     54 Nov 26 09:06 QWebEngineHistoryItem
+-rw-r--r--@  1 pv  staff     54 Nov 26 09:06 QWebEngineHistoryModel
+-rw-r--r--@  1 pv  staff     58 Nov 26 09:06 QWebEngineHttpRequest
+-rw-r--r--@  1 pv  staff   2122 Nov 26 09:06 qwebenginehttprequest.h
+-rw-r--r--@  1 pv  staff     58 Nov 26 09:06 QWebEngineLoadingInfo
+-rw-r--r--@  1 pv  staff   3009 Nov 26 09:06 qwebengineloadinginfo.h
+-rw-r--r--@  1 pv  staff     64 Nov 26 09:06 QWebEngineNavigationRequest
+-rw-r--r--@  1 pv  staff   2341 Nov 26 09:06 qwebenginenavigationrequest.h
+-rw-r--r--@  1 pv  staff     63 Nov 26 09:06 QWebEngineNewWindowRequest
+-rw-r--r--@  1 pv  staff   1875 Nov 26 09:06 qwebenginenewwindowrequest.h
+-rw-r--r--@  1 pv  staff     59 Nov 26 09:06 QWebEngineNotification
+-rw-r--r--@  1 pv  staff   1858 Nov 26 09:06 qwebenginenotification.h
+-rw-r--r--@  1 pv  staff     51 Nov 26 09:06 QWebEnginePage
+-rw-r--r--@  1 pv  staff  16378 Nov 26 09:06 qwebenginepage.h
+-rw-r--r--@  1 pv  staff     57 Nov 26 09:06 QWebEnginePermission
+-rw-r--r--@  1 pv  staff   3443 Nov 26 09:06 qwebenginepermission.h
+-rw-r--r--@  1 pv  staff     54 Nov 26 09:06 QWebEngineProfile
+-rw-r--r--@  1 pv  staff   5180 Nov 26 09:06 qwebengineprofile.h
+-rw-r--r--@  1 pv  staff     61 Nov 26 09:06 QWebEngineProfileBuilder
+-rw-r--r--@  1 pv  staff   1767 Nov 26 09:06 qwebengineprofilebuilder.h
+-rw-r--r--@  1 pv  staff     59 Nov 26 09:06 QWebEngineQuotaRequest
+-rw-r--r--@  1 pv  staff   1076 Nov 26 09:06 qwebenginequotarequest.h
+-rw-r--r--@  1 pv  staff     77 Nov 26 09:06 QWebEngineRegisterProtocolHandlerRequest
+-rw-r--r--@  1 pv  staff   1503 Nov 26 09:06 qwebengineregisterprotocolhandlerrequest.h
+-rw-r--r--@  1 pv  staff     53 Nov 26 09:06 QWebEngineScript
+-rw-r--r--@  1 pv  staff   2472 Nov 26 09:06 qwebenginescript.h
+-rw-r--r--@  1 pv  staff     63 Nov 26 09:06 QWebEngineScriptCollection
+-rw-r--r--@  1 pv  staff   1399 Nov 26 09:06 qwebenginescriptcollection.h
+-rw-r--r--@  1 pv  staff     55 Nov 26 09:06 QWebEngineSettings
+-rw-r--r--@  1 pv  staff   3827 Nov 26 09:06 qwebenginesettings.h
+-rw-r--r--@  1 pv  staff     61 Nov 26 09:06 QWebEngineUrlRequestInfo
+-rw-r--r--@  1 pv  staff   3726 Nov 26 09:06 qwebengineurlrequestinfo.h
+-rw-r--r--@  1 pv  staff     68 Nov 26 09:06 QWebEngineUrlRequestInterceptor
+-rw-r--r--@  1 pv  staff    803 Nov 26 09:06 qwebengineurlrequestinterceptor.h
+-rw-r--r--@  1 pv  staff     60 Nov 26 09:06 QWebEngineUrlRequestJob
+-rw-r--r--@  1 pv  staff   1690 Nov 26 09:06 qwebengineurlrequestjob.h
+-rw-r--r--@  1 pv  staff     56 Nov 26 09:06 QWebEngineUrlScheme
+-rw-r--r--@  1 pv  staff   2368 Nov 26 09:06 qwebengineurlscheme.h
+-rw-r--r--@  1 pv  staff     63 Nov 26 09:06 QWebEngineUrlSchemeHandler
+-rw-r--r--@  1 pv  staff    774 Nov 26 09:06 qwebengineurlschemehandler.h
+-rw-r--r--@  1 pv  staff     63 Nov 26 09:06 QWebEngineWebAuthPinRequest
+-rw-r--r--@  1 pv  staff     63 Nov 26 09:06 QWebEngineWebAuthUxRequest
+-rw-r--r--@  1 pv  staff   3512 Nov 26 09:06 qwebenginewebauthuxrequest.h
+-rw-r--r--@  1 pv  staff     20 Nov 26 09:06 WebEngineCore_fake_header.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Headers/6.9.3:
+total 0
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 .
+drwxr-xr-x@ 81 pv  staff  2592 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 QtWebEngineCore
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Headers/6.9.3/QtWebEngineCore:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 ..
+drwxr-xr-x@ 19 pv  staff  608 Nov 26 10:53 private
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Headers/6.9.3/QtWebEngineCore/private:
+total 152
+drwxr-xr-x@ 19 pv  staff    608 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff     96 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff    739 Nov 26 09:06 qtwebenginecore-config_p.h
+-rw-r--r--@  1 pv  staff   2286 Nov 26 09:06 qtwebenginecoreglobal_p.h
+-rw-r--r--@  1 pv  staff   1571 Nov 26 09:06 qwebenginecontextmenurequest_p.h
+-rw-r--r--@  1 pv  staff   1969 Nov 26 09:06 qwebenginecookiestore_p.h
+-rw-r--r--@  1 pv  staff   1446 Nov 26 09:06 qwebenginedesktopmediarequest_p.h
+-rw-r--r--@  1 pv  staff   2355 Nov 26 09:06 qwebenginedownloadrequest_p.h
+-rw-r--r--@  1 pv  staff   1285 Nov 26 09:06 qwebengineglobalsettings_p.h
+-rw-r--r--@  1 pv  staff   3063 Nov 26 09:06 qwebenginehistory_p.h
+-rw-r--r--@  1 pv  staff   1077 Nov 26 09:06 qwebenginemessagepumpscheduler_p.h
+-rw-r--r--@  1 pv  staff   1155 Nov 26 09:06 qwebenginenewwindowrequest_p.h
+-rw-r--r--@  1 pv  staff  11736 Nov 26 09:06 qwebenginepage_p.h
+-rw-r--r--@  1 pv  staff   1326 Nov 26 09:06 qwebenginepermission_p.h
+-rw-r--r--@  1 pv  staff   2398 Nov 26 09:06 qwebengineprofile_p.h
+-rw-r--r--@  1 pv  staff   1194 Nov 26 09:06 qwebengineprofilebuilder_p.h
+-rw-r--r--@  1 pv  staff   1667 Nov 26 09:06 qwebenginescriptcollection_p.h
+-rw-r--r--@  1 pv  staff   1959 Nov 26 09:06 qwebengineurlrequestinfo_p.h
+-rw-r--r--@  1 pv  staff   1269 Nov 26 09:06 qwebenginewebauthuxrequest_p.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Helpers:
+total 0
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 7 pv  staff  224 Nov 26 10:53 ..
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 QtWebEngineProcess.app
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app:
+total 0
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 ..
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 Contents
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents:
+total 8
+drwxr-xr-x@ 5 pv  staff   160 Nov 26 10:53 .
+drwxr-xr-x@ 3 pv  staff    96 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  1143 Nov 26 09:06 Info.plist
+drwxr-xr-x@ 3 pv  staff    96 Nov 26 10:53 MacOS
+drwxr-xr-x@ 3 pv  staff    96 Nov 26 10:53 Resources
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/MacOS:
+total 136
+drwxr-xr-x@ 3 pv  staff     96 Nov 26 10:53 .
+drwxr-xr-x@ 5 pv  staff    160 Nov 26 10:53 ..
+-rwxr-xr-x@ 1 pv  staff  67776 Nov 26 09:44 QtWebEngineProcess
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Resources:
+total 8
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  479 Nov 26 09:06 QtWebEngineProcess.entitlements
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Resources:
+total 46752
+drwxr-xr-x@ 12 pv  staff       384 Nov 26 10:53 .
+drwxr-xr-x@  7 pv  staff       224 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff  10468208 Nov 26 09:43 icudtl.dat
+-rw-r--r--@  1 pv  staff       826 Nov 26 09:06 Info.plist
+-r--r--r--@  1 pv  staff       343 Nov 26 09:06 PrivacyInfo.xcprivacy
+-rw-r--r--@  1 pv  staff  10296730 Nov 26 09:43 qtwebengine_devtools_resources.pak
+drwxr-xr-x@ 55 pv  staff      1760 Nov 26 10:53 qtwebengine_locales
+-rw-r--r--@  1 pv  staff    116947 Nov 26 09:43 qtwebengine_resources_100p.pak
+-rw-r--r--@  1 pv  staff    157787 Nov 26 09:43 qtwebengine_resources_200p.pak
+-rw-r--r--@  1 pv  staff   2189287 Nov 26 09:43 qtwebengine_resources.pak
+-rw-r--r--@  1 pv  staff       954 Nov 26 09:43 QtWebEngineCore.prl
+-rw-r--r--@  1 pv  staff    687705 Nov 26 09:43 v8_context_snapshot.arm64.bin
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Resources/qtwebengine_locales:
+total 78352
+drwxr-xr-x@ 55 pv  staff     1760 Nov 26 10:53 .
+drwxr-xr-x@ 12 pv  staff      384 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff   844984 Nov 26 09:43 am.pak
+-rw-r--r--@  1 pv  staff   922922 Nov 26 09:43 ar.pak
+-rw-r--r--@  1 pv  staff   961955 Nov 26 09:43 bg.pak
+-rw-r--r--@  1 pv  staff  1241378 Nov 26 09:43 bn.pak
+-rw-r--r--@  1 pv  staff   587164 Nov 26 09:43 ca.pak
+-rw-r--r--@  1 pv  staff   605288 Nov 26 09:43 cs.pak
+-rw-r--r--@  1 pv  staff   547608 Nov 26 09:43 da.pak
+-rw-r--r--@  1 pv  staff   584389 Nov 26 09:43 de.pak
+-rw-r--r--@  1 pv  staff  1052090 Nov 26 09:43 el.pak
+-rw-r--r--@  1 pv  staff   477330 Nov 26 09:43 en-GB.pak
+-rw-r--r--@  1 pv  staff   482362 Nov 26 09:43 en-US.pak
+-rw-r--r--@  1 pv  staff   578621 Nov 26 09:43 es-419.pak
+-rw-r--r--@  1 pv  staff   577776 Nov 26 09:43 es.pak
+-rw-r--r--@  1 pv  staff   526205 Nov 26 09:43 et.pak
+-rw-r--r--@  1 pv  staff   857491 Nov 26 09:43 fa.pak
+-rw-r--r--@  1 pv  staff   536953 Nov 26 09:43 fi.pak
+-rw-r--r--@  1 pv  staff   608798 Nov 26 09:43 fil.pak
+-rw-r--r--@  1 pv  staff   624518 Nov 26 09:43 fr.pak
+-rw-r--r--@  1 pv  staff  1220944 Nov 26 09:43 gu.pak
+-rw-r--r--@  1 pv  staff   753067 Nov 26 09:43 he.pak
+-rw-r--r--@  1 pv  staff  1287616 Nov 26 09:43 hi.pak
+-rw-r--r--@  1 pv  staff   583701 Nov 26 09:43 hr.pak
+-rw-r--r--@  1 pv  staff   628859 Nov 26 09:43 hu.pak
+-rw-r--r--@  1 pv  staff   520950 Nov 26 09:43 id.pak
+-rw-r--r--@  1 pv  staff   570442 Nov 26 09:43 it.pak
+-rw-r--r--@  1 pv  staff   692514 Nov 26 09:43 ja.pak
+-rw-r--r--@  1 pv  staff  1394965 Nov 26 09:43 kn.pak
+-rw-r--r--@  1 pv  staff   586596 Nov 26 09:43 ko.pak
+-rw-r--r--@  1 pv  staff   632453 Nov 26 09:43 lt.pak
+-rw-r--r--@  1 pv  staff   630824 Nov 26 09:43 lv.pak
+-rw-r--r--@  1 pv  staff  1451033 Nov 26 09:43 ml.pak
+-rw-r--r--@  1 pv  staff  1194984 Nov 26 09:43 mr.pak
+-rw-r--r--@  1 pv  staff   545111 Nov 26 09:43 ms.pak
+-rw-r--r--@  1 pv  staff   526657 Nov 26 09:43 nb.pak
+-rw-r--r--@  1 pv  staff   544841 Nov 26 09:43 nl.pak
+-rw-r--r--@  1 pv  staff   607218 Nov 26 09:43 pl.pak
+-rw-r--r--@  1 pv  staff   570226 Nov 26 09:43 pt-BR.pak
+-rw-r--r--@  1 pv  staff   574217 Nov 26 09:43 pt-PT.pak
+-rw-r--r--@  1 pv  staff   595531 Nov 26 09:43 ro.pak
+-rw-r--r--@  1 pv  staff   974263 Nov 26 09:43 ru.pak
+-rw-r--r--@  1 pv  staff   615397 Nov 26 09:43 sk.pak
+-rw-r--r--@  1 pv  staff   590334 Nov 26 09:43 sl.pak
+-rw-r--r--@  1 pv  staff   904871 Nov 26 09:43 sr.pak
+-rw-r--r--@  1 pv  staff   530477 Nov 26 09:43 sv.pak
+-rw-r--r--@  1 pv  staff   561584 Nov 26 09:43 sw.pak
+-rw-r--r--@  1 pv  staff  1439488 Nov 26 09:43 ta.pak
+-rw-r--r--@  1 pv  staff  1332033 Nov 26 09:43 te.pak
+-rw-r--r--@  1 pv  staff  1116413 Nov 26 09:43 th.pak
+-rw-r--r--@  1 pv  staff   570818 Nov 26 09:43 tr.pak
+-rw-r--r--@  1 pv  staff   975902 Nov 26 09:43 uk.pak
+-rw-r--r--@  1 pv  staff   676277 Nov 26 09:43 vi.pak
+-rw-r--r--@  1 pv  staff   487390 Nov 26 09:43 zh-CN.pak
+-rw-r--r--@  1 pv  staff   481923 Nov 26 09:43 zh-TW.pak
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Versions:
+total 0
+drwxr-xr-x@ 4 pv  staff  128 Nov 26 10:53 .
+drwxr-xr-x@ 7 pv  staff  224 Nov 26 10:53 ..
+drwxr-xr-x@ 6 pv  staff  192 Nov 26 10:53 A
+drwxr-xr-x@ 6 pv  staff  192 Nov 26 10:53 Current
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Versions/A:
+total 719512
+drwxr-xr-x@  6 pv  staff        192 Nov 26 10:53 .
+drwxr-xr-x@  4 pv  staff        128 Nov 26 10:53 ..
+drwxr-xr-x@ 81 pv  staff       2592 Nov 26 10:53 Headers
+drwxr-xr-x@  3 pv  staff         96 Nov 26 10:53 Helpers
+-rwxr-xr-x@  1 pv  staff  368386592 Nov 26 09:44 QtWebEngineCore
+drwxr-xr-x@ 12 pv  staff        384 Nov 26 10:53 Resources
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Versions/A/Headers:
+total 680
+drwxr-xr-x@ 81 pv  staff   2592 Nov 26 10:53 .
+drwxr-xr-x@  6 pv  staff    192 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff     96 Nov 26 10:53 6.9.3
+-rw-r--r--@  1 pv  staff   1497 Nov 26 09:06 QtWebEngineCore
+-rw-r--r--@  1 pv  staff    265 Nov 26 09:06 qtwebenginecore-config.h
+-rw-r--r--@  1 pv  staff    333 Nov 26 09:06 QtWebEngineCoreDepends
+-rw-r--r--@  1 pv  staff   1153 Nov 26 09:06 qtwebenginecoreglobal.h
+-rw-r--r--@  1 pv  staff     59 Nov 26 09:06 QtWebEngineCoreVersion
+-rw-r--r--@  1 pv  staff    242 Nov 26 09:06 qtwebenginecoreversion.h
+-rw-r--r--@  1 pv  staff     63 Nov 26 09:06 QWebEngineCertificateError
+-rw-r--r--@  1 pv  staff   2820 Nov 26 09:06 qwebenginecertificateerror.h
+-rw-r--r--@  1 pv  staff     73 Nov 26 09:06 QWebEngineClientCertificateSelection
+-rw-r--r--@  1 pv  staff   1313 Nov 26 09:06 qwebengineclientcertificateselection.h
+-rw-r--r--@  1 pv  staff     69 Nov 26 09:06 QWebEngineClientCertificateStore
+-rw-r--r--@  1 pv  staff   1298 Nov 26 09:06 qwebengineclientcertificatestore.h
+-rw-r--r--@  1 pv  staff     58 Nov 26 09:06 QWebEngineClientHints
+-rw-r--r--@  1 pv  staff   2494 Nov 26 09:06 qwebengineclienthints.h
+-rw-r--r--@  1 pv  staff     65 Nov 26 09:06 QWebEngineContextMenuRequest
+-rw-r--r--@  1 pv  staff   4229 Nov 26 09:06 qwebenginecontextmenurequest.h
+-rw-r--r--@  1 pv  staff     58 Nov 26 09:06 QWebEngineCookieStore
+-rw-r--r--@  1 pv  staff   1987 Nov 26 09:06 qwebenginecookiestore.h
+-rw-r--r--@  1 pv  staff     66 Nov 26 09:06 QWebEngineDesktopMediaRequest
+-rw-r--r--@  1 pv  staff   2381 Nov 26 09:06 qwebenginedesktopmediarequest.h
+-rw-r--r--@  1 pv  staff     62 Nov 26 09:06 QWebEngineDownloadRequest
+-rw-r--r--@  1 pv  staff   4720 Nov 26 09:06 qwebenginedownloadrequest.h
+-rw-r--r--@  1 pv  staff     70 Nov 26 09:06 QWebEngineFileSystemAccessRequest
+-rw-r--r--@  1 pv  staff   2722 Nov 26 09:06 qwebenginefilesystemaccessrequest.h
+-rw-r--r--@  1 pv  staff     61 Nov 26 09:06 QWebEngineFindTextResult
+-rw-r--r--@  1 pv  staff   1274 Nov 26 09:06 qwebenginefindtextresult.h
+-rw-r--r--@  1 pv  staff     52 Nov 26 09:06 QWebEngineFrame
+-rw-r--r--@  1 pv  staff   3158 Nov 26 09:06 qwebengineframe.h
+-rw-r--r--@  1 pv  staff     64 Nov 26 09:06 QWebEngineFullScreenRequest
+-rw-r--r--@  1 pv  staff   1559 Nov 26 09:06 qwebenginefullscreenrequest.h
+-rw-r--r--@  1 pv  staff     61 Nov 26 09:06 QWebEngineGlobalSettings
+-rw-r--r--@  1 pv  staff    845 Nov 26 09:06 qwebengineglobalsettings.h
+-rw-r--r--@  1 pv  staff     54 Nov 26 09:06 QWebEngineHistory
+-rw-r--r--@  1 pv  staff   4283 Nov 26 09:06 qwebenginehistory.h
+-rw-r--r--@  1 pv  staff     54 Nov 26 09:06 QWebEngineHistoryItem
+-rw-r--r--@  1 pv  staff     54 Nov 26 09:06 QWebEngineHistoryModel
+-rw-r--r--@  1 pv  staff     58 Nov 26 09:06 QWebEngineHttpRequest
+-rw-r--r--@  1 pv  staff   2122 Nov 26 09:06 qwebenginehttprequest.h
+-rw-r--r--@  1 pv  staff     58 Nov 26 09:06 QWebEngineLoadingInfo
+-rw-r--r--@  1 pv  staff   3009 Nov 26 09:06 qwebengineloadinginfo.h
+-rw-r--r--@  1 pv  staff     64 Nov 26 09:06 QWebEngineNavigationRequest
+-rw-r--r--@  1 pv  staff   2341 Nov 26 09:06 qwebenginenavigationrequest.h
+-rw-r--r--@  1 pv  staff     63 Nov 26 09:06 QWebEngineNewWindowRequest
+-rw-r--r--@  1 pv  staff   1875 Nov 26 09:06 qwebenginenewwindowrequest.h
+-rw-r--r--@  1 pv  staff     59 Nov 26 09:06 QWebEngineNotification
+-rw-r--r--@  1 pv  staff   1858 Nov 26 09:06 qwebenginenotification.h
+-rw-r--r--@  1 pv  staff     51 Nov 26 09:06 QWebEnginePage
+-rw-r--r--@  1 pv  staff  16378 Nov 26 09:06 qwebenginepage.h
+-rw-r--r--@  1 pv  staff     57 Nov 26 09:06 QWebEnginePermission
+-rw-r--r--@  1 pv  staff   3443 Nov 26 09:06 qwebenginepermission.h
+-rw-r--r--@  1 pv  staff     54 Nov 26 09:06 QWebEngineProfile
+-rw-r--r--@  1 pv  staff   5180 Nov 26 09:06 qwebengineprofile.h
+-rw-r--r--@  1 pv  staff     61 Nov 26 09:06 QWebEngineProfileBuilder
+-rw-r--r--@  1 pv  staff   1767 Nov 26 09:06 qwebengineprofilebuilder.h
+-rw-r--r--@  1 pv  staff     59 Nov 26 09:06 QWebEngineQuotaRequest
+-rw-r--r--@  1 pv  staff   1076 Nov 26 09:06 qwebenginequotarequest.h
+-rw-r--r--@  1 pv  staff     77 Nov 26 09:06 QWebEngineRegisterProtocolHandlerRequest
+-rw-r--r--@  1 pv  staff   1503 Nov 26 09:06 qwebengineregisterprotocolhandlerrequest.h
+-rw-r--r--@  1 pv  staff     53 Nov 26 09:06 QWebEngineScript
+-rw-r--r--@  1 pv  staff   2472 Nov 26 09:06 qwebenginescript.h
+-rw-r--r--@  1 pv  staff     63 Nov 26 09:06 QWebEngineScriptCollection
+-rw-r--r--@  1 pv  staff   1399 Nov 26 09:06 qwebenginescriptcollection.h
+-rw-r--r--@  1 pv  staff     55 Nov 26 09:06 QWebEngineSettings
+-rw-r--r--@  1 pv  staff   3827 Nov 26 09:06 qwebenginesettings.h
+-rw-r--r--@  1 pv  staff     61 Nov 26 09:06 QWebEngineUrlRequestInfo
+-rw-r--r--@  1 pv  staff   3726 Nov 26 09:06 qwebengineurlrequestinfo.h
+-rw-r--r--@  1 pv  staff     68 Nov 26 09:06 QWebEngineUrlRequestInterceptor
+-rw-r--r--@  1 pv  staff    803 Nov 26 09:06 qwebengineurlrequestinterceptor.h
+-rw-r--r--@  1 pv  staff     60 Nov 26 09:06 QWebEngineUrlRequestJob
+-rw-r--r--@  1 pv  staff   1690 Nov 26 09:06 qwebengineurlrequestjob.h
+-rw-r--r--@  1 pv  staff     56 Nov 26 09:06 QWebEngineUrlScheme
+-rw-r--r--@  1 pv  staff   2368 Nov 26 09:06 qwebengineurlscheme.h
+-rw-r--r--@  1 pv  staff     63 Nov 26 09:06 QWebEngineUrlSchemeHandler
+-rw-r--r--@  1 pv  staff    774 Nov 26 09:06 qwebengineurlschemehandler.h
+-rw-r--r--@  1 pv  staff     63 Nov 26 09:06 QWebEngineWebAuthPinRequest
+-rw-r--r--@  1 pv  staff     63 Nov 26 09:06 QWebEngineWebAuthUxRequest
+-rw-r--r--@  1 pv  staff   3512 Nov 26 09:06 qwebenginewebauthuxrequest.h
+-rw-r--r--@  1 pv  staff     20 Nov 26 09:06 WebEngineCore_fake_header.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Versions/A/Headers/6.9.3:
+total 0
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 .
+drwxr-xr-x@ 81 pv  staff  2592 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 QtWebEngineCore
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Versions/A/Headers/6.9.3/QtWebEngineCore:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 ..
+drwxr-xr-x@ 19 pv  staff  608 Nov 26 10:53 private
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Versions/A/Headers/6.9.3/QtWebEngineCore/private:
+total 152
+drwxr-xr-x@ 19 pv  staff    608 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff     96 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff    739 Nov 26 09:06 qtwebenginecore-config_p.h
+-rw-r--r--@  1 pv  staff   2286 Nov 26 09:06 qtwebenginecoreglobal_p.h
+-rw-r--r--@  1 pv  staff   1571 Nov 26 09:06 qwebenginecontextmenurequest_p.h
+-rw-r--r--@  1 pv  staff   1969 Nov 26 09:06 qwebenginecookiestore_p.h
+-rw-r--r--@  1 pv  staff   1446 Nov 26 09:06 qwebenginedesktopmediarequest_p.h
+-rw-r--r--@  1 pv  staff   2355 Nov 26 09:06 qwebenginedownloadrequest_p.h
+-rw-r--r--@  1 pv  staff   1285 Nov 26 09:06 qwebengineglobalsettings_p.h
+-rw-r--r--@  1 pv  staff   3063 Nov 26 09:06 qwebenginehistory_p.h
+-rw-r--r--@  1 pv  staff   1077 Nov 26 09:06 qwebenginemessagepumpscheduler_p.h
+-rw-r--r--@  1 pv  staff   1155 Nov 26 09:06 qwebenginenewwindowrequest_p.h
+-rw-r--r--@  1 pv  staff  11736 Nov 26 09:06 qwebenginepage_p.h
+-rw-r--r--@  1 pv  staff   1326 Nov 26 09:06 qwebenginepermission_p.h
+-rw-r--r--@  1 pv  staff   2398 Nov 26 09:06 qwebengineprofile_p.h
+-rw-r--r--@  1 pv  staff   1194 Nov 26 09:06 qwebengineprofilebuilder_p.h
+-rw-r--r--@  1 pv  staff   1667 Nov 26 09:06 qwebenginescriptcollection_p.h
+-rw-r--r--@  1 pv  staff   1959 Nov 26 09:06 qwebengineurlrequestinfo_p.h
+-rw-r--r--@  1 pv  staff   1269 Nov 26 09:06 qwebenginewebauthuxrequest_p.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Versions/A/Helpers:
+total 0
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 6 pv  staff  192 Nov 26 10:53 ..
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 QtWebEngineProcess.app
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app:
+total 0
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 ..
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 Contents
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app/Contents:
+total 8
+drwxr-xr-x@ 5 pv  staff   160 Nov 26 10:53 .
+drwxr-xr-x@ 3 pv  staff    96 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  1143 Nov 26 09:06 Info.plist
+drwxr-xr-x@ 3 pv  staff    96 Nov 26 10:53 MacOS
+drwxr-xr-x@ 3 pv  staff    96 Nov 26 10:53 Resources
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app/Contents/MacOS:
+total 136
+drwxr-xr-x@ 3 pv  staff     96 Nov 26 10:53 .
+drwxr-xr-x@ 5 pv  staff    160 Nov 26 10:53 ..
+-rwxr-xr-x@ 1 pv  staff  67776 Nov 26 09:44 QtWebEngineProcess
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app/Contents/Resources:
+total 8
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  479 Nov 26 09:06 QtWebEngineProcess.entitlements
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Versions/A/Resources:
+total 46752
+drwxr-xr-x@ 12 pv  staff       384 Nov 26 10:53 .
+drwxr-xr-x@  6 pv  staff       192 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff  10468208 Nov 26 09:43 icudtl.dat
+-rw-r--r--@  1 pv  staff       826 Nov 26 09:06 Info.plist
+-r--r--r--@  1 pv  staff       343 Nov 26 09:06 PrivacyInfo.xcprivacy
+-rw-r--r--@  1 pv  staff  10296730 Nov 26 09:43 qtwebengine_devtools_resources.pak
+drwxr-xr-x@ 55 pv  staff      1760 Nov 26 10:53 qtwebengine_locales
+-rw-r--r--@  1 pv  staff    116947 Nov 26 09:43 qtwebengine_resources_100p.pak
+-rw-r--r--@  1 pv  staff    157787 Nov 26 09:43 qtwebengine_resources_200p.pak
+-rw-r--r--@  1 pv  staff   2189287 Nov 26 09:43 qtwebengine_resources.pak
+-rw-r--r--@  1 pv  staff       954 Nov 26 09:43 QtWebEngineCore.prl
+-rw-r--r--@  1 pv  staff    687705 Nov 26 09:43 v8_context_snapshot.arm64.bin
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Versions/A/Resources/qtwebengine_locales:
+total 78352
+drwxr-xr-x@ 55 pv  staff     1760 Nov 26 10:53 .
+drwxr-xr-x@ 12 pv  staff      384 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff   844984 Nov 26 09:43 am.pak
+-rw-r--r--@  1 pv  staff   922922 Nov 26 09:43 ar.pak
+-rw-r--r--@  1 pv  staff   961955 Nov 26 09:43 bg.pak
+-rw-r--r--@  1 pv  staff  1241378 Nov 26 09:43 bn.pak
+-rw-r--r--@  1 pv  staff   587164 Nov 26 09:43 ca.pak
+-rw-r--r--@  1 pv  staff   605288 Nov 26 09:43 cs.pak
+-rw-r--r--@  1 pv  staff   547608 Nov 26 09:43 da.pak
+-rw-r--r--@  1 pv  staff   584389 Nov 26 09:43 de.pak
+-rw-r--r--@  1 pv  staff  1052090 Nov 26 09:43 el.pak
+-rw-r--r--@  1 pv  staff   477330 Nov 26 09:43 en-GB.pak
+-rw-r--r--@  1 pv  staff   482362 Nov 26 09:43 en-US.pak
+-rw-r--r--@  1 pv  staff   578621 Nov 26 09:43 es-419.pak
+-rw-r--r--@  1 pv  staff   577776 Nov 26 09:43 es.pak
+-rw-r--r--@  1 pv  staff   526205 Nov 26 09:43 et.pak
+-rw-r--r--@  1 pv  staff   857491 Nov 26 09:43 fa.pak
+-rw-r--r--@  1 pv  staff   536953 Nov 26 09:43 fi.pak
+-rw-r--r--@  1 pv  staff   608798 Nov 26 09:43 fil.pak
+-rw-r--r--@  1 pv  staff   624518 Nov 26 09:43 fr.pak
+-rw-r--r--@  1 pv  staff  1220944 Nov 26 09:43 gu.pak
+-rw-r--r--@  1 pv  staff   753067 Nov 26 09:43 he.pak
+-rw-r--r--@  1 pv  staff  1287616 Nov 26 09:43 hi.pak
+-rw-r--r--@  1 pv  staff   583701 Nov 26 09:43 hr.pak
+-rw-r--r--@  1 pv  staff   628859 Nov 26 09:43 hu.pak
+-rw-r--r--@  1 pv  staff   520950 Nov 26 09:43 id.pak
+-rw-r--r--@  1 pv  staff   570442 Nov 26 09:43 it.pak
+-rw-r--r--@  1 pv  staff   692514 Nov 26 09:43 ja.pak
+-rw-r--r--@  1 pv  staff  1394965 Nov 26 09:43 kn.pak
+-rw-r--r--@  1 pv  staff   586596 Nov 26 09:43 ko.pak
+-rw-r--r--@  1 pv  staff   632453 Nov 26 09:43 lt.pak
+-rw-r--r--@  1 pv  staff   630824 Nov 26 09:43 lv.pak
+-rw-r--r--@  1 pv  staff  1451033 Nov 26 09:43 ml.pak
+-rw-r--r--@  1 pv  staff  1194984 Nov 26 09:43 mr.pak
+-rw-r--r--@  1 pv  staff   545111 Nov 26 09:43 ms.pak
+-rw-r--r--@  1 pv  staff   526657 Nov 26 09:43 nb.pak
+-rw-r--r--@  1 pv  staff   544841 Nov 26 09:43 nl.pak
+-rw-r--r--@  1 pv  staff   607218 Nov 26 09:43 pl.pak
+-rw-r--r--@  1 pv  staff   570226 Nov 26 09:43 pt-BR.pak
+-rw-r--r--@  1 pv  staff   574217 Nov 26 09:43 pt-PT.pak
+-rw-r--r--@  1 pv  staff   595531 Nov 26 09:43 ro.pak
+-rw-r--r--@  1 pv  staff   974263 Nov 26 09:43 ru.pak
+-rw-r--r--@  1 pv  staff   615397 Nov 26 09:43 sk.pak
+-rw-r--r--@  1 pv  staff   590334 Nov 26 09:43 sl.pak
+-rw-r--r--@  1 pv  staff   904871 Nov 26 09:43 sr.pak
+-rw-r--r--@  1 pv  staff   530477 Nov 26 09:43 sv.pak
+-rw-r--r--@  1 pv  staff   561584 Nov 26 09:43 sw.pak
+-rw-r--r--@  1 pv  staff  1439488 Nov 26 09:43 ta.pak
+-rw-r--r--@  1 pv  staff  1332033 Nov 26 09:43 te.pak
+-rw-r--r--@  1 pv  staff  1116413 Nov 26 09:43 th.pak
+-rw-r--r--@  1 pv  staff   570818 Nov 26 09:43 tr.pak
+-rw-r--r--@  1 pv  staff   975902 Nov 26 09:43 uk.pak
+-rw-r--r--@  1 pv  staff   676277 Nov 26 09:43 vi.pak
+-rw-r--r--@  1 pv  staff   487390 Nov 26 09:43 zh-CN.pak
+-rw-r--r--@  1 pv  staff   481923 Nov 26 09:43 zh-TW.pak
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Versions/Current:
+total 719512
+drwxr-xr-x@  6 pv  staff        192 Nov 26 10:53 .
+drwxr-xr-x@  4 pv  staff        128 Nov 26 10:53 ..
+drwxr-xr-x@ 81 pv  staff       2592 Nov 26 10:53 Headers
+drwxr-xr-x@  3 pv  staff         96 Nov 26 10:53 Helpers
+-rwxr-xr-x@  1 pv  staff  368386592 Nov 26 09:44 QtWebEngineCore
+drwxr-xr-x@ 12 pv  staff        384 Nov 26 10:53 Resources
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Versions/Current/Headers:
+total 680
+drwxr-xr-x@ 81 pv  staff   2592 Nov 26 10:53 .
+drwxr-xr-x@  6 pv  staff    192 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff     96 Nov 26 10:53 6.9.3
+-rw-r--r--@  1 pv  staff   1497 Nov 26 09:06 QtWebEngineCore
+-rw-r--r--@  1 pv  staff    265 Nov 26 09:06 qtwebenginecore-config.h
+-rw-r--r--@  1 pv  staff    333 Nov 26 09:06 QtWebEngineCoreDepends
+-rw-r--r--@  1 pv  staff   1153 Nov 26 09:06 qtwebenginecoreglobal.h
+-rw-r--r--@  1 pv  staff     59 Nov 26 09:06 QtWebEngineCoreVersion
+-rw-r--r--@  1 pv  staff    242 Nov 26 09:06 qtwebenginecoreversion.h
+-rw-r--r--@  1 pv  staff     63 Nov 26 09:06 QWebEngineCertificateError
+-rw-r--r--@  1 pv  staff   2820 Nov 26 09:06 qwebenginecertificateerror.h
+-rw-r--r--@  1 pv  staff     73 Nov 26 09:06 QWebEngineClientCertificateSelection
+-rw-r--r--@  1 pv  staff   1313 Nov 26 09:06 qwebengineclientcertificateselection.h
+-rw-r--r--@  1 pv  staff     69 Nov 26 09:06 QWebEngineClientCertificateStore
+-rw-r--r--@  1 pv  staff   1298 Nov 26 09:06 qwebengineclientcertificatestore.h
+-rw-r--r--@  1 pv  staff     58 Nov 26 09:06 QWebEngineClientHints
+-rw-r--r--@  1 pv  staff   2494 Nov 26 09:06 qwebengineclienthints.h
+-rw-r--r--@  1 pv  staff     65 Nov 26 09:06 QWebEngineContextMenuRequest
+-rw-r--r--@  1 pv  staff   4229 Nov 26 09:06 qwebenginecontextmenurequest.h
+-rw-r--r--@  1 pv  staff     58 Nov 26 09:06 QWebEngineCookieStore
+-rw-r--r--@  1 pv  staff   1987 Nov 26 09:06 qwebenginecookiestore.h
+-rw-r--r--@  1 pv  staff     66 Nov 26 09:06 QWebEngineDesktopMediaRequest
+-rw-r--r--@  1 pv  staff   2381 Nov 26 09:06 qwebenginedesktopmediarequest.h
+-rw-r--r--@  1 pv  staff     62 Nov 26 09:06 QWebEngineDownloadRequest
+-rw-r--r--@  1 pv  staff   4720 Nov 26 09:06 qwebenginedownloadrequest.h
+-rw-r--r--@  1 pv  staff     70 Nov 26 09:06 QWebEngineFileSystemAccessRequest
+-rw-r--r--@  1 pv  staff   2722 Nov 26 09:06 qwebenginefilesystemaccessrequest.h
+-rw-r--r--@  1 pv  staff     61 Nov 26 09:06 QWebEngineFindTextResult
+-rw-r--r--@  1 pv  staff   1274 Nov 26 09:06 qwebenginefindtextresult.h
+-rw-r--r--@  1 pv  staff     52 Nov 26 09:06 QWebEngineFrame
+-rw-r--r--@  1 pv  staff   3158 Nov 26 09:06 qwebengineframe.h
+-rw-r--r--@  1 pv  staff     64 Nov 26 09:06 QWebEngineFullScreenRequest
+-rw-r--r--@  1 pv  staff   1559 Nov 26 09:06 qwebenginefullscreenrequest.h
+-rw-r--r--@  1 pv  staff     61 Nov 26 09:06 QWebEngineGlobalSettings
+-rw-r--r--@  1 pv  staff    845 Nov 26 09:06 qwebengineglobalsettings.h
+-rw-r--r--@  1 pv  staff     54 Nov 26 09:06 QWebEngineHistory
+-rw-r--r--@  1 pv  staff   4283 Nov 26 09:06 qwebenginehistory.h
+-rw-r--r--@  1 pv  staff     54 Nov 26 09:06 QWebEngineHistoryItem
+-rw-r--r--@  1 pv  staff     54 Nov 26 09:06 QWebEngineHistoryModel
+-rw-r--r--@  1 pv  staff     58 Nov 26 09:06 QWebEngineHttpRequest
+-rw-r--r--@  1 pv  staff   2122 Nov 26 09:06 qwebenginehttprequest.h
+-rw-r--r--@  1 pv  staff     58 Nov 26 09:06 QWebEngineLoadingInfo
+-rw-r--r--@  1 pv  staff   3009 Nov 26 09:06 qwebengineloadinginfo.h
+-rw-r--r--@  1 pv  staff     64 Nov 26 09:06 QWebEngineNavigationRequest
+-rw-r--r--@  1 pv  staff   2341 Nov 26 09:06 qwebenginenavigationrequest.h
+-rw-r--r--@  1 pv  staff     63 Nov 26 09:06 QWebEngineNewWindowRequest
+-rw-r--r--@  1 pv  staff   1875 Nov 26 09:06 qwebenginenewwindowrequest.h
+-rw-r--r--@  1 pv  staff     59 Nov 26 09:06 QWebEngineNotification
+-rw-r--r--@  1 pv  staff   1858 Nov 26 09:06 qwebenginenotification.h
+-rw-r--r--@  1 pv  staff     51 Nov 26 09:06 QWebEnginePage
+-rw-r--r--@  1 pv  staff  16378 Nov 26 09:06 qwebenginepage.h
+-rw-r--r--@  1 pv  staff     57 Nov 26 09:06 QWebEnginePermission
+-rw-r--r--@  1 pv  staff   3443 Nov 26 09:06 qwebenginepermission.h
+-rw-r--r--@  1 pv  staff     54 Nov 26 09:06 QWebEngineProfile
+-rw-r--r--@  1 pv  staff   5180 Nov 26 09:06 qwebengineprofile.h
+-rw-r--r--@  1 pv  staff     61 Nov 26 09:06 QWebEngineProfileBuilder
+-rw-r--r--@  1 pv  staff   1767 Nov 26 09:06 qwebengineprofilebuilder.h
+-rw-r--r--@  1 pv  staff     59 Nov 26 09:06 QWebEngineQuotaRequest
+-rw-r--r--@  1 pv  staff   1076 Nov 26 09:06 qwebenginequotarequest.h
+-rw-r--r--@  1 pv  staff     77 Nov 26 09:06 QWebEngineRegisterProtocolHandlerRequest
+-rw-r--r--@  1 pv  staff   1503 Nov 26 09:06 qwebengineregisterprotocolhandlerrequest.h
+-rw-r--r--@  1 pv  staff     53 Nov 26 09:06 QWebEngineScript
+-rw-r--r--@  1 pv  staff   2472 Nov 26 09:06 qwebenginescript.h
+-rw-r--r--@  1 pv  staff     63 Nov 26 09:06 QWebEngineScriptCollection
+-rw-r--r--@  1 pv  staff   1399 Nov 26 09:06 qwebenginescriptcollection.h
+-rw-r--r--@  1 pv  staff     55 Nov 26 09:06 QWebEngineSettings
+-rw-r--r--@  1 pv  staff   3827 Nov 26 09:06 qwebenginesettings.h
+-rw-r--r--@  1 pv  staff     61 Nov 26 09:06 QWebEngineUrlRequestInfo
+-rw-r--r--@  1 pv  staff   3726 Nov 26 09:06 qwebengineurlrequestinfo.h
+-rw-r--r--@  1 pv  staff     68 Nov 26 09:06 QWebEngineUrlRequestInterceptor
+-rw-r--r--@  1 pv  staff    803 Nov 26 09:06 qwebengineurlrequestinterceptor.h
+-rw-r--r--@  1 pv  staff     60 Nov 26 09:06 QWebEngineUrlRequestJob
+-rw-r--r--@  1 pv  staff   1690 Nov 26 09:06 qwebengineurlrequestjob.h
+-rw-r--r--@  1 pv  staff     56 Nov 26 09:06 QWebEngineUrlScheme
+-rw-r--r--@  1 pv  staff   2368 Nov 26 09:06 qwebengineurlscheme.h
+-rw-r--r--@  1 pv  staff     63 Nov 26 09:06 QWebEngineUrlSchemeHandler
+-rw-r--r--@  1 pv  staff    774 Nov 26 09:06 qwebengineurlschemehandler.h
+-rw-r--r--@  1 pv  staff     63 Nov 26 09:06 QWebEngineWebAuthPinRequest
+-rw-r--r--@  1 pv  staff     63 Nov 26 09:06 QWebEngineWebAuthUxRequest
+-rw-r--r--@  1 pv  staff   3512 Nov 26 09:06 qwebenginewebauthuxrequest.h
+-rw-r--r--@  1 pv  staff     20 Nov 26 09:06 WebEngineCore_fake_header.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Versions/Current/Headers/6.9.3:
+total 0
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 .
+drwxr-xr-x@ 81 pv  staff  2592 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 QtWebEngineCore
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Versions/Current/Headers/6.9.3/QtWebEngineCore:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 ..
+drwxr-xr-x@ 19 pv  staff  608 Nov 26 10:53 private
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Versions/Current/Headers/6.9.3/QtWebEngineCore/private:
+total 152
+drwxr-xr-x@ 19 pv  staff    608 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff     96 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff    739 Nov 26 09:06 qtwebenginecore-config_p.h
+-rw-r--r--@  1 pv  staff   2286 Nov 26 09:06 qtwebenginecoreglobal_p.h
+-rw-r--r--@  1 pv  staff   1571 Nov 26 09:06 qwebenginecontextmenurequest_p.h
+-rw-r--r--@  1 pv  staff   1969 Nov 26 09:06 qwebenginecookiestore_p.h
+-rw-r--r--@  1 pv  staff   1446 Nov 26 09:06 qwebenginedesktopmediarequest_p.h
+-rw-r--r--@  1 pv  staff   2355 Nov 26 09:06 qwebenginedownloadrequest_p.h
+-rw-r--r--@  1 pv  staff   1285 Nov 26 09:06 qwebengineglobalsettings_p.h
+-rw-r--r--@  1 pv  staff   3063 Nov 26 09:06 qwebenginehistory_p.h
+-rw-r--r--@  1 pv  staff   1077 Nov 26 09:06 qwebenginemessagepumpscheduler_p.h
+-rw-r--r--@  1 pv  staff   1155 Nov 26 09:06 qwebenginenewwindowrequest_p.h
+-rw-r--r--@  1 pv  staff  11736 Nov 26 09:06 qwebenginepage_p.h
+-rw-r--r--@  1 pv  staff   1326 Nov 26 09:06 qwebenginepermission_p.h
+-rw-r--r--@  1 pv  staff   2398 Nov 26 09:06 qwebengineprofile_p.h
+-rw-r--r--@  1 pv  staff   1194 Nov 26 09:06 qwebengineprofilebuilder_p.h
+-rw-r--r--@  1 pv  staff   1667 Nov 26 09:06 qwebenginescriptcollection_p.h
+-rw-r--r--@  1 pv  staff   1959 Nov 26 09:06 qwebengineurlrequestinfo_p.h
+-rw-r--r--@  1 pv  staff   1269 Nov 26 09:06 qwebenginewebauthuxrequest_p.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Versions/Current/Helpers:
+total 0
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 6 pv  staff  192 Nov 26 10:53 ..
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 QtWebEngineProcess.app
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Versions/Current/Helpers/QtWebEngineProcess.app:
+total 0
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 ..
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 Contents
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Versions/Current/Helpers/QtWebEngineProcess.app/Contents:
+total 8
+drwxr-xr-x@ 5 pv  staff   160 Nov 26 10:53 .
+drwxr-xr-x@ 3 pv  staff    96 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  1143 Nov 26 09:06 Info.plist
+drwxr-xr-x@ 3 pv  staff    96 Nov 26 10:53 MacOS
+drwxr-xr-x@ 3 pv  staff    96 Nov 26 10:53 Resources
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Versions/Current/Helpers/QtWebEngineProcess.app/Contents/MacOS:
+total 136
+drwxr-xr-x@ 3 pv  staff     96 Nov 26 10:53 .
+drwxr-xr-x@ 5 pv  staff    160 Nov 26 10:53 ..
+-rwxr-xr-x@ 1 pv  staff  67776 Nov 26 09:44 QtWebEngineProcess
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Versions/Current/Helpers/QtWebEngineProcess.app/Contents/Resources:
+total 8
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  479 Nov 26 09:06 QtWebEngineProcess.entitlements
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Versions/Current/Resources:
+total 46752
+drwxr-xr-x@ 12 pv  staff       384 Nov 26 10:53 .
+drwxr-xr-x@  6 pv  staff       192 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff  10468208 Nov 26 09:43 icudtl.dat
+-rw-r--r--@  1 pv  staff       826 Nov 26 09:06 Info.plist
+-r--r--r--@  1 pv  staff       343 Nov 26 09:06 PrivacyInfo.xcprivacy
+-rw-r--r--@  1 pv  staff  10296730 Nov 26 09:43 qtwebengine_devtools_resources.pak
+drwxr-xr-x@ 55 pv  staff      1760 Nov 26 10:53 qtwebengine_locales
+-rw-r--r--@  1 pv  staff    116947 Nov 26 09:43 qtwebengine_resources_100p.pak
+-rw-r--r--@  1 pv  staff    157787 Nov 26 09:43 qtwebengine_resources_200p.pak
+-rw-r--r--@  1 pv  staff   2189287 Nov 26 09:43 qtwebengine_resources.pak
+-rw-r--r--@  1 pv  staff       954 Nov 26 09:43 QtWebEngineCore.prl
+-rw-r--r--@  1 pv  staff    687705 Nov 26 09:43 v8_context_snapshot.arm64.bin
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineCore.framework/Versions/Current/Resources/qtwebengine_locales:
+total 78352
+drwxr-xr-x@ 55 pv  staff     1760 Nov 26 10:53 .
+drwxr-xr-x@ 12 pv  staff      384 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff   844984 Nov 26 09:43 am.pak
+-rw-r--r--@  1 pv  staff   922922 Nov 26 09:43 ar.pak
+-rw-r--r--@  1 pv  staff   961955 Nov 26 09:43 bg.pak
+-rw-r--r--@  1 pv  staff  1241378 Nov 26 09:43 bn.pak
+-rw-r--r--@  1 pv  staff   587164 Nov 26 09:43 ca.pak
+-rw-r--r--@  1 pv  staff   605288 Nov 26 09:43 cs.pak
+-rw-r--r--@  1 pv  staff   547608 Nov 26 09:43 da.pak
+-rw-r--r--@  1 pv  staff   584389 Nov 26 09:43 de.pak
+-rw-r--r--@  1 pv  staff  1052090 Nov 26 09:43 el.pak
+-rw-r--r--@  1 pv  staff   477330 Nov 26 09:43 en-GB.pak
+-rw-r--r--@  1 pv  staff   482362 Nov 26 09:43 en-US.pak
+-rw-r--r--@  1 pv  staff   578621 Nov 26 09:43 es-419.pak
+-rw-r--r--@  1 pv  staff   577776 Nov 26 09:43 es.pak
+-rw-r--r--@  1 pv  staff   526205 Nov 26 09:43 et.pak
+-rw-r--r--@  1 pv  staff   857491 Nov 26 09:43 fa.pak
+-rw-r--r--@  1 pv  staff   536953 Nov 26 09:43 fi.pak
+-rw-r--r--@  1 pv  staff   608798 Nov 26 09:43 fil.pak
+-rw-r--r--@  1 pv  staff   624518 Nov 26 09:43 fr.pak
+-rw-r--r--@  1 pv  staff  1220944 Nov 26 09:43 gu.pak
+-rw-r--r--@  1 pv  staff   753067 Nov 26 09:43 he.pak
+-rw-r--r--@  1 pv  staff  1287616 Nov 26 09:43 hi.pak
+-rw-r--r--@  1 pv  staff   583701 Nov 26 09:43 hr.pak
+-rw-r--r--@  1 pv  staff   628859 Nov 26 09:43 hu.pak
+-rw-r--r--@  1 pv  staff   520950 Nov 26 09:43 id.pak
+-rw-r--r--@  1 pv  staff   570442 Nov 26 09:43 it.pak
+-rw-r--r--@  1 pv  staff   692514 Nov 26 09:43 ja.pak
+-rw-r--r--@  1 pv  staff  1394965 Nov 26 09:43 kn.pak
+-rw-r--r--@  1 pv  staff   586596 Nov 26 09:43 ko.pak
+-rw-r--r--@  1 pv  staff   632453 Nov 26 09:43 lt.pak
+-rw-r--r--@  1 pv  staff   630824 Nov 26 09:43 lv.pak
+-rw-r--r--@  1 pv  staff  1451033 Nov 26 09:43 ml.pak
+-rw-r--r--@  1 pv  staff  1194984 Nov 26 09:43 mr.pak
+-rw-r--r--@  1 pv  staff   545111 Nov 26 09:43 ms.pak
+-rw-r--r--@  1 pv  staff   526657 Nov 26 09:43 nb.pak
+-rw-r--r--@  1 pv  staff   544841 Nov 26 09:43 nl.pak
+-rw-r--r--@  1 pv  staff   607218 Nov 26 09:43 pl.pak
+-rw-r--r--@  1 pv  staff   570226 Nov 26 09:43 pt-BR.pak
+-rw-r--r--@  1 pv  staff   574217 Nov 26 09:43 pt-PT.pak
+-rw-r--r--@  1 pv  staff   595531 Nov 26 09:43 ro.pak
+-rw-r--r--@  1 pv  staff   974263 Nov 26 09:43 ru.pak
+-rw-r--r--@  1 pv  staff   615397 Nov 26 09:43 sk.pak
+-rw-r--r--@  1 pv  staff   590334 Nov 26 09:43 sl.pak
+-rw-r--r--@  1 pv  staff   904871 Nov 26 09:43 sr.pak
+-rw-r--r--@  1 pv  staff   530477 Nov 26 09:43 sv.pak
+-rw-r--r--@  1 pv  staff   561584 Nov 26 09:43 sw.pak
+-rw-r--r--@  1 pv  staff  1439488 Nov 26 09:43 ta.pak
+-rw-r--r--@  1 pv  staff  1332033 Nov 26 09:43 te.pak
+-rw-r--r--@  1 pv  staff  1116413 Nov 26 09:43 th.pak
+-rw-r--r--@  1 pv  staff   570818 Nov 26 09:43 tr.pak
+-rw-r--r--@  1 pv  staff   975902 Nov 26 09:43 uk.pak
+-rw-r--r--@  1 pv  staff   676277 Nov 26 09:43 vi.pak
+-rw-r--r--@  1 pv  staff   487390 Nov 26 09:43 zh-CN.pak
+-rw-r--r--@  1 pv  staff   481923 Nov 26 09:43 zh-TW.pak
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuick.framework:
+total 2104
+drwxr-xr-x@  6 pv  staff      192 Nov 26 10:53 .
+drwxr-xr-x@ 11 pv  staff      352 Nov 26 10:53 ..
+drwxr-xr-x@ 14 pv  staff      448 Nov 26 10:53 Headers
+-rwxr-xr-x@  1 pv  staff  1075840 Nov 26 09:44 QtWebEngineQuick
+drwxr-xr-x@  5 pv  staff      160 Nov 26 10:53 Resources
+drwxr-xr-x@  4 pv  staff      128 Nov 26 10:53 Versions
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuick.framework/Headers:
+total 88
+drwxr-xr-x@ 14 pv  staff   448 Nov 26 10:53 .
+drwxr-xr-x@  6 pv  staff   192 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 6.9.3
+-rw-r--r--@  1 pv  staff    67 Nov 26 09:06 QQuickWebEngineDownloadRequest
+-rw-r--r--@  1 pv  staff  1087 Nov 26 09:06 qquickwebenginedownloadrequest.h
+-rw-r--r--@  1 pv  staff    59 Nov 26 09:06 QQuickWebEngineProfile
+-rw-r--r--@  1 pv  staff  7813 Nov 26 09:06 qquickwebengineprofile.h
+-rw-r--r--@  1 pv  staff   286 Nov 26 09:06 QtWebEngineQuick
+-rw-r--r--@  1 pv  staff     0 Nov 26 09:06 qtwebenginequick-config.h
+-rw-r--r--@  1 pv  staff   340 Nov 26 09:06 QtWebEngineQuickDepends
+-rw-r--r--@  1 pv  staff   672 Nov 26 09:06 qtwebenginequickglobal.h
+-rw-r--r--@  1 pv  staff    60 Nov 26 09:06 QtWebEngineQuickVersion
+-rw-r--r--@  1 pv  staff   247 Nov 26 09:06 qtwebenginequickversion.h
+-rw-r--r--@  1 pv  staff    20 Nov 26 09:06 WebEngineQuick_fake_header.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuick.framework/Headers/6.9.3:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 14 pv  staff  448 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 QtWebEngineQuick
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuick.framework/Headers/6.9.3/QtWebEngineQuick:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 ..
+drwxr-xr-x@ 26 pv  staff  832 Nov 26 10:53 private
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuick.framework/Headers/6.9.3/QtWebEngineQuick/private:
+total 296
+drwxr-xr-x@ 26 pv  staff    832 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff     96 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff   2086 Nov 26 09:06 qquickwebengine_accessible_p.h
+-rw-r--r--@  1 pv  staff   1127 Nov 26 09:06 qquickwebengineaction_p_p.h
+-rw-r--r--@  1 pv  staff   1832 Nov 26 09:06 qquickwebengineaction_p.h
+-rw-r--r--@  1 pv  staff   3563 Nov 26 09:06 qquickwebengineclientcertificateselection_p.h
+-rw-r--r--@  1 pv  staff   7656 Nov 26 09:06 qquickwebenginedialogrequests_p.h
+-rw-r--r--@  1 pv  staff   2952 Nov 26 09:06 qquickwebenginefaviconprovider_p_p.h
+-rw-r--r--@  1 pv  staff   7208 Nov 26 09:06 qquickwebengineforeigntypes_p.h
+-rw-r--r--@  1 pv  staff   1377 Nov 26 09:06 qquickwebenginenewwindowrequest_p.h
+-rw-r--r--@  1 pv  staff   2377 Nov 26 09:06 qquickwebengineprofile_p.h
+-rw-r--r--@  1 pv  staff   1279 Nov 26 09:06 qquickwebengineprofileprototype_p_p.h
+-rw-r--r--@  1 pv  staff   3280 Nov 26 09:06 qquickwebengineprofileprototype_p.h
+-rw-r--r--@  1 pv  staff   1904 Nov 26 09:06 qquickwebenginescriptcollection_p.h
+-rw-r--r--@  1 pv  staff  13331 Nov 26 09:06 qquickwebenginesettings_p.h
+-rw-r--r--@  1 pv  staff   1307 Nov 26 09:06 qquickwebenginesingleton_p.h
+-rw-r--r--@  1 pv  staff   1252 Nov 26 09:06 qquickwebenginetouchhandle_p.h
+-rw-r--r--@  1 pv  staff   1143 Nov 26 09:06 qquickwebenginetouchhandleprovider_p_p.h
+-rw-r--r--@  1 pv  staff   1168 Nov 26 09:06 qquickwebenginetouchselectionmenurequest_p_p.h
+-rw-r--r--@  1 pv  staff   2088 Nov 26 09:06 qquickwebenginetouchselectionmenurequest_p.h
+-rw-r--r--@  1 pv  staff  10125 Nov 26 09:06 qquickwebengineview_p_p.h
+-rw-r--r--@  1 pv  staff  21648 Nov 26 09:06 qquickwebengineview_p.h
+-rw-r--r--@  1 pv  staff     50 Nov 26 09:06 qtwebenginequick-config_p.h
+-rw-r--r--@  1 pv  staff    655 Nov 26 09:06 qtwebenginequickglobal_p.h
+-rw-r--r--@  1 pv  staff   1731 Nov 26 09:06 render_widget_host_view_qt_delegate_quickwindow_p.h
+-rw-r--r--@  1 pv  staff   4581 Nov 26 09:06 ui_delegates_manager_p.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuick.framework/Resources:
+total 24
+drwxr-xr-x@ 5 pv  staff   160 Nov 26 10:53 .
+drwxr-xr-x@ 6 pv  staff   192 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff   828 Nov 26 09:06 Info.plist
+-r--r--r--@ 1 pv  staff   343 Nov 26 09:06 PrivacyInfo.xcprivacy
+-rw-r--r--@ 1 pv  staff  1067 Nov 26 09:43 QtWebEngineQuick.prl
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuick.framework/Versions:
+total 0
+drwxr-xr-x@ 4 pv  staff  128 Nov 26 10:53 .
+drwxr-xr-x@ 6 pv  staff  192 Nov 26 10:53 ..
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 A
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 Current
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuick.framework/Versions/A:
+total 2104
+drwxr-xr-x@  5 pv  staff      160 Nov 26 10:53 .
+drwxr-xr-x@  4 pv  staff      128 Nov 26 10:53 ..
+drwxr-xr-x@ 14 pv  staff      448 Nov 26 10:53 Headers
+-rwxr-xr-x@  1 pv  staff  1075840 Nov 26 09:44 QtWebEngineQuick
+drwxr-xr-x@  5 pv  staff      160 Nov 26 10:53 Resources
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuick.framework/Versions/A/Headers:
+total 88
+drwxr-xr-x@ 14 pv  staff   448 Nov 26 10:53 .
+drwxr-xr-x@  5 pv  staff   160 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 6.9.3
+-rw-r--r--@  1 pv  staff    67 Nov 26 09:06 QQuickWebEngineDownloadRequest
+-rw-r--r--@  1 pv  staff  1087 Nov 26 09:06 qquickwebenginedownloadrequest.h
+-rw-r--r--@  1 pv  staff    59 Nov 26 09:06 QQuickWebEngineProfile
+-rw-r--r--@  1 pv  staff  7813 Nov 26 09:06 qquickwebengineprofile.h
+-rw-r--r--@  1 pv  staff   286 Nov 26 09:06 QtWebEngineQuick
+-rw-r--r--@  1 pv  staff     0 Nov 26 09:06 qtwebenginequick-config.h
+-rw-r--r--@  1 pv  staff   340 Nov 26 09:06 QtWebEngineQuickDepends
+-rw-r--r--@  1 pv  staff   672 Nov 26 09:06 qtwebenginequickglobal.h
+-rw-r--r--@  1 pv  staff    60 Nov 26 09:06 QtWebEngineQuickVersion
+-rw-r--r--@  1 pv  staff   247 Nov 26 09:06 qtwebenginequickversion.h
+-rw-r--r--@  1 pv  staff    20 Nov 26 09:06 WebEngineQuick_fake_header.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuick.framework/Versions/A/Headers/6.9.3:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 14 pv  staff  448 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 QtWebEngineQuick
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuick.framework/Versions/A/Headers/6.9.3/QtWebEngineQuick:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 ..
+drwxr-xr-x@ 26 pv  staff  832 Nov 26 10:53 private
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuick.framework/Versions/A/Headers/6.9.3/QtWebEngineQuick/private:
+total 296
+drwxr-xr-x@ 26 pv  staff    832 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff     96 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff   2086 Nov 26 09:06 qquickwebengine_accessible_p.h
+-rw-r--r--@  1 pv  staff   1127 Nov 26 09:06 qquickwebengineaction_p_p.h
+-rw-r--r--@  1 pv  staff   1832 Nov 26 09:06 qquickwebengineaction_p.h
+-rw-r--r--@  1 pv  staff   3563 Nov 26 09:06 qquickwebengineclientcertificateselection_p.h
+-rw-r--r--@  1 pv  staff   7656 Nov 26 09:06 qquickwebenginedialogrequests_p.h
+-rw-r--r--@  1 pv  staff   2952 Nov 26 09:06 qquickwebenginefaviconprovider_p_p.h
+-rw-r--r--@  1 pv  staff   7208 Nov 26 09:06 qquickwebengineforeigntypes_p.h
+-rw-r--r--@  1 pv  staff   1377 Nov 26 09:06 qquickwebenginenewwindowrequest_p.h
+-rw-r--r--@  1 pv  staff   2377 Nov 26 09:06 qquickwebengineprofile_p.h
+-rw-r--r--@  1 pv  staff   1279 Nov 26 09:06 qquickwebengineprofileprototype_p_p.h
+-rw-r--r--@  1 pv  staff   3280 Nov 26 09:06 qquickwebengineprofileprototype_p.h
+-rw-r--r--@  1 pv  staff   1904 Nov 26 09:06 qquickwebenginescriptcollection_p.h
+-rw-r--r--@  1 pv  staff  13331 Nov 26 09:06 qquickwebenginesettings_p.h
+-rw-r--r--@  1 pv  staff   1307 Nov 26 09:06 qquickwebenginesingleton_p.h
+-rw-r--r--@  1 pv  staff   1252 Nov 26 09:06 qquickwebenginetouchhandle_p.h
+-rw-r--r--@  1 pv  staff   1143 Nov 26 09:06 qquickwebenginetouchhandleprovider_p_p.h
+-rw-r--r--@  1 pv  staff   1168 Nov 26 09:06 qquickwebenginetouchselectionmenurequest_p_p.h
+-rw-r--r--@  1 pv  staff   2088 Nov 26 09:06 qquickwebenginetouchselectionmenurequest_p.h
+-rw-r--r--@  1 pv  staff  10125 Nov 26 09:06 qquickwebengineview_p_p.h
+-rw-r--r--@  1 pv  staff  21648 Nov 26 09:06 qquickwebengineview_p.h
+-rw-r--r--@  1 pv  staff     50 Nov 26 09:06 qtwebenginequick-config_p.h
+-rw-r--r--@  1 pv  staff    655 Nov 26 09:06 qtwebenginequickglobal_p.h
+-rw-r--r--@  1 pv  staff   1731 Nov 26 09:06 render_widget_host_view_qt_delegate_quickwindow_p.h
+-rw-r--r--@  1 pv  staff   4581 Nov 26 09:06 ui_delegates_manager_p.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuick.framework/Versions/A/Resources:
+total 24
+drwxr-xr-x@ 5 pv  staff   160 Nov 26 10:53 .
+drwxr-xr-x@ 5 pv  staff   160 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff   828 Nov 26 09:06 Info.plist
+-r--r--r--@ 1 pv  staff   343 Nov 26 09:06 PrivacyInfo.xcprivacy
+-rw-r--r--@ 1 pv  staff  1067 Nov 26 09:43 QtWebEngineQuick.prl
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuick.framework/Versions/Current:
+total 2104
+drwxr-xr-x@  5 pv  staff      160 Nov 26 10:53 .
+drwxr-xr-x@  4 pv  staff      128 Nov 26 10:53 ..
+drwxr-xr-x@ 14 pv  staff      448 Nov 26 10:53 Headers
+-rwxr-xr-x@  1 pv  staff  1075840 Nov 26 09:44 QtWebEngineQuick
+drwxr-xr-x@  5 pv  staff      160 Nov 26 10:53 Resources
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuick.framework/Versions/Current/Headers:
+total 88
+drwxr-xr-x@ 14 pv  staff   448 Nov 26 10:53 .
+drwxr-xr-x@  5 pv  staff   160 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 6.9.3
+-rw-r--r--@  1 pv  staff    67 Nov 26 09:06 QQuickWebEngineDownloadRequest
+-rw-r--r--@  1 pv  staff  1087 Nov 26 09:06 qquickwebenginedownloadrequest.h
+-rw-r--r--@  1 pv  staff    59 Nov 26 09:06 QQuickWebEngineProfile
+-rw-r--r--@  1 pv  staff  7813 Nov 26 09:06 qquickwebengineprofile.h
+-rw-r--r--@  1 pv  staff   286 Nov 26 09:06 QtWebEngineQuick
+-rw-r--r--@  1 pv  staff     0 Nov 26 09:06 qtwebenginequick-config.h
+-rw-r--r--@  1 pv  staff   340 Nov 26 09:06 QtWebEngineQuickDepends
+-rw-r--r--@  1 pv  staff   672 Nov 26 09:06 qtwebenginequickglobal.h
+-rw-r--r--@  1 pv  staff    60 Nov 26 09:06 QtWebEngineQuickVersion
+-rw-r--r--@  1 pv  staff   247 Nov 26 09:06 qtwebenginequickversion.h
+-rw-r--r--@  1 pv  staff    20 Nov 26 09:06 WebEngineQuick_fake_header.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuick.framework/Versions/Current/Headers/6.9.3:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 14 pv  staff  448 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 QtWebEngineQuick
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuick.framework/Versions/Current/Headers/6.9.3/QtWebEngineQuick:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 ..
+drwxr-xr-x@ 26 pv  staff  832 Nov 26 10:53 private
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuick.framework/Versions/Current/Headers/6.9.3/QtWebEngineQuick/private:
+total 296
+drwxr-xr-x@ 26 pv  staff    832 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff     96 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff   2086 Nov 26 09:06 qquickwebengine_accessible_p.h
+-rw-r--r--@  1 pv  staff   1127 Nov 26 09:06 qquickwebengineaction_p_p.h
+-rw-r--r--@  1 pv  staff   1832 Nov 26 09:06 qquickwebengineaction_p.h
+-rw-r--r--@  1 pv  staff   3563 Nov 26 09:06 qquickwebengineclientcertificateselection_p.h
+-rw-r--r--@  1 pv  staff   7656 Nov 26 09:06 qquickwebenginedialogrequests_p.h
+-rw-r--r--@  1 pv  staff   2952 Nov 26 09:06 qquickwebenginefaviconprovider_p_p.h
+-rw-r--r--@  1 pv  staff   7208 Nov 26 09:06 qquickwebengineforeigntypes_p.h
+-rw-r--r--@  1 pv  staff   1377 Nov 26 09:06 qquickwebenginenewwindowrequest_p.h
+-rw-r--r--@  1 pv  staff   2377 Nov 26 09:06 qquickwebengineprofile_p.h
+-rw-r--r--@  1 pv  staff   1279 Nov 26 09:06 qquickwebengineprofileprototype_p_p.h
+-rw-r--r--@  1 pv  staff   3280 Nov 26 09:06 qquickwebengineprofileprototype_p.h
+-rw-r--r--@  1 pv  staff   1904 Nov 26 09:06 qquickwebenginescriptcollection_p.h
+-rw-r--r--@  1 pv  staff  13331 Nov 26 09:06 qquickwebenginesettings_p.h
+-rw-r--r--@  1 pv  staff   1307 Nov 26 09:06 qquickwebenginesingleton_p.h
+-rw-r--r--@  1 pv  staff   1252 Nov 26 09:06 qquickwebenginetouchhandle_p.h
+-rw-r--r--@  1 pv  staff   1143 Nov 26 09:06 qquickwebenginetouchhandleprovider_p_p.h
+-rw-r--r--@  1 pv  staff   1168 Nov 26 09:06 qquickwebenginetouchselectionmenurequest_p_p.h
+-rw-r--r--@  1 pv  staff   2088 Nov 26 09:06 qquickwebenginetouchselectionmenurequest_p.h
+-rw-r--r--@  1 pv  staff  10125 Nov 26 09:06 qquickwebengineview_p_p.h
+-rw-r--r--@  1 pv  staff  21648 Nov 26 09:06 qquickwebengineview_p.h
+-rw-r--r--@  1 pv  staff     50 Nov 26 09:06 qtwebenginequick-config_p.h
+-rw-r--r--@  1 pv  staff    655 Nov 26 09:06 qtwebenginequickglobal_p.h
+-rw-r--r--@  1 pv  staff   1731 Nov 26 09:06 render_widget_host_view_qt_delegate_quickwindow_p.h
+-rw-r--r--@  1 pv  staff   4581 Nov 26 09:06 ui_delegates_manager_p.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuick.framework/Versions/Current/Resources:
+total 24
+drwxr-xr-x@ 5 pv  staff   160 Nov 26 10:53 .
+drwxr-xr-x@ 5 pv  staff   160 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff   828 Nov 26 09:06 Info.plist
+-r--r--r--@ 1 pv  staff   343 Nov 26 09:06 PrivacyInfo.xcprivacy
+-rw-r--r--@ 1 pv  staff  1067 Nov 26 09:43 QtWebEngineQuick.prl
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuickDelegatesQml.framework:
+total 560
+drwxr-xr-x@  5 pv  staff     160 Nov 26 10:53 .
+drwxr-xr-x@ 11 pv  staff     352 Nov 26 10:53 ..
+-rwxr-xr-x@  1 pv  staff  284848 Nov 26 09:44 QtWebEngineQuickDelegatesQml
+drwxr-xr-x@  5 pv  staff     160 Nov 26 10:53 Resources
+drwxr-xr-x@  4 pv  staff     128 Nov 26 10:53 Versions
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuickDelegatesQml.framework/Resources:
+total 24
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 .
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  852 Nov 26 09:06 Info.plist
+-r--r--r--@ 1 pv  staff  343 Nov 26 09:06 PrivacyInfo.xcprivacy
+-rw-r--r--@ 1 pv  staff  111 Nov 26 09:06 QtWebEngineQuickDelegatesQml.prl
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuickDelegatesQml.framework/Versions:
+total 0
+drwxr-xr-x@ 4 pv  staff  128 Nov 26 10:53 .
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 ..
+drwxr-xr-x@ 4 pv  staff  128 Nov 26 10:53 A
+drwxr-xr-x@ 4 pv  staff  128 Nov 26 10:53 Current
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuickDelegatesQml.framework/Versions/A:
+total 560
+drwxr-xr-x@ 4 pv  staff     128 Nov 26 10:53 .
+drwxr-xr-x@ 4 pv  staff     128 Nov 26 10:53 ..
+-rwxr-xr-x@ 1 pv  staff  284848 Nov 26 09:44 QtWebEngineQuickDelegatesQml
+drwxr-xr-x@ 5 pv  staff     160 Nov 26 10:53 Resources
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuickDelegatesQml.framework/Versions/A/Resources:
+total 24
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 .
+drwxr-xr-x@ 4 pv  staff  128 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  852 Nov 26 09:06 Info.plist
+-r--r--r--@ 1 pv  staff  343 Nov 26 09:06 PrivacyInfo.xcprivacy
+-rw-r--r--@ 1 pv  staff  111 Nov 26 09:06 QtWebEngineQuickDelegatesQml.prl
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuickDelegatesQml.framework/Versions/Current:
+total 560
+drwxr-xr-x@ 4 pv  staff     128 Nov 26 10:53 .
+drwxr-xr-x@ 4 pv  staff     128 Nov 26 10:53 ..
+-rwxr-xr-x@ 1 pv  staff  284848 Nov 26 09:44 QtWebEngineQuickDelegatesQml
+drwxr-xr-x@ 5 pv  staff     160 Nov 26 10:53 Resources
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineQuickDelegatesQml.framework/Versions/Current/Resources:
+total 24
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 .
+drwxr-xr-x@ 4 pv  staff  128 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  852 Nov 26 09:06 Info.plist
+-r--r--r--@ 1 pv  staff  343 Nov 26 09:06 PrivacyInfo.xcprivacy
+-rw-r--r--@ 1 pv  staff  111 Nov 26 09:06 QtWebEngineQuickDelegatesQml.prl
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineWidgets.framework:
+total 472
+drwxr-xr-x@  6 pv  staff     192 Nov 26 10:53 .
+drwxr-xr-x@ 11 pv  staff     352 Nov 26 10:53 ..
+drwxr-xr-x@ 11 pv  staff     352 Nov 26 10:53 Headers
+-rwxr-xr-x@  1 pv  staff  239104 Nov 26 09:44 QtWebEngineWidgets
+drwxr-xr-x@  5 pv  staff     160 Nov 26 10:53 Resources
+drwxr-xr-x@  4 pv  staff     128 Nov 26 10:53 Versions
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineWidgets.framework/Headers:
+total 72
+drwxr-xr-x@ 11 pv  staff   352 Nov 26 10:53 .
+drwxr-xr-x@  6 pv  staff   192 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 6.9.3
+-rw-r--r--@  1 pv  staff   246 Nov 26 09:06 QtWebEngineWidgets
+-rw-r--r--@  1 pv  staff   315 Nov 26 09:06 QtWebEngineWidgetsDepends
+-rw-r--r--@  1 pv  staff   603 Nov 26 09:06 qtwebenginewidgetsglobal.h
+-rw-r--r--@  1 pv  staff    62 Nov 26 09:06 QtWebEngineWidgetsVersion
+-rw-r--r--@  1 pv  staff   257 Nov 26 09:06 qtwebenginewidgetsversion.h
+-rw-r--r--@  1 pv  staff    51 Nov 26 09:06 QWebEngineView
+-rw-r--r--@  1 pv  staff  5172 Nov 26 09:06 qwebengineview.h
+-rw-r--r--@  1 pv  staff    20 Nov 26 09:06 WebEngineWidgets_fake_header.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineWidgets.framework/Headers/6.9.3:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 11 pv  staff  352 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 QtWebEngineWidgets
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineWidgets.framework/Headers/6.9.3/QtWebEngineWidgets:
+total 0
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 ..
+drwxr-xr-x@ 8 pv  staff  256 Nov 26 10:53 private
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineWidgets.framework/Headers/6.9.3/QtWebEngineWidgets/private:
+total 56
+drwxr-xr-x@ 8 pv  staff   256 Nov 26 10:53 .
+drwxr-xr-x@ 3 pv  staff    96 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  1507 Nov 26 09:06 autofillpopupwidget_p.h
+-rw-r--r--@ 1 pv  staff  1694 Nov 26 09:06 qwebengine_accessible_p.h
+-rw-r--r--@ 1 pv  staff  1321 Nov 26 09:06 qwebenginenotificationpresenter_p.h
+-rw-r--r--@ 1 pv  staff  5041 Nov 26 09:06 qwebengineview_p.h
+-rw-r--r--@ 1 pv  staff  1307 Nov 26 09:06 touchhandlewidget_p.h
+-rw-r--r--@ 1 pv  staff  1295 Nov 26 09:06 touchselectionmenuwidget_p.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineWidgets.framework/Resources:
+total 24
+drwxr-xr-x@ 5 pv  staff   160 Nov 26 10:53 .
+drwxr-xr-x@ 6 pv  staff   192 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff   832 Nov 26 09:06 Info.plist
+-r--r--r--@ 1 pv  staff   343 Nov 26 09:06 PrivacyInfo.xcprivacy
+-rw-r--r--@ 1 pv  staff  1181 Nov 26 09:43 QtWebEngineWidgets.prl
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineWidgets.framework/Versions:
+total 0
+drwxr-xr-x@ 4 pv  staff  128 Nov 26 10:53 .
+drwxr-xr-x@ 6 pv  staff  192 Nov 26 10:53 ..
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 A
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 Current
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineWidgets.framework/Versions/A:
+total 472
+drwxr-xr-x@  5 pv  staff     160 Nov 26 10:53 .
+drwxr-xr-x@  4 pv  staff     128 Nov 26 10:53 ..
+drwxr-xr-x@ 11 pv  staff     352 Nov 26 10:53 Headers
+-rwxr-xr-x@  1 pv  staff  239104 Nov 26 09:44 QtWebEngineWidgets
+drwxr-xr-x@  5 pv  staff     160 Nov 26 10:53 Resources
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineWidgets.framework/Versions/A/Headers:
+total 72
+drwxr-xr-x@ 11 pv  staff   352 Nov 26 10:53 .
+drwxr-xr-x@  5 pv  staff   160 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 6.9.3
+-rw-r--r--@  1 pv  staff   246 Nov 26 09:06 QtWebEngineWidgets
+-rw-r--r--@  1 pv  staff   315 Nov 26 09:06 QtWebEngineWidgetsDepends
+-rw-r--r--@  1 pv  staff   603 Nov 26 09:06 qtwebenginewidgetsglobal.h
+-rw-r--r--@  1 pv  staff    62 Nov 26 09:06 QtWebEngineWidgetsVersion
+-rw-r--r--@  1 pv  staff   257 Nov 26 09:06 qtwebenginewidgetsversion.h
+-rw-r--r--@  1 pv  staff    51 Nov 26 09:06 QWebEngineView
+-rw-r--r--@  1 pv  staff  5172 Nov 26 09:06 qwebengineview.h
+-rw-r--r--@  1 pv  staff    20 Nov 26 09:06 WebEngineWidgets_fake_header.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineWidgets.framework/Versions/A/Headers/6.9.3:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 11 pv  staff  352 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 QtWebEngineWidgets
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineWidgets.framework/Versions/A/Headers/6.9.3/QtWebEngineWidgets:
+total 0
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 ..
+drwxr-xr-x@ 8 pv  staff  256 Nov 26 10:53 private
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineWidgets.framework/Versions/A/Headers/6.9.3/QtWebEngineWidgets/private:
+total 56
+drwxr-xr-x@ 8 pv  staff   256 Nov 26 10:53 .
+drwxr-xr-x@ 3 pv  staff    96 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  1507 Nov 26 09:06 autofillpopupwidget_p.h
+-rw-r--r--@ 1 pv  staff  1694 Nov 26 09:06 qwebengine_accessible_p.h
+-rw-r--r--@ 1 pv  staff  1321 Nov 26 09:06 qwebenginenotificationpresenter_p.h
+-rw-r--r--@ 1 pv  staff  5041 Nov 26 09:06 qwebengineview_p.h
+-rw-r--r--@ 1 pv  staff  1307 Nov 26 09:06 touchhandlewidget_p.h
+-rw-r--r--@ 1 pv  staff  1295 Nov 26 09:06 touchselectionmenuwidget_p.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineWidgets.framework/Versions/A/Resources:
+total 24
+drwxr-xr-x@ 5 pv  staff   160 Nov 26 10:53 .
+drwxr-xr-x@ 5 pv  staff   160 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff   832 Nov 26 09:06 Info.plist
+-r--r--r--@ 1 pv  staff   343 Nov 26 09:06 PrivacyInfo.xcprivacy
+-rw-r--r--@ 1 pv  staff  1181 Nov 26 09:43 QtWebEngineWidgets.prl
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineWidgets.framework/Versions/Current:
+total 472
+drwxr-xr-x@  5 pv  staff     160 Nov 26 10:53 .
+drwxr-xr-x@  4 pv  staff     128 Nov 26 10:53 ..
+drwxr-xr-x@ 11 pv  staff     352 Nov 26 10:53 Headers
+-rwxr-xr-x@  1 pv  staff  239104 Nov 26 09:44 QtWebEngineWidgets
+drwxr-xr-x@  5 pv  staff     160 Nov 26 10:53 Resources
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineWidgets.framework/Versions/Current/Headers:
+total 72
+drwxr-xr-x@ 11 pv  staff   352 Nov 26 10:53 .
+drwxr-xr-x@  5 pv  staff   160 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 6.9.3
+-rw-r--r--@  1 pv  staff   246 Nov 26 09:06 QtWebEngineWidgets
+-rw-r--r--@  1 pv  staff   315 Nov 26 09:06 QtWebEngineWidgetsDepends
+-rw-r--r--@  1 pv  staff   603 Nov 26 09:06 qtwebenginewidgetsglobal.h
+-rw-r--r--@  1 pv  staff    62 Nov 26 09:06 QtWebEngineWidgetsVersion
+-rw-r--r--@  1 pv  staff   257 Nov 26 09:06 qtwebenginewidgetsversion.h
+-rw-r--r--@  1 pv  staff    51 Nov 26 09:06 QWebEngineView
+-rw-r--r--@  1 pv  staff  5172 Nov 26 09:06 qwebengineview.h
+-rw-r--r--@  1 pv  staff    20 Nov 26 09:06 WebEngineWidgets_fake_header.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineWidgets.framework/Versions/Current/Headers/6.9.3:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 11 pv  staff  352 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 QtWebEngineWidgets
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineWidgets.framework/Versions/Current/Headers/6.9.3/QtWebEngineWidgets:
+total 0
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 ..
+drwxr-xr-x@ 8 pv  staff  256 Nov 26 10:53 private
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineWidgets.framework/Versions/Current/Headers/6.9.3/QtWebEngineWidgets/private:
+total 56
+drwxr-xr-x@ 8 pv  staff   256 Nov 26 10:53 .
+drwxr-xr-x@ 3 pv  staff    96 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  1507 Nov 26 09:06 autofillpopupwidget_p.h
+-rw-r--r--@ 1 pv  staff  1694 Nov 26 09:06 qwebengine_accessible_p.h
+-rw-r--r--@ 1 pv  staff  1321 Nov 26 09:06 qwebenginenotificationpresenter_p.h
+-rw-r--r--@ 1 pv  staff  5041 Nov 26 09:06 qwebengineview_p.h
+-rw-r--r--@ 1 pv  staff  1307 Nov 26 09:06 touchhandlewidget_p.h
+-rw-r--r--@ 1 pv  staff  1295 Nov 26 09:06 touchselectionmenuwidget_p.h
+
+.qt/6.9.3-prop-macos-arm64/lib/QtWebEngineWidgets.framework/Versions/Current/Resources:
+total 24
+drwxr-xr-x@ 5 pv  staff   160 Nov 26 10:53 .
+drwxr-xr-x@ 5 pv  staff   160 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff   832 Nov 26 09:06 Info.plist
+-r--r--r--@ 1 pv  staff   343 Nov 26 09:06 PrivacyInfo.xcprivacy
+-rw-r--r--@ 1 pv  staff  1181 Nov 26 09:43 QtWebEngineWidgets.prl
+
+.qt/6.9.3-prop-macos-arm64/share:
+total 0
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 ..
+drwxr-xr-x@ 9 pv  staff  288 Nov 26 10:53 qt
+
+.qt/6.9.3-prop-macos-arm64/share/qt:
+total 0
+drwxr-xr-x@ 9 pv  staff  288 Nov 26 10:53 .
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 ..
+drwxr-xr-x@ 5 pv  staff  160 Nov 26 10:53 libexec
+drwxr-xr-x@ 9 pv  staff  288 Nov 26 10:53 metatypes
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 mkspecs
+drwxr-xr-x@ 9 pv  staff  288 Nov 26 10:53 modules
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 plugins
+drwxr-xr-x@ 4 pv  staff  128 Nov 26 10:53 qml
+drwxr-xr-x@ 4 pv  staff  128 Nov 26 10:53 sbom
+
+.qt/6.9.3-prop-macos-arm64/share/qt/libexec:
+total 58048
+drwxr-xr-x@ 5 pv  staff       160 Nov 26 10:53 .
+drwxr-xr-x@ 9 pv  staff       288 Nov 26 10:53 ..
+-rwxr-xr-x@ 1 pv  staff   2244768 Nov 26 09:07 gn
+-rwxr-xr-x@ 1 pv  staff   9063336 Nov 26 09:44 qwebengine_convert_dict
+-rwxr-xr-x@ 1 pv  staff  18404688 Nov 26 09:43 webenginedriver
+
+.qt/6.9.3-prop-macos-arm64/share/qt/metatypes:
+total 936
+drwxr-xr-x@ 9 pv  staff     288 Nov 26 10:53 .
+drwxr-xr-x@ 9 pv  staff     288 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff   47903 Nov 26 09:44 qt6pdf_release_metatypes.json
+-rw-r--r--@ 1 pv  staff   31560 Nov 26 09:44 qt6pdfquick_release_metatypes.json
+-rw-r--r--@ 1 pv  staff   17063 Nov 26 09:44 qt6pdfwidgets_release_metatypes.json
+-rw-r--r--@ 1 pv  staff  140835 Nov 26 09:43 qt6webenginecore_release_metatypes.json
+-rw-r--r--@ 1 pv  staff  215167 Nov 26 09:43 qt6webenginequick_release_metatypes.json
+-rw-r--r--@ 1 pv  staff       4 Nov 26 09:06 qt6webenginequickdelegatesqml_release_metatypes.json
+-rw-r--r--@ 1 pv  staff   12043 Nov 26 09:43 qt6webenginewidgets_release_metatypes.json
+
+.qt/6.9.3-prop-macos-arm64/share/qt/mkspecs:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@  9 pv  staff  288 Nov 26 10:53 ..
+drwxr-xr-x@ 16 pv  staff  512 Nov 26 10:53 modules
+
+.qt/6.9.3-prop-macos-arm64/share/qt/mkspecs/modules:
+total 112
+drwxr-xr-x@ 16 pv  staff   512 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff    96 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff   589 Nov 26 09:06 qt_lib_pdf_private.pri
+-rw-r--r--@  1 pv  staff   481 Nov 26 09:06 qt_lib_pdf.pri
+-rw-r--r--@  1 pv  staff   601 Nov 26 09:06 qt_lib_pdfquick_private.pri
+-rw-r--r--@  1 pv  staff   561 Nov 26 09:06 qt_lib_pdfquick.pri
+-rw-r--r--@  1 pv  staff   607 Nov 26 09:06 qt_lib_pdfwidgets_private.pri
+-rw-r--r--@  1 pv  staff   597 Nov 26 09:06 qt_lib_pdfwidgets.pri
+-rw-r--r--@  1 pv  staff  1030 Nov 26 09:06 qt_lib_webenginecore_private.pri
+-rw-r--r--@  1 pv  staff   943 Nov 26 09:06 qt_lib_webenginecore.pri
+-rw-r--r--@  1 pv  staff   698 Nov 26 09:06 qt_lib_webenginequick_private.pri
+-rw-r--r--@  1 pv  staff   701 Nov 26 09:06 qt_lib_webenginequick.pri
+-rw-r--r--@  1 pv  staff   665 Nov 26 09:06 qt_lib_webenginequickdelegatesqml_private.pri
+-rw-r--r--@  1 pv  staff   879 Nov 26 09:06 qt_lib_webenginequickdelegatesqml.pri
+-rw-r--r--@  1 pv  staff   703 Nov 26 09:06 qt_lib_webenginewidgets_private.pri
+-rw-r--r--@  1 pv  staff   787 Nov 26 09:06 qt_lib_webenginewidgets.pri
+
+.qt/6.9.3-prop-macos-arm64/share/qt/modules:
+total 56
+drwxr-xr-x@ 9 pv  staff  288 Nov 26 10:53 .
+drwxr-xr-x@ 9 pv  staff  288 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  511 Nov 26 09:06 Pdf.json
+-rw-r--r--@ 1 pv  staff  516 Nov 26 09:06 PdfQuick.json
+-rw-r--r--@ 1 pv  staff  518 Nov 26 09:06 PdfWidgets.json
+-rw-r--r--@ 1 pv  staff  521 Nov 26 09:06 WebEngineCore.json
+-rw-r--r--@ 1 pv  staff  522 Nov 26 09:06 WebEngineQuick.json
+-rw-r--r--@ 1 pv  staff  534 Nov 26 09:06 WebEngineQuickDelegatesQml.json
+-rw-r--r--@ 1 pv  staff  524 Nov 26 09:06 WebEngineWidgets.json
+
+.qt/6.9.3-prop-macos-arm64/share/qt/plugins:
+total 0
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 9 pv  staff  288 Nov 26 10:53 ..
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 imageformats
+
+.qt/6.9.3-prop-macos-arm64/share/qt/plugins/imageformats:
+total 160
+drwxr-xr-x@ 3 pv  staff     96 Nov 26 10:53 .
+drwxr-xr-x@ 3 pv  staff     96 Nov 26 10:53 ..
+-rwxr-xr-x@ 1 pv  staff  78432 Nov 26 09:44 libqpdf.dylib
+
+.qt/6.9.3-prop-macos-arm64/share/qt/qml:
+total 0
+drwxr-xr-x@ 4 pv  staff  128 Nov 26 10:53 .
+drwxr-xr-x@ 9 pv  staff  288 Nov 26 10:53 ..
+drwxr-xr-x@ 3 pv  staff   96 Nov 26 10:53 QtQuick
+drwxr-xr-x@ 6 pv  staff  192 Nov 26 10:53 QtWebEngine
+
+.qt/6.9.3-prop-macos-arm64/share/qt/qml/QtQuick:
+total 0
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@  4 pv  staff  128 Nov 26 10:53 ..
+drwxr-xr-x@ 12 pv  staff  384 Nov 26 10:53 Pdf
+
+.qt/6.9.3-prop-macos-arm64/share/qt/qml/QtQuick/Pdf:
+total 352
+drwxr-xr-x@ 12 pv  staff    384 Nov 26 10:53 .
+drwxr-xr-x@  3 pv  staff     96 Nov 26 10:53 ..
+drwxr-xr-x@  3 pv  staff     96 Nov 26 10:53 +Material
+drwxr-xr-x@  3 pv  staff     96 Nov 26 10:53 +Universal
+-rwxr-xr-x@  1 pv  staff  70808 Nov 26 09:44 libpdfquickplugin.dylib
+-rw-r--r--@  1 pv  staff   2600 Sep 25 11:10 PdfLinkDelegate.qml
+-rw-r--r--@  1 pv  staff  29022 Sep 25 11:10 PdfMultiPageView.qml
+-rw-r--r--@  1 pv  staff  14395 Sep 25 11:10 PdfPageView.qml
+-rw-r--r--@  1 pv  staff  18344 Sep 25 11:10 PdfScrollablePageView.qml
+-rw-r--r--@  1 pv  staff   2425 Sep 25 11:10 PdfStyle.qml
+-rw-r--r--@  1 pv  staff  23172 Nov 26 09:44 plugins.qmltypes
+-rw-r--r--@  1 pv  staff    748 Nov 26 09:06 qmldir
+
+.qt/6.9.3-prop-macos-arm64/share/qt/qml/QtQuick/Pdf/+Material:
+total 8
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 12 pv  staff  384 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff  680 Sep 25 11:10 PdfStyle.qml
+
+.qt/6.9.3-prop-macos-arm64/share/qt/qml/QtQuick/Pdf/+Universal:
+total 8
+drwxr-xr-x@  3 pv  staff   96 Nov 26 10:53 .
+drwxr-xr-x@ 12 pv  staff  384 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff  673 Sep 25 11:10 PdfStyle.qml
+
+.qt/6.9.3-prop-macos-arm64/share/qt/qml/QtWebEngine:
+total 384
+drwxr-xr-x@  6 pv  staff     192 Nov 26 10:53 .
+drwxr-xr-x@  4 pv  staff     128 Nov 26 10:53 ..
+drwxr-xr-x@ 19 pv  staff     608 Nov 26 10:53 ControlsDelegates
+-rwxr-xr-x@  1 pv  staff   71696 Nov 26 09:44 libqtwebenginequickplugin.dylib
+-rw-r--r--@  1 pv  staff  115866 Nov 26 09:43 plugins.qmltypes
+-rw-r--r--@  1 pv  staff     251 Nov 26 09:06 qmldir
+
+.qt/6.9.3-prop-macos-arm64/share/qt/qml/QtWebEngine/ControlsDelegates:
+total 240
+drwxr-xr-x@ 19 pv  staff    608 Nov 26 10:53 .
+drwxr-xr-x@  6 pv  staff    192 Nov 26 10:53 ..
+-rw-r--r--@  1 pv  staff   1419 Sep 25 11:10 AlertDialog.qml
+-rw-r--r--@  1 pv  staff   2410 Sep 25 11:10 AuthenticationDialog.qml
+-rw-r--r--@  1 pv  staff    931 Sep 25 11:10 AutofillPopup.qml
+-rw-r--r--@  1 pv  staff    319 Sep 25 11:10 ColorDialog.qml
+-rw-r--r--@  1 pv  staff   1594 Sep 25 11:10 ConfirmDialog.qml
+-rw-r--r--@  1 pv  staff    343 Sep 25 11:10 DirectoryPicker.qml
+-rw-r--r--@  1 pv  staff    334 Sep 25 11:10 FilePicker.qml
+-rwxr-xr-x@  1 pv  staff  55352 Nov 26 09:44 libqtwebenginequickdelegatesplugin.dylib
+-rw-r--r--@  1 pv  staff    558 Sep 25 11:10 Menu.qml
+-rw-r--r--@  1 pv  staff    205 Sep 25 11:10 MenuItem.qml
+-rw-r--r--@  1 pv  staff    180 Sep 25 11:10 MenuSeparator.qml
+-rw-r--r--@  1 pv  staff   1646 Sep 25 11:10 PromptDialog.qml
+-rw-r--r--@  1 pv  staff   1257 Nov 26 09:06 qmldir
+-rw-r--r--@  1 pv  staff    249 Sep 25 11:10 ToolTip.qml
+-rw-r--r--@  1 pv  staff    171 Sep 25 11:10 TouchHandle.qml
+-rw-r--r--@  1 pv  staff   3618 Sep 25 11:10 TouchSelectionMenu.qml
+-rw-r--r--@  1 pv  staff    215 Nov 26 09:06 WebEngineQuickDelegatesQml.qmltypes
+
+.qt/6.9.3-prop-macos-arm64/share/qt/sbom:
+total 192
+drwxr-xr-x@ 4 pv  staff    128 Nov 26 10:53 .
+drwxr-xr-x@ 9 pv  staff    288 Nov 26 10:53 ..
+-rw-r--r--@ 1 pv  staff  25290 Nov 26 09:44 qtpdf-6.9.3.spdx
+-rw-r--r--@ 1 pv  staff  68820 Nov 26 09:44 qtwebengine-6.9.3.spdx

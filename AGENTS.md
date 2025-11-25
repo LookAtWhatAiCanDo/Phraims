@@ -35,41 +35,52 @@ cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/Qt # configure; point to Homebr
 cmake -B build --config Release                     # compile the Phraims executable
 ./build/Phraims                                     # launch the multi-chat splitter UI
 cmake -B build --target clean                       # remove compiled objects when needed
-./ci/build-qtwebengine-macos.sh                     # build QtWebEngine with proprietary codecs into .qt/<ver>-prop-macos-<arch>
-                                                    # (set QTWEBENGINE_VER/QT_WEBENGINE_PROP_PREFIX to override) — run this before local macOS packaging
+                                                    # QtWebEngine proprietary codec prefixes now live in the private repo
+                                                    # LookAtWhatAiCanDo/QtWebEngineProprietaryCodecs; fetch the appropriate
+                                                    # .qt/<ver>-prop-<platform>-<arch> prefix from there when packaging.
 ./ci/build-phraims-macos.sh                         # macOS-only: update Homebrew, install deps, require custom QtWebEngine from 
-                                                    # .qt/<ver>-prop-macos-<arch> (build it via ci/build-qtwebengine-macos.sh
+                                                    # .qt/<ver>-prop-macos-<arch> (copy from the QtWebEngineProprietaryCodecs repo
                                                     # or set QT_WEBENGINE_PROP_PREFIX), build Release in build/macos-<arch>,
                                                     # macdeployqt with staged libpaths, sync WebEngine payload, normalize install_name/rpaths, 
                                                     # validate bundle linkage, sign, and emit Phraims.dmg.
                                                     # Set FORCE_BREW_UPDATE=0 to skip brew update; DEBUG=1 for verbose deploy diagnostics.
                                                     # For diagnostics: DEBUG=1 ./ci/build-phraims-macos.sh
                                                     # (macdeployqt log, staging/Frameworks listings, rpaths).
-                                                    # Run ci/build-qtwebengine-macos.sh first when the .qt prefix is missing/stale (mandatory before packaging).
                                                     # Override BUILD_ARCH/MACOS_ARCH to build x86_64 output (build dir becomes build/macos-<arch>).
-```
-```powershell
-./ci/build-qtwebengine-windows.ps1                  # Windows-only: build QtWebEngine with proprietary codecs into .qt/<ver>-prop-win-<arch>
-                                                    # (Arch=x64|arm64; defaults from QT_ARCH/QTWEBENGINE_VER)
 ```
 Use the same `build` tree for iterative work; regenerate only when toggling build options or Qt installs.
 
 ## Continuous Integration
 
-The repository uses GitHub Actions to automatically build macOS binaries on every push to `main` and pull requests.  
-The workflow is defined in `.github/workflows/build-macos.yml` and:
-- Builds a custom QtWebEngine with proprietary codecs via `ci/build-qtwebengine-macos.sh` into `.qt/<ver>-prop-macos-<arch>` (run this first locally before packaging)
-- Downloads a cached QtWebEngine prefix artifact from the `Build QtWebEngine macOS` workflow when available; otherwise rebuilds it inline
-- Delegates to `ci/build-phraims-macos.sh` to install the Homebrew Qt components, configure against the custom QtWebEngine prefix, build, deploy, and package the DMG in `build/macos-<arch>/`
-- Uploads the resulting `Phraims.app` DMG from `build/macos-<arch>/` as a downloadable artifact (retained for 90 days)
-- Can be manually triggered via workflow_dispatch for release builds
+The repository uses GitHub Actions to automatically build macOS and Windows binaries on every push to `main` and pull requests
+(skips when the diff only touches `README.md`). Both platforms download the matching QtWebEngine artifact from the private
+`LookAtWhatAiCanDo/QtWebEngineProprietaryCodecs` repo using `PRIVATE_QTWEBENGINE_TOKEN` before building.
 
-Both build workflows run as a matrix on `macos-26` (arm64) and `macos-15-intel` (x86_64),
-producing per-arch QtWebEngine artifacts (`qtwebengine-macos-<ver>-<arch>`) and DMGs (`Phraims-macOS-<arch>`).
-Run the `Build QtWebEngine macOS` workflow whenever QtWebEngine is bumped to refresh the cached artifact used by the main build.
-Windows prefixes are built via `Build QtWebEngine Windows` (`.github/workflows/build-qtwebengine-windows.yml`).
+If the QtWebEngine artifact download fails (e.g., token expired), refresh @paulpv’s PAT named `LAWACD QtWebEngineProprietaryCodecs`
+(current 366-day PAT created 2025/11/26, expires 2026/11/27) and paste the new token into the Phraims repository secret `PRIVATE_QTWEBENGINE_TOKEN`,
+then rerun the workflows.
 
-When modifying build requirements or dependencies, ensure the workflow file stays synchronized with local build instructions. Test the workflow by creating a pull request or triggering it manually from the GitHub Actions UI.
+QtWebEngine build workflows and scripts now live exclusively in the private `LookAtWhatAiCanDo/QtWebEngineProprietaryCodecs`
+repository. Trigger its macOS or Windows workflows there when bumping QtWebEngine to refresh the cached artifacts that this
+repository consumes.
+
+When modifying build requirements or dependencies, keep the macOS and Windows workflows in lockstep: checkout → artifact download → build → upload, common env naming, and only platform-specific differences (runner label, shell, script path, host Qt handling inside the scripts).
+Test workflows by creating a pull request or triggering them manually from the GitHub Actions UI.
+
+### macOS
+macOS builds run as a matrix in `.github/workflows/build-phraims-macos.yml` (workflow_dispatch input `arch` can select arm64, x86_64, or both);
+each arch uses its runner, downloads the matching `qtwebengine-macos-<ver>-<arch>` artifact via `ci/get-qtwebengine-macos.sh`,
+and produces `Phraims-macOS-<arch>` DMGs from `build/macos-<arch>/`.
+
+### Windows
+Windows builds run as a matrix in `.github/workflows/build-phraims-windows.yml` (workflow_dispatch input `arch` can select x64, arm64, or both).
+Each arch uses its runner and first downloads the matching `qtwebengine-windows-<ver>-<arch>` artifact via `ci/get-qtwebengine-windows.ps1`.
+The job ensures a host Qt kit is available (via `qmake` on PATH or by installing one with `aqtinstall`) and builds Phraims with Ninja after seeding
+the VS2022 environment via `vsdevcmd`.
+
+Packaging-time replacement: instead of modifying the host Qt kit, the workflow runs `windeployqt` to create a `deploy` folder and then copies
+only the runtime artifacts from the downloaded proprietary QtWebEngine prefix into that deploy folder (overwriting matching files). This
+ensures the packaged application ships the proprietary WebEngine payload without altering system or cached Qt installs.
 
 ## Coding Style & Naming Conventions
 Follow the existing C++17 + Qt style: two-space indentation, opening braces on the same line, and `PascalCase` for classes (`SplitFrameWidget`). Member variables carry a trailing underscore (`backBtn_`), free/static helpers use `camelCase`, and enums stay scoped within their owning classes. Prefer Qt containers and utilities over STL when interacting with Qt APIs, and keep comments focused on non-obvious behavior (signals, persistence, or ownership nuances).
@@ -248,3 +259,7 @@ Use short, imperative commit subjects (e.g., `Add vertical grid layout preset`) 
 - **Maintain code documentation**: Always update Doxygen-style comments when modifying code. Ensure `@param`, `@return`, and `@brief` tags remain accurate.
 - Review and update documentation in both header and implementation files when refactoring or changing behavior.
 - Generate a commit message and accompanying description for every set of changes before handing work back to the user.
+
+### Agent Conduct
+- **Do not make careless changes:** Avoid inserting transient, audit-style comments in source (e.g., "removed X" or "no longer used"). Use commits and PR descriptions for change history so the code stays clean for readers who haven't seen prior iterations.
+- **Learn and document:** When an agent or developer fixes a mistake or changes behaviour, immediately update `AGENTS.md` (or another appropriate doc) with a brief note describing the change and the rationale so the team learns and the same mistake or behavior is never repeated.

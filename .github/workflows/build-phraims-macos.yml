@@ -1,0 +1,74 @@
+name: Build macOS
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - README.md
+      - AGENTS.md
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - README.md
+      - AGENTS.md
+  workflow_dispatch:
+    inputs:
+      arch:
+        description: "Architecture to build (blank = arm64 and x86_64)"
+        required: false
+        default: ""
+        type: choice
+        options:
+          - ""
+          - arm64
+          - x86_64
+
+jobs:
+  build-macos:
+    name: Build macOS (${{ matrix.arch }})
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head_repo.fork == false }}
+    runs-on: ${{ fromJson('{"arm64":"macos-26","x86_64":"macos-15-intel"}')[matrix.arch] }}
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: ${{ inputs.arch != '' && fromJson(format('["{0}"]', inputs.arch)) || fromJson('["arm64","x86_64"]') }}
+    env:
+      BUILD_ARCH: ${{ matrix.arch }}
+      QTWEBENGINE_VER: 6.9.3
+      QTWEBENGINE_TOKEN: ${{ secrets.PRIVATE_QTWEBENGINE_TOKEN }}
+      DEBUG: 0 # Set to 1 to add logging for milestones, 2 to add logging for everything (uses `set -x` in build scripts)
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: Prepare Vulkan SDK
+        uses: humbletim/setup-vulkan-sdk@v1.2.1
+        with:
+          vulkan-query-version: 1.4.328.1
+          vulkan-components: Vulkan-Headers
+          vulkan-use-cache: true
+
+      - name: Download QtWebEngine w/ "proprietary codecs" to `.qt/${{env.QTWEBENGINE_VER}}-prop-macos-${{env.BUILD_ARCH}}`
+        env:
+          QTWEBENGINE_TOKEN: ${{ env.QTWEBENGINE_TOKEN }}
+        run: |
+          set -euo pipefail
+          bash ci/get-qtwebengine-macos.sh "${QTWEBENGINE_VER}" "${BUILD_ARCH}" ".qt/${QTWEBENGINE_VER}-prop-macos-${BUILD_ARCH}"
+
+      - name: Build and package (macOS ${{env.BUILD_ARCH}})
+        run: bash ci/build-phraims-macos.sh
+
+      - name: Upload macOS dmg (macOS ${{env.BUILD_ARCH}})
+        uses: actions/upload-artifact@v5
+        with:
+          name: Phraims-macOS-${{env.BUILD_ARCH}}
+          path: build/macos-${{env.BUILD_ARCH}}/Phraims.dmg
+          retention-days: 90
