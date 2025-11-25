@@ -10,6 +10,6 @@ build/
 
 .DS_Store
 
-scratch*.txt
+scratch/
 
 simplebrowser-build/

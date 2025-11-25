@@ -32,15 +32,23 @@ $repoRoot = Resolve-Path (Join-Path $scriptDir "..")
 switch ($Arch.ToLower()) {
   "x64" {
     $qtHostSpec = "win64_msvc2022_64"
+    $qtHostDirName = "msvc2022_64"
     $devCmdArch = "amd64"
     if (-not $QT_WEBENGINE_PROP_PREFIX) { $QT_WEBENGINE_PROP_PREFIX = Join-Path $repoRoot ".qt/$QTWEBENGINE_VER-prop-win64" }
     $buildDir = Join-Path $repoRoot "build/qtwebengine-win64"
+    $secondaryHostSpec = $null
   }
   "arm64" {
-    $qtHostSpec = "win64_msvc2022_arm64"
+    # Use the published cross-compiled kit for ARM64; the native kit omits required modules.
+    $qtHostSpec = "win64_msvc2022_arm64_cross_compiled"
+    # aqt installs this under msvc2022_arm64 even though the spec is *_cross_compiled
+    $qtHostDirName = "msvc2022_arm64"
     $devCmdArch = "arm64"
     if (-not $QT_WEBENGINE_PROP_PREFIX) { $QT_WEBENGINE_PROP_PREFIX = Join-Path $repoRoot ".qt/$QTWEBENGINE_VER-prop-win-arm64" }
     $buildDir = Join-Path $repoRoot "build/qtwebengine-win-arm64"
+    # Some Qt arm64 packages expect the x64 host to be present; install it if missing.
+    $secondaryHostSpec = "win64_msvc2022_64"
+    $secondaryHostDirName = "msvc2022_64"
   }
   default { throw "Unsupported Arch '$Arch'. Use x64 or arm64." }
 }
@@ -49,14 +57,16 @@ if (-not $QT_HOST_DIR) {
   $QT_HOST_DIR = Join-Path $repoRoot ".qt/host"
 }
 
-$qtHostPath = Join-Path $QT_HOST_DIR "$QTWEBENGINE_VER/$qtHostSpec"
-$srcBase = Join-Path $repoRoot "3rdparty/qtwebengine-everywhere-src-$QTWEBENGINE_VER"
+$qtHostPath = $null
+$qtSecondaryHostPath = if ($secondaryHostSpec) { Join-Path $QT_HOST_DIR "$QTWEBENGINE_VER/$secondaryHostDirName" } else { $null }
+$srcDir = Join-Path $repoRoot "3rdparty"
+$srcBase = Join-Path $srcDir "qtwebengine-everywhere-src-$QTWEBENGINE_VER"
 $srcArchive = "$srcBase.zip"
 
 Write-Host "==> Repo root: $repoRoot"
 Write-Host "==> Arch: $Arch (devcmd: $devCmdArch)"
 Write-Host "==> Qt version: $QTWEBENGINE_VER"
-Write-Host "==> Host Qt: $qtHostPath"
+Write-Host "==> Host Qt spec: $qtHostSpec"
 Write-Host "==> Prefix: $QT_WEBENGINE_PROP_PREFIX"
 Write-Host "==> Build dir: $buildDir"
 
@@ -67,16 +77,31 @@ if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
 Write-Host "==> Ensuring aqtinstall + ninja"
 python -m pip install --upgrade aqtinstall ninja | Out-Host
 
-if (-not (Test-Path (Join-Path $qtHostPath "bin"))) {
-  Write-Host "==> Installing host Qt ($qtHostSpec) via aqtinstall"
-  python -m aqt install-qt windows desktop $QTWEBENGINE_VER $qtHostSpec --modules qtwebchannel qtpositioning --outputdir $QT_HOST_DIR
+New-Item -ItemType Directory -Force -Path $QT_HOST_DIR | Out-Null
+$qtModules = @("qtwebchannel","qtpositioning")
+
+function Install-QtHost {
+  param($spec, $dirName)
+  $dest = Join-Path $QT_HOST_DIR "$QTWEBENGINE_VER/$dirName"
+  if (Test-Path (Join-Path $dest "bin")) { return $dest }
+  Write-Host "==> Installing host Qt ($spec) via aqtinstall"
+  python -m aqt install-qt windows desktop $QTWEBENGINE_VER $spec --modules $qtModules --outputdir $QT_HOST_DIR
+  if (-not (Test-Path (Join-Path $dest "bin"))) { throw "Host Qt install incomplete for spec $spec" }
+  return $dest
 }
 
+if ($secondaryHostSpec) {
+  $qtSecondaryHostPath = Install-QtHost -spec $secondaryHostSpec -dirName $secondaryHostDirName
+}
+
+$qtHostPath = Install-QtHost -spec $qtHostSpec -dirName $qtHostDirName
+
+New-Item -ItemType Directory -Force -Path $srcDir | Out-Null
 if (-not (Test-Path $srcBase)) {
   Write-Host "==> Fetching QtWebEngine source $QTWEBENGINE_VER"
   $url = "https://download.qt.io/official_releases/qt/$($QTWEBENGINE_VER.Substring(0,$QTWEBENGINE_VER.LastIndexOf('.')))/$QTWEBENGINE_VER/submodules/qtwebengine-everywhere-src-$QTWEBENGINE_VER.zip"
   Invoke-WebRequest -Uri $url -OutFile $srcArchive
-  Expand-Archive -Path $srcArchive -DestinationPath (Split-Path $srcBase)
+  Expand-Archive -Path $srcArchive -DestinationPath $srcDir -Force
 }
 
 if (-not (Test-Path $srcBase)) {
