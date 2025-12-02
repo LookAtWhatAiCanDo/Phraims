@@ -209,6 +209,15 @@ private slots:
   void removeSingleFrame(SplitFrameWidget *frameToRemove);
   
   /**
+   * @brief Updates the minus, up, and down button states for a single frame.
+   * @param frame The frame to update
+   * @param totalFrames The total number of frames in the window
+   *
+   * Helper method to avoid duplicating button state logic across multiple methods.
+   */
+  void updateFrameButtonStates(SplitFrameWidget *frame, int totalFrames);
+  
+  /**
    * @brief Handles address editing from a frame.
    * @param who The frame that emitted the signal
    * @param text The new address text

@@ -447,9 +447,7 @@ void SplitWindow::rebuildSections(int n) {
       connect(frame, &QObject::destroyed, this, [this, frame]() {
         if (lastFocusedFrame_ == frame) lastFocusedFrame_ = nullptr;
       });
-      frame->setMinusEnabled(n > 1);
-      frame->setUpEnabled(i > 0);
-      frame->setDownEnabled(i < n - 1);
+      updateFrameButtonStates(frame, n);
       qDebug() << "";
       split->addWidget(frame);
     }
@@ -498,9 +496,7 @@ void SplitWindow::rebuildSections(int n) {
         connect(frame, &QObject::destroyed, this, [this, frame]() {
           if (lastFocusedFrame_ == frame) lastFocusedFrame_ = nullptr;
         });
-        frame->setMinusEnabled(n > 1);
-        frame->setUpEnabled(idx > 0);
-        frame->setDownEnabled(idx < n - 1);
+        updateFrameButtonStates(frame, n);
         qDebug() << "";
         rowSplit->addWidget(frame);
         ++idx;
@@ -745,9 +741,17 @@ void SplitWindow::removeSingleFrame(SplitFrameWidget *frameToRemove) {
   if (!frameToRemove) return;
   
   const QVariant v = frameToRemove->property("logicalIndex");
-  if (!v.isValid()) return;
+  if (!v.isValid()) {
+    qWarning() << "removeSingleFrame: frame has no logicalIndex property";
+    return;
+  }
+  
   const int removedIndex = v.toInt();
-  if (removedIndex < 0 || removedIndex >= (int)frames_.size()) return;
+  if (removedIndex < 0 || removedIndex >= (int)frames_.size()) {
+    qWarning() << "removeSingleFrame: invalid frame index" << removedIndex 
+               << "for frames_.size()=" << frames_.size();
+    return;
+  }
   
   // Remove the frame from the data model
   frames_.erase(frames_.begin() + removedIndex);
@@ -772,8 +776,7 @@ void SplitWindow::removeSingleFrame(SplitFrameWidget *frameToRemove) {
   });
   
   // Update logical indices for frames after the removed one
-  for (int i = 0; i < remainingFrames.size(); ++i) {
-    SplitFrameWidget *frame = remainingFrames[i];
+  for (SplitFrameWidget *frame : remainingFrames) {
     const int oldIndex = frame->property("logicalIndex").toInt();
     
     // If this frame was after the removed one, decrement its index
@@ -784,13 +787,8 @@ void SplitWindow::removeSingleFrame(SplitFrameWidget *frameToRemove) {
   
   // Update button states for all remaining frames
   const int totalFrames = (int)frames_.size();
-  for (int i = 0; i < remainingFrames.size(); ++i) {
-    SplitFrameWidget *frame = remainingFrames[i];
-    const int idx = frame->property("logicalIndex").toInt();
-    
-    frame->setMinusEnabled(totalFrames > 1);
-    frame->setUpEnabled(idx > 0);
-    frame->setDownEnabled(idx < totalFrames - 1);
+  for (SplitFrameWidget *frame : remainingFrames) {
+    updateFrameButtonStates(frame, totalFrames);
   }
   
   // Remove the frame widget from the UI
@@ -805,6 +803,18 @@ void SplitWindow::removeSingleFrame(SplitFrameWidget *frameToRemove) {
   // Update window title and menus
   updateWindowTitle();
   rebuildAllWindowMenus();
+}
+
+void SplitWindow::updateFrameButtonStates(SplitFrameWidget *frame, int totalFrames) {
+  if (!frame) return;
+  
+  const QVariant v = frame->property("logicalIndex");
+  if (!v.isValid()) return;
+  
+  const int idx = v.toInt();
+  frame->setMinusEnabled(totalFrames > 1);
+  frame->setUpEnabled(idx > 0);
+  frame->setDownEnabled(idx < totalFrames - 1);
 }
 
 void SplitWindow::onAddressEdited(SplitFrameWidget *who, const QString &text) {
