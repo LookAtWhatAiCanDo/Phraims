@@ -659,9 +659,51 @@ void SplitWindow::onUpFromFrame(SplitFrameWidget *who) {
   if (!v.isValid()) return;
   int pos = v.toInt();
   if (pos <= 0) return; // already at top or not found
+  
+  // Swap data in the frames_ vector
   std::swap(frames_[pos], frames_[pos - 1]);
   persistGlobalFrameState();
-  rebuildSections((int)frames_.size());
+  
+  // Find the two frames that need to swap their logical indices
+  const QList<SplitFrameWidget *> allFrames = central_->findChildren<SplitFrameWidget *>();
+  SplitFrameWidget *frame1 = nullptr;  // Frame at pos (moving up)
+  SplitFrameWidget *frame2 = nullptr;  // Frame at pos-1 (moving down)
+  
+  for (SplitFrameWidget *frame : allFrames) {
+    const QVariant v = frame->property("logicalIndex");
+    if (v.isValid()) {
+      const int idx = v.toInt();
+      if (idx == pos) frame1 = frame;
+      else if (idx == pos - 1) frame2 = frame;
+    }
+  }
+  
+  // Swap the logical indices
+  if (frame1 && frame2) {
+    frame1->setProperty("logicalIndex", pos - 1);
+    frame2->setProperty("logicalIndex", pos);
+    
+    // Update button states for both frames and their neighbors
+    const int totalFrames = (int)frames_.size();
+    updateFrameButtonStates(frame1, totalFrames);
+    updateFrameButtonStates(frame2, totalFrames);
+    
+    // Update neighbors if they exist
+    for (SplitFrameWidget *frame : allFrames) {
+      const QVariant v = frame->property("logicalIndex");
+      if (v.isValid()) {
+        const int idx = v.toInt();
+        // Update the frame above and below the swapped pair
+        if (idx == pos - 2 || idx == pos + 1) {
+          updateFrameButtonStates(frame, totalFrames);
+        }
+      }
+    }
+    
+    // Update window title in case frame count display needs refresh
+    updateWindowTitle();
+    rebuildAllWindowMenus();
+  }
 }
 
 void SplitWindow::onDownFromFrame(SplitFrameWidget *who) {
@@ -670,9 +712,51 @@ void SplitWindow::onDownFromFrame(SplitFrameWidget *who) {
   if (!v.isValid()) return;
   int pos = v.toInt();
   if (pos < 0 || pos >= (int)frames_.size() - 1) return; // at bottom or not found
+  
+  // Swap data in the frames_ vector
   std::swap(frames_[pos], frames_[pos + 1]);
   persistGlobalFrameState();
-  rebuildSections((int)frames_.size());
+  
+  // Find the two frames that need to swap their logical indices
+  const QList<SplitFrameWidget *> allFrames = central_->findChildren<SplitFrameWidget *>();
+  SplitFrameWidget *frame1 = nullptr;  // Frame at pos (moving down)
+  SplitFrameWidget *frame2 = nullptr;  // Frame at pos+1 (moving up)
+  
+  for (SplitFrameWidget *frame : allFrames) {
+    const QVariant v = frame->property("logicalIndex");
+    if (v.isValid()) {
+      const int idx = v.toInt();
+      if (idx == pos) frame1 = frame;
+      else if (idx == pos + 1) frame2 = frame;
+    }
+  }
+  
+  // Swap the logical indices
+  if (frame1 && frame2) {
+    frame1->setProperty("logicalIndex", pos + 1);
+    frame2->setProperty("logicalIndex", pos);
+    
+    // Update button states for both frames and their neighbors
+    const int totalFrames = (int)frames_.size();
+    updateFrameButtonStates(frame1, totalFrames);
+    updateFrameButtonStates(frame2, totalFrames);
+    
+    // Update neighbors if they exist
+    for (SplitFrameWidget *frame : allFrames) {
+      const QVariant v = frame->property("logicalIndex");
+      if (v.isValid()) {
+        const int idx = v.toInt();
+        // Update the frame above and below the swapped pair
+        if (idx == pos - 1 || idx == pos + 2) {
+          updateFrameButtonStates(frame, totalFrames);
+        }
+      }
+    }
+    
+    // Update window title in case frame count display needs refresh
+    updateWindowTitle();
+    rebuildAllWindowMenus();
+  }
 }
 
 void SplitWindow::setLayoutMode(SplitWindow::LayoutMode m) {

@@ -227,7 +227,7 @@ Phraims supports Incognito (private) browsing windows that provide ephemeral ses
 - **Inspect…** forwards the request to DevTools, letting the parent window decide how to open the inspector.
 
 ## Frame Lifecycle Management
-Managing frame creation, removal, and updates is critical to preserving user experience. The application uses a surgical approach for frame removal to avoid disrupting media playback and page state in other frames.
+Managing frame creation, removal, and updates is critical to preserving user experience. The application uses a surgical approach for frame operations to avoid disrupting media playback and page state in other frames.
 
 ### Frame Removal Pattern (CRITICAL)
 When removing a single frame, **NEVER** call `rebuildSections()` as it destroys and recreates all frames, causing:
@@ -248,16 +248,26 @@ Instead, use the **surgical removal pattern** via `removeSingleFrame()`:
 10. Clears `lastFocusedFrame_` if it points to the removed frame
 11. Updates window title and rebuilds all window menus
 
+### Frame Reordering Pattern (CRITICAL)
+When moving frames up or down, **NEVER** call `rebuildSections()` as it destroys and recreates all frames. Instead, use the **surgical reordering pattern**:
+1. Swap the data in the `frames_` vector
+2. Persist the updated frame state via `persistGlobalFrameState()`
+3. Find the two frames that need to swap logical indices
+4. Swap their `logicalIndex` properties
+5. Update button states for the swapped frames and their neighbors using `updateFrameButtonStates()`
+6. Update window title and menus
+
+This approach preserves all frame widgets and their state, allowing media playback to continue uninterrupted.
+
 ### When to Use rebuildSections()
 `rebuildSections()` should ONLY be used when:
 - **Initial window construction**: Building frames for the first time
 - **Layout mode changes**: Switching between Vertical, Horizontal, and Grid layouts
 - **Profile switches**: Changing to a different browser profile (requires new QWebEngineProfile instances)
 - **Frame addition**: Adding new frames (optimization opportunity for future work)
-- **Frame reordering**: Swapping frame positions with up/down buttons (optimization opportunity for future work)
 
 ### Helper Methods
-- `updateFrameButtonStates(frame, totalFrames)`: Centralized logic for updating minus/up/down button enabled states based on frame position and total count. Avoids code duplication in `rebuildSections()` and `removeSingleFrame()`.
+- `updateFrameButtonStates(frame, totalFrames)`: Centralized logic for updating minus/up/down button enabled states based on frame position and total count. Avoids code duplication in `rebuildSections()`, `removeSingleFrame()`, and frame reordering.
 - `removeSingleFrame(frameToRemove)`: Surgically removes a single frame without rebuilding all frames. Used by both `onMinusFromFrame()` (minus button) and `onCloseShortcut()` (Cmd/Ctrl+W).
 
 ### Frame Properties
