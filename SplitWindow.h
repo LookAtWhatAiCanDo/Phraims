@@ -199,6 +199,16 @@ private slots:
   void onMinusFromFrame(SplitFrameWidget *who);
   
   /**
+   * @brief Removes a single frame without rebuilding all frames.
+   * @param frameToRemove The frame widget to remove
+   *
+   * Surgically removes the specified frame from the layout, updates the frames_
+   * vector, and adjusts button states for remaining frames. This preserves the
+   * state of all other frames, allowing media playback to continue uninterrupted.
+   */
+  void removeSingleFrame(SplitFrameWidget *frameToRemove);
+  
+  /**
    * @brief Handles address editing from a frame.
    * @param who The frame that emitted the signal
    * @param text The new address text
