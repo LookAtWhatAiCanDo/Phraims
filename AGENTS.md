@@ -226,6 +226,51 @@ Phraims supports Incognito (private) browsing windows that provide ephemeral ses
 - **Translate…** opens Google Translate either with the selected text or the full page URL and spawns a new window.
 - **Inspect…** forwards the request to DevTools, letting the parent window decide how to open the inspector.
 
+## Frame Lifecycle Management
+Managing frame creation, removal, and updates is critical to preserving user experience. The application uses a surgical approach for frame removal to avoid disrupting media playback and page state in other frames.
+
+### Frame Removal Pattern (CRITICAL)
+When removing a single frame, **NEVER** call `rebuildSections()` as it destroys and recreates all frames, causing:
+- Media playback to stop in all frames
+- Stateful pages to reset/reload
+- Loss of user interaction state (scroll position, form data, etc.)
+
+Instead, use the **surgical removal pattern** via `removeSingleFrame()`:
+1. Validates the frame's `logicalIndex` property
+2. Removes the frame from the `frames_` data model
+3. Persists the updated frame state via `persistGlobalFrameState()`
+4. Collects all remaining frames (excluding the removed one)
+5. Validates each frame has a valid `logicalIndex` property
+6. Sorts remaining frames by their logical index
+7. Updates logical indices for frames after the removed one (decrement by 1)
+8. Updates button states (minus, up, down) for all remaining frames using `updateFrameButtonStates()`
+9. Hides and schedules the frame widget for deletion via `deleteLater()`
+10. Clears `lastFocusedFrame_` if it points to the removed frame
+11. Updates window title and rebuilds all window menus
+
+### When to Use rebuildSections()
+`rebuildSections()` should ONLY be used when:
+- **Initial window construction**: Building frames for the first time
+- **Layout mode changes**: Switching between Vertical, Horizontal, and Grid layouts
+- **Profile switches**: Changing to a different browser profile (requires new QWebEngineProfile instances)
+- **Frame addition**: Adding new frames (optimization opportunity for future work)
+- **Frame reordering**: Swapping frame positions with up/down buttons (optimization opportunity for future work)
+
+### Helper Methods
+- `updateFrameButtonStates(frame, totalFrames)`: Centralized logic for updating minus/up/down button enabled states based on frame position and total count. Avoids code duplication in `rebuildSections()` and `removeSingleFrame()`.
+- `removeSingleFrame(frameToRemove)`: Surgically removes a single frame without rebuilding all frames. Used by both `onMinusFromFrame()` (minus button) and `onCloseShortcut()` (Cmd/Ctrl+W).
+
+### Frame Properties
+Each `SplitFrameWidget` has a `logicalIndex` dynamic property (set via `QObject::setProperty()`) that maps the widget to its position in the `frames_` vector. Always validate this property before using it:
+```cpp
+const QVariant v = frame->property("logicalIndex");
+if (!v.isValid()) {
+  qWarning() << "Frame has no valid logicalIndex property";
+  return;
+}
+const int idx = v.toInt();
+```
+
 ## Documentation & Code Comments
 All code should be thoroughly documented using Doxygen-style comments:
 
