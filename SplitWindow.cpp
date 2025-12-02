@@ -16,7 +16,10 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QDesktopServices>
+#include <QDialog>
+#include <QDialogButtonBox>
 #include <QDir>
+#include <QFrame>
 #include <QGridLayout>
 #include <QGuiApplication>
 #include <QInputDialog>
@@ -29,6 +32,7 @@
 #include <QScrollArea>
 #include <QSplitter>
 #include <QStandardPaths>
+#include <QTextBrowser>
 #include <QTimer>
 #include <QUrl>
 #include <QVariant>
@@ -1110,14 +1114,26 @@ void SplitWindow::resetFocusedFrameScale() {
 }
 
 void SplitWindow::showAboutDialog() {
-  // Use QMessageBox for the About dialog with rich text support
-  QMessageBox aboutBox(this);
-  aboutBox.setWindowTitle(tr("About Phraims"));
-  aboutBox.setTextFormat(Qt::RichText);
+  // Create a custom dialog so we can handle link clicks and open them in Phraims
+  QDialog aboutDialog(this);
+  aboutDialog.setWindowTitle(tr("About Phraims"));
+  aboutDialog.setModal(true);
+  
+  auto *layout = new QVBoxLayout(&aboutDialog);
+  
+  // Create a QTextBrowser to display the about text with clickable links
+  auto *textBrowser = new QTextBrowser(&aboutDialog);
+  textBrowser->setOpenExternalLinks(false);  // We'll handle links ourselves
+  textBrowser->setFrameStyle(QFrame::NoFrame);
+  textBrowser->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+  textBrowser->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  textBrowser->setMaximumHeight(300);
   
   const QString aboutText = QString(
+    "<div style='text-align: center;'>"
     "<h2>%1</h2>"
     "<p><b>Version %2</b></p>"
+    "</div>"
     "<p>A web browser that divides each window into multiple resizable web page frames.</p>"
     "<p>Built with Qt %3 and QtWebEngine (Chromium)</p>"
     "<p><a href='%4'>%4</a></p>"
@@ -1126,14 +1142,22 @@ void SplitWindow::showAboutDialog() {
    .arg(QString::fromUtf8(qVersion()))
    .arg(QString::fromUtf8(PHRAIMS_HOMEPAGE_URL));
   
-  aboutBox.setText(aboutText);
-  aboutBox.setStandardButtons(QMessageBox::Ok);
-  aboutBox.setIconPixmap(QIcon(QStringLiteral(":/icons/phraims.ico")).pixmap(64, 64));
+  textBrowser->setHtml(aboutText);
   
-  // Make links clickable
-  aboutBox.setTextInteractionFlags(Qt::TextBrowserInteraction);
+  // Handle link clicks by opening in a new Phraims window
+  connect(textBrowser, &QTextBrowser::anchorClicked, [](const QUrl &url) {
+    createAndShowWindow(url.toString());
+  });
   
-  aboutBox.exec();
+  layout->addWidget(textBrowser);
+  
+  // Add OK button
+  auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok, &aboutDialog);
+  connect(buttonBox, &QDialogButtonBox::accepted, &aboutDialog, &QDialog::accept);
+  layout->addWidget(buttonBox);
+  
+  aboutDialog.setMinimumWidth(400);
+  aboutDialog.exec();
 }
 
 void SplitWindow::updateWindowMenu() {
