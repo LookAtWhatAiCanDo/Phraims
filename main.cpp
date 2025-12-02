@@ -4,6 +4,7 @@
 #include "AppSettings.h"
 #include "SplitWindow.h"
 #include "Utils.h"
+#include "version.h"
 #include <QApplication>
 #include <QCoreApplication>
 #include <QDebug>
@@ -49,7 +50,6 @@ int main(int argc, char **argv) {
   app.setWindowIcon(QIcon(QStringLiteral(":/icons/phraims.ico")));
 
   // Log application version at startup
-  #include "version.h"
   qDebug() << QCoreApplication::applicationName() << "version" << PHRAIMS_VERSION;
 
   // Ensure menu action icons are shown on platforms (like macOS) where

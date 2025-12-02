@@ -5,6 +5,7 @@
 #include "SplitterDoubleClickFilter.h"
 #include "SplitWindow.h"
 #include "Utils.h"
+#include "version.h"
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -1113,9 +1114,6 @@ void SplitWindow::showAboutDialog() {
   QMessageBox aboutBox(this);
   aboutBox.setWindowTitle(tr("About Phraims"));
   aboutBox.setTextFormat(Qt::RichText);
-  
-  // Include version from generated version.h
-  #include "version.h"
   
   const QString aboutText = QString(
     "<h2>%1</h2>"
