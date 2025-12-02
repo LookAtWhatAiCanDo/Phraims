@@ -759,17 +759,23 @@ void SplitWindow::removeSingleFrame(SplitFrameWidget *frameToRemove) {
   // Persist the updated frame state
   persistGlobalFrameState();
   
-  // Find all remaining frames and update their logical indices
+  // Find all remaining frames and validate their logical indices
   const QList<SplitFrameWidget *> allFrames = central_->findChildren<SplitFrameWidget *>();
   QList<SplitFrameWidget *> remainingFrames;
   for (SplitFrameWidget *frame : allFrames) {
     if (frame != frameToRemove) {
-      remainingFrames.append(frame);
+      const QVariant v = frame->property("logicalIndex");
+      if (v.isValid()) {
+        remainingFrames.append(frame);
+      } else {
+        qWarning() << "removeSingleFrame: found frame without valid logicalIndex, skipping";
+      }
     }
   }
   
   // Sort remaining frames by their current logical index
   std::sort(remainingFrames.begin(), remainingFrames.end(), [](SplitFrameWidget *a, SplitFrameWidget *b) {
+    // At this point all frames are validated to have valid logicalIndex properties
     const int idxA = a->property("logicalIndex").toInt();
     const int idxB = b->property("logicalIndex").toInt();
     return idxA < idxB;
