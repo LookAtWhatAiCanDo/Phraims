@@ -271,6 +271,13 @@ if (!v.isValid()) {
 const int idx = v.toInt();
 ```
 
+### Future Optimization Opportunities
+The current implementation uses `findChildren<SplitFrameWidget *>()` to locate frame widgets, which searches the widget tree. For typical use cases (a few frames per window) this is acceptable, but potential optimizations include:
+- Maintain a `QList<SplitFrameWidget *>` or `std::vector<SplitFrameWidget *>` member variable to avoid tree traversals
+- Cache logical indices before sorting to avoid redundant `property()` calls
+- Extract helper methods like `findFrameByMaxIndex()` or `getLastFrame()` to reduce code duplication
+These optimizations should be considered if profiling shows performance issues with many frames.
+
 ## Documentation & Code Comments
 All code should be thoroughly documented using Doxygen-style comments:
 
