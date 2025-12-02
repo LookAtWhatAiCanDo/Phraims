@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file alias="phraims.ico">phraims.ico</file>
+        <file alias="phraims.icns">phraims.icns</file>
+    </qresource>
+</RCC>

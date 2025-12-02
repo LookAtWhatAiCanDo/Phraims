@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 6.9 COMPONENTS Widgets WebEngineWidgets REQUIRED)
 
@@ -60,6 +61,7 @@ if(APPLE)
     SplitFrameWidget.cpp
     SplitWindow.h
     SplitWindow.cpp
+    resources/resources.qrc
     ${app_icon_macos}
   )
   set_target_properties(Phraims PROPERTIES
@@ -106,6 +108,7 @@ elseif(WIN32)
     SplitFrameWidget.cpp
     SplitWindow.h
     SplitWindow.cpp
+    resources/resources.qrc
     "${CMAKE_CURRENT_BINARY_DIR}/phraims.rc"
   )
 
@@ -129,6 +132,7 @@ else()
     SplitFrameWidget.cpp
     SplitWindow.h
     SplitWindow.cpp
+    resources/resources.qrc
   )
 
 endif()
