@@ -473,7 +473,7 @@ create_installer() {
     /usr/bin/SetFile -a C "${mount_point}"
     step "Applied custom icon to DMG volume"
   else
-    warn "Icon file not found at ${icns_file}; DMG will use default icon"
+    echo "Warning: Icon file not found at ${icns_file}; DMG will use default icon" >&2
   fi
   
   # Unmount the temporary DMG
