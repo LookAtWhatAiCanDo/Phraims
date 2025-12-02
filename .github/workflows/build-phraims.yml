@@ -1,0 +1,139 @@
+name: Build Phraims
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - README.md
+      - AGENTS.md
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - README.md
+      - AGENTS.md
+  workflow_dispatch:
+    inputs:
+      os:
+        description: "OS to build (blank = all)"
+        required: false
+        default: ""
+        type: choice
+        options:
+          - ""
+          - macos
+          - windows
+      arch:
+        description: "Architecture for manual runs (blank = OS defaults)"
+        required: false
+        default: ""
+        type: choice
+        options:
+          - ""
+          - arm64
+          - x86_64
+          - x64
+      runner:
+        description: "Runner type (Windows only)"
+        required: false
+        default: "hosted"
+        type: choice
+        options:
+          - hosted
+          - self-hosted
+
+jobs:
+  build-macos:
+    name: Build macOS (${{ matrix.arch }})
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head_repo.fork == false) && (inputs.os == '' || inputs.os == 'macos') }}
+    runs-on: ${{ fromJson('{"arm64":"macos-26","x86_64":"macos-15-intel"}')[matrix.arch] }}
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: ${{ (inputs.arch != '' && (inputs.arch == 'arm64' || inputs.arch == 'x86_64')) && fromJson(format('["{0}"]', inputs.arch)) || fromJson('["arm64","x86_64"]') }}
+    env:
+      BUILD_ARCH: ${{ matrix.arch }}
+      QTWEBENGINE_VER: 6.9.3
+      QTWEBENGINE_TOKEN: ${{ secrets.PRIVATE_QTWEBENGINE_TOKEN }}
+      DEBUG: 0 # Set to 1 to add logging for milestones, 2 to add logging for everything
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: Prepare Vulkan SDK
+        uses: humbletim/setup-vulkan-sdk@v1.2.1
+        with:
+          vulkan-query-version: 1.4.328.1
+          vulkan-components: Vulkan-Headers
+          vulkan-use-cache: true
+
+      - name: Download QtWebEngine w/ "proprietary codecs" to `.qt/${{env.QTWEBENGINE_VER}}-prop-macos-${{env.BUILD_ARCH}}`
+        env:
+          QTWEBENGINE_TOKEN: ${{ env.QTWEBENGINE_TOKEN }}
+        run: |
+          set -euo pipefail
+          bash ci/get-qtwebengine-macos.sh "${QTWEBENGINE_VER}" "${BUILD_ARCH}" ".qt/${QTWEBENGINE_VER}-prop-macos-${BUILD_ARCH}"
+
+      - name: Build and package (macOS ${{env.BUILD_ARCH}})
+        run: bash ci/build-phraims-macos.sh
+
+      - name: Upload macOS dmg (macOS ${{env.BUILD_ARCH}})
+        uses: actions/upload-artifact@v5
+        with:
+          name: Phraims-macOS-${{env.BUILD_ARCH}}
+          path: build/macos-${{env.BUILD_ARCH}}/Phraims.dmg
+          retention-days: 90
+
+  build-windows:
+    name: Build Windows (${{ matrix.arch }})
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head_repo.fork == false) && (inputs.os == '' || inputs.os == 'windows') }}
+    runs-on: ${{ inputs.runner == 'self-hosted' && 'self-hosted' || fromJson('{"x64":"windows-2025","arm64":"windows-11-arm"}')[matrix.arch] }}
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: ${{ (inputs.arch != '' && (inputs.arch == 'x64' || inputs.arch == 'arm64')) && fromJson(format('["{0}"]', inputs.arch)) || fromJson('["x64"]') }}
+    env:
+      BUILD_ARCH: ${{ matrix.arch }}
+      QTWEBENGINE_VER: 6.9.3
+      QTWEBENGINE_TOKEN: ${{ secrets.PRIVATE_QTWEBENGINE_TOKEN }}
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: Prepare Vulkan SDK
+        uses: humbletim/setup-vulkan-sdk@v1.2.1
+        with:
+          vulkan-query-version: 1.4.328.1
+          vulkan-components: Vulkan-Headers
+          vulkan-use-cache: true
+
+      - name: Download QtWebEngine w/ "proprietary codecs" to `.qt/${{env.QTWEBENGINE_VER}}-prop-win-${{env.BUILD_ARCH}}`
+        shell: pwsh
+        env:
+          QTWEBENGINE_TOKEN: ${{ env.QTWEBENGINE_TOKEN }}
+        run: |
+          pwsh ci/get-qtwebengine-windows.ps1 -QTWEBENGINE_VER $env:QTWEBENGINE_VER -QTWEBENGINE_ARCH $env:BUILD_ARCH -OUTPUT_DIR ".qt/$env:QTWEBENGINE_VER-prop-win-$env:BUILD_ARCH"
+
+      - name: Build and package (Windows ${{env.BUILD_ARCH}})
+        shell: pwsh
+        run: pwsh ci/build-phraims-windows.ps1 -Arch "$env:BUILD_ARCH"
+
+      - name: Upload Windows build (Windows ${{env.BUILD_ARCH}})
+        uses: actions/upload-artifact@v5
+        with:
+          name: Phraims-Windows-${{env.BUILD_ARCH}}
+          path: build/windows-${{env.BUILD_ARCH}}/Phraims-Installer-${{env.BUILD_ARCH}}-Release.exe
+          retention-days: 90
