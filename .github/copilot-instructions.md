@@ -113,4 +113,4 @@ cmake --build build --target clean
 
 ## More Details
 
-For comprehensive architecture details, testing guidelines, and deeper implementation patterns, see [AGENTS.md](../AGENTS.md) in the repository root.
+For comprehensive architecture details, testing guidelines, and deeper implementation patterns, see [AGENTS.md](/AGENTS.md) in the repository root.
