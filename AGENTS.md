@@ -82,16 +82,17 @@ QtWebEngine build workflows and scripts now live exclusively in the private `Loo
 repository. Trigger its macOS or Windows workflows there when bumping QtWebEngine to refresh the cached artifacts that this
 repository consumes.
 
-When modifying build requirements or dependencies, keep the macOS and Windows workflows in lockstep: checkout → artifact download → build → upload, common env naming, and only platform-specific differences (runner label, shell, script path, host Qt handling inside the scripts).
+The unified build workflow (`.github/workflows/build-phraims.yml`) consolidates macOS and Windows builds into separate jobs within a single workflow file.
+All platform builds follow the same pattern: checkout → artifact download → build → upload, with common env naming and only platform-specific differences (runner label, shell, script path, host Qt handling inside the scripts).
 Test workflows by creating a pull request or triggering them manually from the GitHub Actions UI.
 
 ### macOS
-macOS builds run as a matrix in `.github/workflows/build-phraims-macos.yml` (workflow_dispatch input `arch` can select arm64, x86_64, or both);
+macOS builds run as a job with architecture matrix (workflow_dispatch input `arch` can select arm64, x86_64, or both);
 each arch uses its runner, downloads the matching `qtwebengine-macos-<ver>-<arch>` artifact via `ci/get-qtwebengine-macos.sh`,
 and produces `Phraims-macOS-<arch>` DMGs from `build/macos-<arch>/`.
 
 ### Windows
-Windows builds run as a matrix in `.github/workflows/build-phraims-windows.yml` (workflow_dispatch input `arch` can select x64, arm64, or both).
+Windows builds run as a job with architecture matrix (workflow_dispatch input `arch` can select x64, arm64, or both).
 Each arch uses its runner and first downloads the matching `qtwebengine-windows-<ver>-<arch>` artifact via `ci/get-qtwebengine-windows.ps1`.
 The job ensures a host Qt kit is available (via `qmake` on PATH or by installing one with `aqtinstall`) and builds Phraims with Ninja after seeding
 the VS2022 environment via `vsdevcmd`.

@@ -248,30 +248,33 @@ cmake --build . --config Release
   plus the custom QtWebEngine built in the private `LookAtWhatAiCanDo/QtWebEngineProprietaryCodecs` repo
   (default prefix `.qt/6.9.3-prop-macos-<arch>`) and packages it as a DMG
   (Homebrew Qt bottles are arm64-only on Apple Silicon runners).  
-- The primary workflow first tries to download a cached QtWebEngine prefix artifact
-  produced by the macOS workflow in the `QtWebEngineProprietaryCodecs` repository;
+- The primary workflow (`.github/workflows/build-phraims.yml`) first tries to download a cached QtWebEngine prefix artifact
+  produced by the corresponding platform workflow in the `QtWebEngineProprietaryCodecs` repository;
   if absent it fails fast rather than rebuilding inline.
 - `macdeployqt` receives both the Homebrew Qt module libpaths and the custom QtWebEngine prefix
   to avoid rpath resolution errors in plugins before creating the DMG.
 - When bumping QtWebEngine, run the `Build QtWebEngine macOS` workflow in the private repo to refresh the artifact.
-- Both workflows run in a matrix on `macos-26` (arm64) and `macos-15-intel` (x86_64),
-  producing per-arch QtWebEngine artifacts (`qtwebengine-macos-<ver>-<arch>`) and DMGs (`Phraims-macOS-<arch>`).
-- Each prefix is stored under `.qt/<ver>-prop-macos-<arch>`. The workflow downloads
-  `qtwebengine-macos-<ver>-<arch>` from the private `LookAtWhatAiCanDo/QtWebEngineProprietaryCodecs`
-  repo using `PRIVATE_QTWEBENGINE_TOKEN` before building, then packages to `build/macos-<arch>/Phraims.dmg`.
-- If the macOS workflow cannot download the QtWebEngine artifact (e.g., token expired),
+- The unified build workflow runs both macOS and Windows builds in separate jobs with architecture matrices.
+  macOS builds run on `macos-26` (arm64) and `macos-15-intel` (x86_64), producing per-arch QtWebEngine artifacts
+  (`qtwebengine-macos-<ver>-<arch>`) and DMGs (`Phraims-macOS-<arch>`).
+- Each prefix is stored under `.qt/<ver>-prop-<os>-<arch>`. The workflow downloads
+  `qtwebengine-<os>-<ver>-<arch>` from the private `LookAtWhatAiCanDo/QtWebEngineProprietaryCodecs`
+  repo using `PRIVATE_QTWEBENGINE_TOKEN` before building, then packages to `build/<os>-<arch>/Phraims.{dmg,exe}`.
+- If the workflow cannot download the QtWebEngine artifact (e.g., token expired),
   refresh @paulpv’s PAT named `LAWACD QtWebEngineProprietaryCodecs`, then paste the new token
   into the Phraims repository secret `PRIVATE_QTWEBENGINE_TOKEN` and rerun.
   The current 366-day PAT was created 2025/11/26 and expires 2026/11/27.
 
+##### Windows Build
 Windows QtWebEngine builds are produced by the private `Build QtWebEngine Windows` workflow; it emits per-arch prefixes
 (`qtwebengine-windows-<ver>-x64` / `qtwebengine-windows-<ver>-arm64`) that contain the built QtWebEngine runtime and resources.
-The public Windows workflow (`.github/workflows/build-phraims-windows.yml`) downloads the appropriate QtWebEngine artifact
-via `ci/get-qtwebengine-windows.ps1`, ensures a host Qt kit (via `qmake` on PATH or by installing one with `aqtinstall`),
-builds Phraims, runs `windeployqt` to assemble a `deploy` folder, and then applies a packaging-time replacement step:
+The unified build workflow downloads the appropriate QtWebEngine artifact via `ci/get-qtwebengine-windows.ps1`,
+ensures a host Qt kit (via `qmake` on PATH or by installing one with `aqtinstall`), builds Phraims,
+runs `windeployqt` to assemble a `deploy` folder, and then applies a packaging-time replacement step:
 the proprietary QtWebEngine runtime files from the downloaded prefix are copied into the `deploy` folder (overwriting
 matching files) so the packaged application ships the proprietary WebEngine payload without modifying the host Qt kit.
 This approach avoids overwriting system Qt installs and reduces permission/ABI risks.
+Windows builds run on `windows-2025` (x64) with support for `windows-11-arm` (arm64).
 
 ##### macOS Packaging
 Packaging uses the custom QtWebEngine produced by the `QtWebEngineProprietaryCodecs` repository
@@ -296,7 +299,8 @@ Set `FORCE_BREW_UPDATE=0` to skip `brew update` if needed.
 - Debug info: `DEBUG=1 ./ci/build-phraims-macos.sh` (shows macdeployqt log, staging/Frameworks listings, and rpaths for the main binary and QtWebEngineProcess)
 
 ### Continuous Integration
-The project uses GitHub Actions to automatically build macOS binaries on every push to `main` and on pull requests.  
+The project uses GitHub Actions to automatically build macOS and Windows binaries on every push to `main` and on pull requests.  
+The unified workflow (`.github/workflows/build-phraims.yml`) builds both platforms in a single run with separate jobs for each OS.
 This ensures the codebase stays healthy and provides downloadable artifacts for testers.
 
 ### Debugging
