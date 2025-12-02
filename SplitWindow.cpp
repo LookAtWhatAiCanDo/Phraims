@@ -1230,20 +1230,24 @@ void SplitWindow::onFrameOpenLinkInNewFrameRequested(SplitFrameWidget *who, cons
   // Try surgical addition first (works for Vertical/Horizontal modes)
   if (addSingleFrame(pos)) {
     // addSingleFrame created an empty frame; now set its address
-    frames_[newFrameIndex].address = linkUrl.toString();
-    persistGlobalFrameState();
-    
-    // Find the newly created frame widget and apply the address to it
-    QMetaObject::invokeMethod(this, [this, newFrameIndex]() {
-      if (!central_) return;
-      const QList<SplitFrameWidget *> frames = central_->findChildren<SplitFrameWidget *>();
-      for (SplitFrameWidget *frame : frames) {
-        if (frame->property("logicalIndex").toInt() == newFrameIndex) {
-          frame->setAddress(frames_[newFrameIndex].address);
-          break;
+    if (newFrameIndex >= 0 && newFrameIndex < static_cast<int>(frames_.size())) {
+      frames_[newFrameIndex].address = linkUrl.toString();
+      persistGlobalFrameState();
+      
+      // Find the newly created frame widget and apply the address to it
+      const QString linkAddress = linkUrl.toString();
+      QMetaObject::invokeMethod(this, [this, newFrameIndex, linkAddress]() {
+        if (!central_) return;
+        if (newFrameIndex < 0 || newFrameIndex >= static_cast<int>(frames_.size())) return;
+        const QList<SplitFrameWidget *> frameWidgets = central_->findChildren<SplitFrameWidget *>();
+        for (SplitFrameWidget *frame : frameWidgets) {
+          if (frame->property("logicalIndex").toInt() == newFrameIndex) {
+            frame->setAddress(linkAddress);
+            break;
+          }
         }
-      }
-    }, Qt::QueuedConnection);
+      }, Qt::QueuedConnection);
+    }
     return;
   }
   
