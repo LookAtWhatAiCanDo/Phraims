@@ -60,6 +60,27 @@ The workflow can also be triggered manually via the "Run workflow" button for bu
 - **Reload Frame**: Press `⌘R` (macOS) or `Ctrl+R` (other platforms) to reload the focused frame, or use `View -> Reload Frame`.
 - **Reload Frame (Bypass Cache)**: Press `⌘⇧R` (macOS) or `Ctrl+Shift+R` (other platforms) to force-refresh the focused frame via `View -> Reload Frame (Bypass Cache)`.
 
+#### Frame Operation Behavior
+
+**Media Playback Preservation**
+
+When working with frames that have active media playback (audio/video) or stateful content:
+
+- ✅ **Adding frames** (in Vertical/Horizontal modes): Media playback continues in existing frames
+- ✅ **Removing frames**: Media playback continues in remaining frames
+- ❌ **Reordering frames** (up/down buttons): Media playback stops and pages reload in all frames
+- ❌ **Adding frames in Grid mode**: Media playback stops and pages reload in all frames
+
+**Technical Details**
+
+The application uses a "surgical" approach for frame addition and removal in Vertical and Horizontal layout modes, which preserves the state of existing frames including media playback, scroll position, and form data. However, frame reordering requires rebuilding the entire layout due to Qt's QSplitter widget limitations - it doesn't support changing widget order without removing and re-adding them.
+
+Grid mode frame addition also requires layout rebuilding due to the complexity of nested splitters.
+
+**Future Improvements**
+
+These limitations may be improved in future versions through alternative approaches such as drag-and-drop frame reordering, though such features would still face the same underlying Qt layout constraints.
+
 #### Window Management
 - **New Window**: Press `⌘N` (Command-N on macOS) or `Ctrl+N` (other platforms)
 - **New Incognito Window**: Press `⇧⌘N` (Shift+Command-N on macOS) or `Shift+Ctrl+N` (other platforms) to open a private browsing window

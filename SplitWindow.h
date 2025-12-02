@@ -199,6 +199,36 @@ private slots:
   void onMinusFromFrame(SplitFrameWidget *who);
   
   /**
+   * @brief Removes a single frame without rebuilding all frames.
+   * @param frameToRemove The frame widget to remove
+   *
+   * Surgically removes the specified frame from the layout, updates the frames_
+   * vector, and adjusts button states for remaining frames. This preserves the
+   * state of all other frames, allowing media playback to continue uninterrupted.
+   */
+  void removeSingleFrame(SplitFrameWidget *frameToRemove);
+  
+  /**
+   * @brief Updates the minus, up, and down button states for a single frame.
+   * @param frame The frame to update
+   * @param totalFrames The total number of frames in the window
+   *
+   * Helper method to avoid duplicating button state logic across multiple methods.
+   */
+  void updateFrameButtonStates(SplitFrameWidget *frame, int totalFrames);
+  
+  /**
+   * @brief Adds a single frame without rebuilding all frames (Vertical/Horizontal modes only).
+   * @param afterIndex The index after which to insert the new frame
+   * @return true if surgical addition succeeded, false if rebuildSections is needed
+   *
+   * Surgically inserts a new frame into the layout, updates logical indices for frames
+   * after the insertion point, and preserves all other frames' state. Only works for
+   * Vertical and Horizontal layout modes; Grid mode requires rebuildSections().
+   */
+  bool addSingleFrame(int afterIndex);
+  
+  /**
    * @brief Handles address editing from a frame.
    * @param who The frame that emitted the signal
    * @param text The new address text
