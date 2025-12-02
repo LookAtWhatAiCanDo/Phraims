@@ -35,7 +35,7 @@ on:
           - x86_64
           - x64
       runner:
-        description: "Runner type (Windows only)"
+        description: "Runner type"
         required: false
         default: "hosted"
         type: choice
@@ -47,7 +47,7 @@ jobs:
   build-macos:
     name: Build macOS (${{ matrix.arch }})
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head_repo.fork == false) && (inputs.os == '' || inputs.os == 'macos') }}
-    runs-on: ${{ fromJson('{"arm64":"macos-26","x86_64":"macos-15-intel"}')[matrix.arch] }}
+    runs-on: ${{ inputs.runner == 'self-hosted' && 'self-hosted' || fromJson('{"arm64":"macos-26","x86_64":"macos-15-intel"}')[matrix.arch] }}
     strategy:
       fail-fast: false
       matrix:
