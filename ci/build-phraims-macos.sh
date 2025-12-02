@@ -469,11 +469,11 @@ create_installer() {
   if [[ -f "${icns_file}" ]]; then
     # Copy the icon to the volume root as .VolumeIcon.icns (hidden file)
     cp "${icns_file}" "${mount_point}/.VolumeIcon.icns"
-    # Set the custom icon bit on the volume
+    # Set the custom icon bit ('C' flag) on the volume so Finder displays the custom icon
     /usr/bin/SetFile -a C "${mount_point}"
     step "Applied custom icon to DMG volume"
   else
-    echo "Warning: Icon file not found at ${icns_file}; DMG will use default icon" >&2
+    echo "Warning: Icon file not found at ${icns_file}; DMG will use system default folder icon instead" >&2
   fi
   
   # Unmount the temporary DMG

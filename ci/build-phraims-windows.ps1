@@ -556,6 +556,7 @@ Section "Install"
   SetOutPath "$INSTDIR"
   File /r "__DEPLOY__"
   CreateDirectory "$SMPROGRAMS\Phraims"
+  # CreateShortCut: target, executable, parameters, icon file, icon index
   CreateShortCut "$SMPROGRAMS\Phraims\Phraims.lnk" "$INSTDIR\Phraims.exe" "" "$INSTDIR\Phraims.exe" 0
   # Write an uninstaller so the Uninstall section will be emitted correctly
   WriteUninstaller "$INSTDIR\Uninstall.exe"
