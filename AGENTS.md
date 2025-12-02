@@ -36,6 +36,47 @@ To increment the version:
 3. Update the version at the top of README.md to match
 4. Rebuild and test
 
+### Application Icons
+The application uses platform-specific icon formats to ensure proper display in taskbars, window title bars, file explorers, and Start menus:
+
+- **macOS**: Uses `resources/phraims.icns` (Apple Icon Image format)
+  - Generated from `phraims.iconset/` PNG sources via the `icons.sh` script
+  - Automatically embedded into the `.app` bundle via CMakeLists.txt configuration
+  - CMake sets `MACOSX_BUNDLE_ICON_FILE` and copies the icon to the bundle's Resources folder
+
+- **Windows**: Uses `resources/phraims.ico` (multi-resolution Windows icon)
+  - Generated from `phraims.iconset/` PNG sources via the `generate_ico.py` Python script
+  - Contains 6 resolutions: 16×16, 32×32, 48×48, 64×64, 128×128, 256×256 pixels
+  - Embedded into the executable via `resources/phraims.rc.in` Windows resource script
+  - CMake configures the `.rc.in` template with version information and compiles it as part of the Windows build
+  - The resource script includes the icon (`IDI_ICON1`) and version metadata for proper Windows integration
+
+- **Linux**: Currently uses default Qt application icon (platform-specific icon support planned)
+
+**Regenerating Icons**
+
+When updating the source icon (`phraims_icon_1024.png` or files in `phraims.iconset/`):
+
+1. **Windows** (requires Python 3 with Pillow):
+   ```bash
+   pip3 install Pillow
+   python3 generate_ico.py
+   ```
+   This regenerates `resources/phraims.ico` with all required resolutions. The next CMake build will automatically embed the updated icon.
+
+2. **macOS** (requires macOS with `sips` and `iconutil`):
+   ```bash
+   ./icons.sh
+   ```
+   This regenerates `resources/phraims.icns` from `phraims_icon_1024.png`. The next CMake build will automatically copy the updated icon to the app bundle.
+
+**Icon Build Integration**
+
+- The icon resources are configured at CMake configure time and compiled/linked during the build phase
+- No manual steps are needed for normal builds—the icons are automatically included
+- The `.ico` and `.icns` files are tracked in git and only need regeneration when the source PNG files change
+- The Windows `.rc` file is generated at configure time with version info from CMakeLists.txt
+
 User preferences persist exclusively via the `AppSettings` wrapper (INI file `settings.ini` under `QStandardPaths::AppDataLocation`).
 A [currently] no-op `performLegacyMigration()` hook is reserved for future schema evolution.
 Evolve keys carefully to avoid breaking layouts or address lists within the current format.

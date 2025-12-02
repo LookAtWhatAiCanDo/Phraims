@@ -242,6 +242,33 @@ cmake --build . --config Release
 ./Phraims
 ```
 
+#### Application Icons
+The application uses platform-specific icon formats for proper display in taskbars, title bars, and file explorers:
+
+- **macOS**: Uses `resources/phraims.icns` (generated from PNG sources via `icons.sh`)
+- **Windows**: Uses `resources/phraims.ico` (multi-resolution icon embedded via resource script)
+- **Linux**: Currently uses default Qt icon (platform-specific icon support planned)
+
+**Regenerating Windows Icons**
+
+If the source PNG files in `phraims.iconset/` are updated, regenerate the Windows `.ico` file:
+
+```bash
+# Requires Python 3 with Pillow
+pip3 install Pillow
+python3 generate_ico.py
+```
+
+This script creates a multi-resolution `resources/phraims.ico` containing standard Windows sizes (16, 32, 48, 64, 128, 256 pixels). The icon is automatically embedded into the Windows executable via the `resources/phraims.rc.in` resource script during CMake configuration and build.
+
+**macOS Icon Regeneration**
+
+To regenerate `resources/phraims.icns` from the source PNG:
+
+```bash
+./icons.sh  # Requires macOS with sips and iconutil
+```
+
 #### macOS
 ##### macOS Build
 - macOS CI builds an arm64 app bundle in `build/macos-arm64/` using Homebrew Qt for base modules
