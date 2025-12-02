@@ -4,6 +4,8 @@
 
 # phraims
 
+**Current Version: 0.55**
+
 Phraims is a web browser that divides each window into multiple resizable web page frames.
 
 Phraims is a Qt6 app based on QtWebEngine which uses Chromium WebKit.
@@ -376,3 +378,18 @@ Notes
 - The app persists splitter sizes on exit so they can be used for the next application launch.
 - Recommended: test quickly by resizing splitters, closing the app, and reopening to verify persistence.
 - Profile data is stored per-profile in separate directories under the application data location (shown at startup).
+
+## Versioning
+
+Phraims follows semantic versioning. The current version is defined in `CMakeLists.txt` and exposed throughout the application:
+
+- **CMake**: Set via `project(Phraims VERSION x.y.z)`
+- **About Dialog**: Access via `Help -> About Phraims` menu item to see version and project link
+- **Build Logs**: Version is logged at application startup
+- **Build Artifacts**: Version appears in macOS bundle Info.plist and packaging metadata
+
+To update the version:
+1. Edit the `VERSION` in the `project()` command in `CMakeLists.txt`
+2. CMake will automatically regenerate `version.h` with the new version
+3. Rebuild the application
+4. Update the version number at the top of this README

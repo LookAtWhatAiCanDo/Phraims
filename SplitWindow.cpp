@@ -5,6 +5,7 @@
 #include "SplitterDoubleClickFilter.h"
 #include "SplitWindow.h"
 #include "Utils.h"
+#include "version.h"
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -15,7 +16,10 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QDesktopServices>
+#include <QDialog>
+#include <QDialogButtonBox>
 #include <QDir>
+#include <QFrame>
 #include <QGridLayout>
 #include <QGuiApplication>
 #include <QInputDialog>
@@ -28,6 +32,7 @@
 #include <QScrollArea>
 #include <QSplitter>
 #include <QStandardPaths>
+#include <QTextBrowser>
 #include <QTimer>
 #include <QUrl>
 #include <QVariant>
@@ -43,6 +48,10 @@ bool DEBUG_SHOW_WINDOW_ID = 0;
 namespace {
   constexpr int FLASH_HANDLE_WIDTH_INCREASE = 4;  // pixels to increase splitter handle width
   constexpr int FLASH_DURATION_MS = 150;          // milliseconds to show the flash
+  
+  // About dialog dimensions
+  constexpr int ABOUT_DIALOG_MIN_WIDTH = 400;     // minimum width for About dialog
+  constexpr int ABOUT_DIALOG_MAX_HEIGHT = 300;    // maximum height for text browser in About dialog
 }
 
 
@@ -223,6 +232,11 @@ SplitWindow::SplitWindow(const QString &windowId, bool isIncognito, QWidget *par
   closeAct->setShortcut(QKeySequence::Close);
   connect(closeAct, &QAction::triggered, this, &SplitWindow::onCloseShortcut);
   windowMenu_->addSeparator();
+
+  // Help menu: About dialog
+  auto *helpMenu = menuBar()->addMenu(tr("Help"));
+  QAction *aboutAction = helpMenu->addAction(tr("About Phraims"));
+  connect(aboutAction, &QAction::triggered, this, &SplitWindow::showAboutDialog);
 
   // central scroll area to allow many sections
   auto *scroll = new QScrollArea();
@@ -1101,6 +1115,71 @@ void SplitWindow::resetFocusedFrameScale() {
   if (SplitFrameWidget *frame = focusedFrameOrFirst()) {
     frame->setScaleFactor(1.0, true);
   }
+}
+
+void SplitWindow::showAboutDialog() {
+  // Create a custom dialog so we can handle link clicks and open them in Phraims
+  QDialog aboutDialog(this);
+  aboutDialog.setWindowTitle(tr("About Phraims"));
+  aboutDialog.setModal(true);
+  
+  auto *layout = new QVBoxLayout(&aboutDialog);
+  
+  // Create a QTextBrowser to display the about text with clickable links
+  auto *textBrowser = new QTextBrowser(&aboutDialog);
+  textBrowser->setOpenExternalLinks(false);  // Don't open links in external browser
+  textBrowser->setOpenLinks(false);          // Don't navigate internally either - we'll handle clicks
+  textBrowser->setFrameStyle(QFrame::NoFrame);
+  textBrowser->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+  textBrowser->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  textBrowser->setMaximumHeight(ABOUT_DIALOG_MAX_HEIGHT);
+  
+  const QString aboutText = QString(
+    "<div style='text-align: center;'>"
+    "<h2>%1</h2>"
+    "<p><b>Version %2</b></p>"
+    "</div>"
+    "<p>A web browser that divides each window into multiple resizable web page frames.</p>"
+    "<p>Built with Qt %3 and QtWebEngine (Chromium)</p>"
+    "<p><a href='%4'>%4</a></p>"
+  ).arg(QCoreApplication::applicationName())
+   .arg(QString::fromUtf8(PHRAIMS_VERSION))
+   .arg(QString::fromUtf8(qVersion()))
+   .arg(QString::fromUtf8(PHRAIMS_HOMEPAGE_URL));
+  
+  textBrowser->setHtml(aboutText);
+  
+  // Handle link clicks by opening in a new Phraims window
+  // The dialog remains showing the About text without navigating away
+  connect(textBrowser, &QTextBrowser::anchorClicked, [](const QUrl &url) {
+    createAndShowWindow(url.toString());
+  });
+  
+  layout->addWidget(textBrowser);
+  
+  // Add OK button
+  auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok, &aboutDialog);
+  connect(buttonBox, &QDialogButtonBox::accepted, &aboutDialog, &QDialog::accept);
+  layout->addWidget(buttonBox);
+  
+  aboutDialog.setMinimumWidth(ABOUT_DIALOG_MIN_WIDTH);
+  
+  // Center the dialog on the screen containing the active window
+  // This ensures consistent positioning regardless of which window is active
+  QScreen *screen = this->screen();
+  if (!screen) {
+    screen = QGuiApplication::primaryScreen();
+  }
+  if (screen) {
+    const QRect screenGeometry = screen->availableGeometry();
+    // Use sizeHint to get the dialog's preferred size before showing
+    const QSize dialogSize = aboutDialog.sizeHint();
+    const int x = screenGeometry.x() + (screenGeometry.width() - dialogSize.width()) / 2;
+    const int y = screenGeometry.y() + (screenGeometry.height() - dialogSize.height()) / 2;
+    aboutDialog.move(x, y);
+  }
+  
+  aboutDialog.exec();
 }
 
 void SplitWindow::updateWindowMenu() {

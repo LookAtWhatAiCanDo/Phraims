@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(Phraims VERSION 0.1 LANGUAGES CXX)
+project(Phraims VERSION 0.55 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -9,6 +9,13 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
 find_package(Qt6 6.9 COMPONENTS Widgets WebEngineWidgets REQUIRED)
+
+# Generate version.h from version.h.in with current project version
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/version.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/version.h"
+  @ONLY
+)
 
 # On macOS build a GUI app bundle (prevents launching a Terminal).
 if(APPLE)
@@ -87,6 +94,25 @@ elseif(WIN32)
   # Ensure the executable is built as a GUI subsystem without a console window
   set_target_properties(Phraims PROPERTIES WIN32_EXECUTABLE TRUE)
 
+else()
+  # Linux and other platforms: standard executable build
+  qt_add_executable(Phraims
+    main.cpp
+    AppSettings.h
+    Utils.h
+    Utils.cpp
+    EscapeFilter.h
+    MyWebEnginePage.h
+    MyWebEngineView.h
+    SplitterDoubleClickFilter.h
+    DomPatch.h
+    DomPatch.cpp
+    SplitFrameWidget.h
+    SplitFrameWidget.cpp
+    SplitWindow.h
+    SplitWindow.cpp
+  )
+
 endif()
 
 target_link_libraries(Phraims
@@ -98,6 +124,9 @@ target_link_libraries(Phraims
   PRIVATE
     Qt6::WebEngineWidgets
 )
+
+# Add build directory to include path so generated version.h can be found
+target_include_directories(Phraims PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 
 if(APPLE)
   set(_qt_sdk "${CMAKE_OSX_SYSROOT}")
