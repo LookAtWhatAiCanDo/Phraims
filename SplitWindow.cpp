@@ -1172,8 +1172,8 @@ void SplitWindow::showAboutDialog() {
   }
   if (screen) {
     const QRect screenGeometry = screen->availableGeometry();
-    aboutDialog.adjustSize();  // Ensure dialog has calculated its size
-    const QSize dialogSize = aboutDialog.size();
+    // Use sizeHint to get the dialog's preferred size before showing
+    const QSize dialogSize = aboutDialog.sizeHint();
     const int x = screenGeometry.x() + (screenGeometry.width() - dialogSize.width()) / 2;
     const int y = screenGeometry.y() + (screenGeometry.height() - dialogSize.height()) / 2;
     aboutDialog.move(x, y);
