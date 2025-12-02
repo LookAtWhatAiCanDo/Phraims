@@ -56,7 +56,7 @@ jobs:
       BUILD_ARCH: ${{ matrix.arch }}
       QTWEBENGINE_VER: 6.9.3
       QTWEBENGINE_TOKEN: ${{ secrets.PRIVATE_QTWEBENGINE_TOKEN }}
-      DEBUG: 0 # Set to 1 to add logging for milestones, 2 to add logging for everything
+      DEBUG: 0 # Set to 1 to add logging for milestones, 2 to add logging for everything (uses `set -x` in build scripts)
 
     permissions:
       contents: read
