@@ -454,7 +454,35 @@ create_installer() {
   step "Creating dmg"
   rm -f "${BUILD_DIR}/Phraims.dmg"
   hdiutil detach "/Volumes/Phraims" >/dev/null 2>&1 || true
-  hdiutil create -format UDZO -srcfolder "${APP_PATH}" -volname Phraims -ov "${BUILD_DIR}/Phraims.dmg"
+  
+  # Create a temporary read-write DMG
+  local temp_dmg="${BUILD_DIR}/Phraims-temp.dmg"
+  rm -f "${temp_dmg}"
+  hdiutil create -format UDRW -srcfolder "${APP_PATH}" -volname Phraims "${temp_dmg}"
+  
+  # Mount the temporary DMG
+  local mount_point="/Volumes/Phraims"
+  hdiutil attach "${temp_dmg}" -mountpoint "${mount_point}" >/dev/null 2>&1
+  
+  # Set the volume icon using the .icns file
+  local icns_file="${REPO_ROOT}/resources/phraims.icns"
+  if [[ -f "${icns_file}" ]]; then
+    # Copy the icon to the volume root as .VolumeIcon.icns (hidden file)
+    cp "${icns_file}" "${mount_point}/.VolumeIcon.icns"
+    # Set the custom icon bit on the volume
+    /usr/bin/SetFile -a C "${mount_point}"
+    step "Applied custom icon to DMG volume"
+  else
+    warn "Icon file not found at ${icns_file}; DMG will use default icon"
+  fi
+  
+  # Unmount the temporary DMG
+  hdiutil detach "${mount_point}" >/dev/null 2>&1
+  
+  # Convert to compressed read-only DMG
+  hdiutil convert "${temp_dmg}" -format UDZO -o "${BUILD_DIR}/Phraims.dmg" >/dev/null 2>&1
+  rm -f "${temp_dmg}"
+  
   step "Done. DMG available at ${BUILD_DIR}/Phraims.dmg"
 }
 
