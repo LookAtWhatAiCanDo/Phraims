@@ -89,12 +89,8 @@ elseif(WIN32)
     set(PHRAIMS_VERSION_PATCH "0")
   endif()
   
-  # Copy the Windows icon to the build directory so the resource compiler can find it
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/phraims.ico"
-    "${CMAKE_CURRENT_BINARY_DIR}/phraims.ico"
-    COPYONLY
-  )
+  # Set the icon path for the resource script (absolute path required by RC.exe)
+  set(PHRAIMS_ICON_PATH "${CMAKE_CURRENT_SOURCE_DIR}/resources/phraims.ico")
   
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/resources/phraims.rc.in"
