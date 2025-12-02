@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 6.9 COMPONENTS Widgets WebEngineWidgets REQUIRED)
 
@@ -60,6 +61,7 @@ if(APPLE)
     SplitFrameWidget.cpp
     SplitWindow.h
     SplitWindow.cpp
+    resources/resources.qrc
     ${app_icon_macos}
   )
   set_target_properties(Phraims PROPERTIES
@@ -74,6 +76,28 @@ elseif(WIN32)
   # On Windows prefer a GUI subsystem build to avoid a console window.
   # This sets the WIN32_EXECUTABLE property so the linker uses the
   # WINDOWS subsystem instead of CONSOLE.
+  
+  # Configure the Windows resource file with version information
+  # Extract version components for the .rc file
+  # Note: This expects semantic versioning (MAJOR.MINOR[.PATCH]) without pre-release
+  # or build metadata (e.g., "1.2.3" not "1.2.3-alpha" or "1.2.3+build")
+  string(REGEX MATCH "^([0-9]+)\\.([0-9]+)(\\.([0-9]+))?" _ "${PROJECT_VERSION}")
+  set(PHRAIMS_VERSION_MAJOR "${CMAKE_MATCH_1}")
+  set(PHRAIMS_VERSION_MINOR "${CMAKE_MATCH_2}")
+  set(PHRAIMS_VERSION_PATCH "${CMAKE_MATCH_4}")
+  if(NOT PHRAIMS_VERSION_PATCH)
+    set(PHRAIMS_VERSION_PATCH "0")
+  endif()
+  
+  # Set the icon path for the resource script (absolute path required by RC.exe)
+  set(PHRAIMS_ICON_PATH "${CMAKE_CURRENT_SOURCE_DIR}/resources/phraims.ico")
+  
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/resources/phraims.rc.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/phraims.rc"
+    @ONLY
+  )
+  
   qt_add_executable(Phraims
     main.cpp
     AppSettings.h
@@ -89,6 +113,8 @@ elseif(WIN32)
     SplitFrameWidget.cpp
     SplitWindow.h
     SplitWindow.cpp
+    resources/resources.qrc
+    "${CMAKE_CURRENT_BINARY_DIR}/phraims.rc"
   )
 
   # Ensure the executable is built as a GUI subsystem without a console window
@@ -111,6 +137,7 @@ else()
     SplitFrameWidget.cpp
     SplitWindow.h
     SplitWindow.cpp
+    resources/resources.qrc
   )
 
 endif()

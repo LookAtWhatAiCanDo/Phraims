@@ -549,12 +549,15 @@ Name "Phraims"
 OutFile "__OUTFILE__"
 InstallDir "$PROGRAMFILES\Phraims"
 RequestExecutionLevel admin
+Icon "__ICONFILE__"
+UninstallIcon "__ICONFILE__"
 
 Section "Install"
   SetOutPath "$INSTDIR"
   File /r "__DEPLOY__"
   CreateDirectory "$SMPROGRAMS\Phraims"
-  CreateShortCut "$SMPROGRAMS\Phraims\Phraims.lnk" "$INSTDIR\Phraims.exe"
+  # CreateShortCut: target, executable, parameters, icon file, icon index
+  CreateShortCut "$SMPROGRAMS\Phraims\Phraims.lnk" "$INSTDIR\Phraims.exe" "" "$INSTDIR\Phraims.exe" 0
   # Write an uninstaller so the Uninstall section will be emitted correctly
   WriteUninstaller "$INSTDIR\Uninstall.exe"
 SectionEnd
@@ -570,9 +573,13 @@ Section "Uninstall"
 SectionEnd
 '@
 
-  # Replace placeholders with the actual installer path and deploy filespec (deploy path is expanded, NSIS variables remain literal)
+  # Build the icon path relative to repo root
+  $iconPath = Join-Path $RepoRoot 'resources\phraims.ico'
+  $iconPathForNSIS = $iconPath -replace '\\+','\\'
+  
+  # Replace placeholders with the actual installer path, icon path, and deploy filespec (deploy path is expanded, NSIS variables remain literal)
   $deployFilespec = ($deployForNSIS + '\\*.*') -replace '\\+','\\'
-  $nsi = $nsiTemplate -replace '__OUTFILE__', $installerExe -replace '__DEPLOY__', $deployFilespec
+  $nsi = $nsiTemplate -replace '__OUTFILE__', $installerExe -replace '__DEPLOY__', $deployFilespec -replace '__ICONFILE__', $iconPathForNSIS
   Set-Content -Path $nsiFile -Value $nsi -Encoding ASCII
   & "$($makensis.Source)" $nsiFile
   if ($LASTEXITCODE -eq 0) {
