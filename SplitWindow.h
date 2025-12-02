@@ -429,6 +429,15 @@ private:
    */
   void persistGlobalFrameState();
 
+  /**
+   * @brief Stops media playback in all frames.
+   *
+   * Iterates through all SplitFrameWidget children and calls stopMediaPlayback()
+   * on each to ensure all audio/video stops immediately. This is called when the
+   * window is closing to prevent continued playback after the window is gone.
+   */
+  void stopAllFramesMediaPlayback();
+
   QWidget *central_ = nullptr;              ///< Central widget containing the layout
   QVBoxLayout *layout_ = nullptr;           ///< Main vertical layout
   std::vector<FrameState> frames_;          ///< Per-frame address + scale state
