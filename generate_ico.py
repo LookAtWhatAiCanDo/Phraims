@@ -44,7 +44,13 @@ def main():
     icon_256_path = os.path.join(iconset_dir, "icon_256x256.png")
     if os.path.exists(icon_256_path):
         img_256 = Image.open(icon_256_path)
-        img_48 = img_256.resize((48, 48), Image.Resampling.LANCZOS)
+        # Use LANCZOS resampling for high-quality downscaling
+        # Handle both new (Pillow >= 10.0) and old (< 10.0) API
+        try:
+            resample = Image.Resampling.LANCZOS
+        except AttributeError:
+            resample = Image.LANCZOS
+        img_48 = img_256.resize((48, 48), resample)
         images.insert(2, img_48)  # Insert after 32x32
         print(f"Generated 48x48 from 256x256")
     

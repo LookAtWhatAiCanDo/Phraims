@@ -79,6 +79,8 @@ elseif(WIN32)
   
   # Configure the Windows resource file with version information
   # Extract version components for the .rc file
+  # Note: This expects semantic versioning (MAJOR.MINOR[.PATCH]) without pre-release
+  # or build metadata (e.g., "1.2.3" not "1.2.3-alpha" or "1.2.3+build")
   string(REGEX MATCH "^([0-9]+)\\.([0-9]+)(\\.([0-9]+))?" _ "${PROJECT_VERSION}")
   set(PHRAIMS_VERSION_MAJOR "${CMAKE_MATCH_1}")
   set(PHRAIMS_VERSION_MINOR "${CMAKE_MATCH_2}")
