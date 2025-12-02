@@ -326,6 +326,14 @@ private slots:
    */
   void resetFocusedFrameScale();
 
+  /**
+   * @brief Shows the About dialog with version info and project link.
+   *
+   * Displays a modal dialog showing the application name, version number,
+   * and a clickable link to the GitHub repository.
+   */
+  void showAboutDialog();
+
 protected:
   /**
    * @brief Handles window close events.

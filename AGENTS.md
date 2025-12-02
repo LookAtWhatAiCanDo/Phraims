@@ -11,12 +11,30 @@ The codebase follows a modular structure with classes separated into dedicated f
 - **EscapeFilter.h** (header-only) - Event filter for handling Escape key during fullscreen mode
 - **SplitterDoubleClickFilter.h** (header-only) - Event filter for handling double-clicks on splitter handles to resize panes equally
 - **Utils.h/.cpp** - Shared utilities including GroupScope RAII helper, window menu icons, global window tracking, and legacy migration logic
+- **version.h.in** - Template for CMake-generated version.h containing version constants and project URL
 
 For simple classes like `EscapeFilter`, `MyWebEngineView`, and `SplitterDoubleClickFilter`, implementations are kept in the header as inline methods to reduce file count and keep code/comments together.
 
 `CMakeLists.txt` configures the `Phraims` executable target and links Qt Widgets and WebEngine modules.
 Generated binaries and intermediates belong in `build/`; feel free to create
 parallel out-of-source build directories (`build-debug`, `build-release`) to keep artifacts separated.
+
+### Versioning
+The application version is defined as a single source of truth in `CMakeLists.txt` via the `project()` VERSION parameter (currently 0.55). CMake generates `build/version.h` from `version.h.in` during configuration, exposing:
+- `PHRAIMS_VERSION` - full version string (e.g., "0.55")
+- `PHRAIMS_VERSION_MAJOR`, `PHRAIMS_VERSION_MINOR`, `PHRAIMS_VERSION_PATCH` - individual version components
+- `PHRAIMS_HOMEPAGE_URL` - GitHub repository URL
+
+The version appears in:
+- **About Dialog**: `Help -> About Phraims` menu shows version and clickable GitHub link
+- **Startup Logs**: Version logged at application launch in main.cpp
+- **Build Artifacts**: macOS Info.plist includes `CFBundleShortVersionString` and `CFBundleVersion` populated from `${PROJECT_VERSION}`
+
+To increment the version:
+1. Update the VERSION in `project(Phraims VERSION x.y.z)` in CMakeLists.txt
+2. Reconfigure CMake (it will regenerate version.h automatically)
+3. Update the version at the top of README.md to match
+4. Rebuild and test
 
 User preferences persist exclusively via the `AppSettings` wrapper (INI file `settings.ini` under `QStandardPaths::AppDataLocation`).
 A [currently] no-op `performLegacyMigration()` hook is reserved for future schema evolution.

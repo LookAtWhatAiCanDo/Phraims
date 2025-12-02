@@ -48,6 +48,10 @@ int main(int argc, char **argv) {
   QApplication app(argc, argv);
   app.setWindowIcon(QIcon(QStringLiteral(":/icons/phraims.ico")));
 
+  // Log application version at startup
+  #include "version.h"
+  qDebug() << QCoreApplication::applicationName() << "version" << PHRAIMS_VERSION;
+
   // Ensure menu action icons are shown on platforms (like macOS) where
   // the Qt default may hide icons in menus.
   app.setAttribute(Qt::AA_DontShowIconsInMenus, false);

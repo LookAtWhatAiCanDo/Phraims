@@ -224,6 +224,11 @@ SplitWindow::SplitWindow(const QString &windowId, bool isIncognito, QWidget *par
   connect(closeAct, &QAction::triggered, this, &SplitWindow::onCloseShortcut);
   windowMenu_->addSeparator();
 
+  // Help menu: About dialog
+  auto *helpMenu = menuBar()->addMenu(tr("Help"));
+  QAction *aboutAction = helpMenu->addAction(tr("About Phraims"));
+  connect(aboutAction, &QAction::triggered, this, &SplitWindow::showAboutDialog);
+
   // central scroll area to allow many sections
   auto *scroll = new QScrollArea();
   scroll->setWidgetResizable(true);
@@ -1101,6 +1106,36 @@ void SplitWindow::resetFocusedFrameScale() {
   if (SplitFrameWidget *frame = focusedFrameOrFirst()) {
     frame->setScaleFactor(1.0, true);
   }
+}
+
+void SplitWindow::showAboutDialog() {
+  // Use QMessageBox for the About dialog with rich text support
+  QMessageBox aboutBox(this);
+  aboutBox.setWindowTitle(tr("About Phraims"));
+  aboutBox.setTextFormat(Qt::RichText);
+  
+  // Include version from generated version.h
+  #include "version.h"
+  
+  const QString aboutText = QString(
+    "<h2>%1</h2>"
+    "<p><b>Version %2</b></p>"
+    "<p>A web browser that divides each window into multiple resizable web page frames.</p>"
+    "<p>Built with Qt %3 and QtWebEngine (Chromium)</p>"
+    "<p><a href='%4'>%4</a></p>"
+  ).arg(QCoreApplication::applicationName())
+   .arg(QString::fromUtf8(PHRAIMS_VERSION))
+   .arg(QString::fromUtf8(qVersion()))
+   .arg(QString::fromUtf8(PHRAIMS_HOMEPAGE_URL));
+  
+  aboutBox.setText(aboutText);
+  aboutBox.setStandardButtons(QMessageBox::Ok);
+  aboutBox.setIconPixmap(QIcon(QStringLiteral(":/icons/phraims.ico")).pixmap(64, 64));
+  
+  // Make links clickable
+  aboutBox.setTextInteractionFlags(Qt::TextBrowserInteraction);
+  
+  aboutBox.exec();
 }
 
 void SplitWindow::updateWindowMenu() {

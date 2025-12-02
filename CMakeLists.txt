@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(Phraims VERSION 0.1 LANGUAGES CXX)
+project(Phraims VERSION 0.55 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -9,6 +9,13 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
 find_package(Qt6 6.9 COMPONENTS Widgets WebEngineWidgets REQUIRED)
+
+# Generate version.h from version.h.in with current project version
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/version.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/version.h"
+  @ONLY
+)
 
 # On macOS build a GUI app bundle (prevents launching a Terminal).
 if(APPLE)
@@ -98,6 +105,9 @@ target_link_libraries(Phraims
   PRIVATE
     Qt6::WebEngineWidgets
 )
+
+# Add build directory to include path so generated version.h can be found
+target_include_directories(Phraims PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 
 if(APPLE)
   set(_qt_sdk "${CMAKE_OSX_SYSROOT}")
