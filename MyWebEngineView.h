@@ -41,6 +41,15 @@ signals:
    */
   void translateRequested(const QUrl &translateUrl);
 
+  /**
+   * @brief Emitted when the user requests to open a link in a new frame.
+   * @param linkUrl The URL of the link to open in a new frame
+   *
+   * The parent widget should create a new frame adjacent to the current one
+   * and load the link there, preserving the current profile/incognito state.
+   */
+  void openLinkInNewFrameRequested(const QUrl &linkUrl);
+
 protected:
   /**
    * @brief Shows a custom context menu with navigation, edit, translation, and inspect actions.
@@ -56,6 +65,7 @@ protected:
 
     QAction *translate = nullptr;
     QAction *copyLink = nullptr;
+    QAction *openLinkInNewFrame = nullptr;
 
     // Common navigation actions
     if (page) {
@@ -74,6 +84,7 @@ protected:
     menu->addSeparator();
     translate = menu->addAction(tr("Translate…"));
     copyLink = menu->addAction(tr("Copy Link Address"));
+    openLinkInNewFrame = menu->addAction(tr("Open Link in New Frame"));
     menu->addSeparator();
     auto inspect = menu->addAction(tr("Inspect…"));
 
@@ -261,7 +272,7 @@ protected:
     // Run the JS and then show the menu so the selection is visible when the
     // user sees the context menu.
     qDebug() << "MyWebEngineView::contextMenuEvent: executing JS to expand selection (truncated)";
-    page->runJavaScript(js, [this, page, menu, globalPos, widgetPos, inspect, translate, copyLink](const QVariant &result){
+    page->runJavaScript(js, [this, page, menu, globalPos, widgetPos, inspect, translate, copyLink, openLinkInNewFrame](const QVariant &result){
       // Expecting an array: [selectionString, hrefString]
       QString selText;
       QString foundHref;
@@ -275,11 +286,13 @@ protected:
       }
       qDebug() << "MyWebEngineView::contextMenuEvent: JS result selection='" << selText << "' href='" << foundHref << "'";
 
-      // Hide the Copy Link action if no href was found at the click point.
+      // Hide the Copy Link and Open Link in New Frame actions if no href was found at the click point.
       if (foundHref.isEmpty()) {
         copyLink->setVisible(false);
+        openLinkInNewFrame->setVisible(false);
       } else {
         copyLink->setVisible(true);
+        openLinkInNewFrame->setVisible(true);
       }
 
       // To avoid the underlying page receiving mouse events while the
@@ -305,7 +318,7 @@ protected:
         try{ var d = document.getElementById('__copilot_ctx_overlay'); if(d && d.parentNode) d.parentNode.removeChild(d); }catch(e){}
       })();)JS");
 
-      page->runJavaScript(overlayCreate, [this, page, menu, globalPos, widgetPos, inspect, translate, copyLink, selText, foundHref, overlayRemove](const QVariant &){
+      page->runJavaScript(overlayCreate, [this, page, menu, globalPos, widgetPos, inspect, translate, copyLink, openLinkInNewFrame, selText, foundHref, overlayRemove](const QVariant &){
         qDebug() << "MyWebEngineView::contextMenuEvent: overlay injected";
         QAction *selected = menu->exec(globalPos);
         // remove overlay after menu dismissed
@@ -331,6 +344,9 @@ protected:
         } else if (selected == copyLink) {
           qDebug() << "MyWebEngineView::contextMenuEvent: copyLink selected, href='" << foundHref << "'";
           if (!foundHref.isEmpty()) copyLinkAddress(QUrl(foundHref));
+        } else if (selected == openLinkInNewFrame) {
+          qDebug() << "MyWebEngineView::contextMenuEvent: openLinkInNewFrame selected, href='" << foundHref << "'";
+          if (!foundHref.isEmpty()) emit openLinkInNewFrameRequested(QUrl(foundHref));
         } else if (!selected) {
           qDebug() << "MyWebEngineView::contextMenuEvent: menu dismissed (no selection)";
         } else {

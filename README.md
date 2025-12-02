@@ -203,7 +203,10 @@ Privacy & safety
 The web view context menu provides quick access to common actions:
 - **Navigation**: Back, Forward, Reload
 - **Editing**: Cut, Copy, Paste, Select All
-- **Copy Link Address**: Copies the fully encoded hyperlink under the cursor to the clipboard
+- **Copy Link Address**: Copies the fully encoded hyperlink under the cursor to the clipboard (only visible on links)
+- **Open Link in New Frame**: Opens the link in a new frame adjacent to the current one (only visible on links)
+  - Uses the active profile (or incognito profile) of the current window
+  - Preserves incognito mode if the window is in incognito mode
 - **Translate…**: Translate selected text or the entire page using Google Translate
   - If text is selected, opens translation of the selected text
   - If no text is selected, opens full page translation

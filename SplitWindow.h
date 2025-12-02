@@ -266,6 +266,15 @@ private slots:
   void onFrameTranslateRequested(SplitFrameWidget *who, const QUrl &translateUrl);
 
   /**
+   * @brief Handles open link in new frame request from a frame.
+   * @param who The frame that emitted the signal
+   * @param linkUrl The URL to open in a new frame
+   *
+   * Creates a new frame adjacent to the requesting frame and loads the link there.
+   */
+  void onFrameOpenLinkInNewFrameRequested(SplitFrameWidget *who, const QUrl &linkUrl);
+
+  /**
    * @brief Updates focus heuristics when a frame reports user interaction.
    * @param who The frame that was interacted with
    */
