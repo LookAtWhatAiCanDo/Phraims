@@ -1127,7 +1127,8 @@ void SplitWindow::showAboutDialog() {
   
   // Create a QTextBrowser to display the about text with clickable links
   auto *textBrowser = new QTextBrowser(&aboutDialog);
-  textBrowser->setOpenExternalLinks(false);  // We'll handle links ourselves
+  textBrowser->setOpenExternalLinks(false);  // Don't open links in external browser
+  textBrowser->setOpenLinks(false);          // Don't navigate internally either - we'll handle clicks
   textBrowser->setFrameStyle(QFrame::NoFrame);
   textBrowser->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
   textBrowser->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -1149,6 +1150,7 @@ void SplitWindow::showAboutDialog() {
   textBrowser->setHtml(aboutText);
   
   // Handle link clicks by opening in a new Phraims window
+  // The dialog remains showing the About text without navigating away
   connect(textBrowser, &QTextBrowser::anchorClicked, [](const QUrl &url) {
     createAndShowWindow(url.toString());
   });
