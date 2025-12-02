@@ -74,6 +74,23 @@ elseif(WIN32)
   # On Windows prefer a GUI subsystem build to avoid a console window.
   # This sets the WIN32_EXECUTABLE property so the linker uses the
   # WINDOWS subsystem instead of CONSOLE.
+  
+  # Configure the Windows resource file with version information
+  # Extract version components for the .rc file
+  string(REGEX MATCH "^([0-9]+)\\.([0-9]+)(\\.([0-9]+))?" _ "${PROJECT_VERSION}")
+  set(PHRAIMS_VERSION_MAJOR "${CMAKE_MATCH_1}")
+  set(PHRAIMS_VERSION_MINOR "${CMAKE_MATCH_2}")
+  set(PHRAIMS_VERSION_PATCH "${CMAKE_MATCH_4}")
+  if(NOT PHRAIMS_VERSION_PATCH)
+    set(PHRAIMS_VERSION_PATCH "0")
+  endif()
+  
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/resources/phraims.rc.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/phraims.rc"
+    @ONLY
+  )
+  
   qt_add_executable(Phraims
     main.cpp
     AppSettings.h
@@ -89,6 +106,7 @@ elseif(WIN32)
     SplitFrameWidget.cpp
     SplitWindow.h
     SplitWindow.cpp
+    "${CMAKE_CURRENT_BINARY_DIR}/phraims.rc"
   )
 
   # Ensure the executable is built as a GUI subsystem without a console window
