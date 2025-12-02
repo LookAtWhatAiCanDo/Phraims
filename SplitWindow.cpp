@@ -580,22 +580,38 @@ void SplitWindow::onNewFrameShortcut() {
     return;
   }
   
-  // Insert a new empty frame after the focused frame
+  // Try surgical addition first (works for Vertical/Horizontal modes)
+  if (addSingleFrame(pos)) {
+    // Provide a visual cue by briefly flashing the divider handle
+    if (!currentSplitters_.empty()) {
+      for (QSplitter *splitter : currentSplitters_) {
+        if (!splitter) continue;
+        QPointer<QSplitter> splitterGuard(splitter);
+        QTimer::singleShot(0, this, [splitterGuard]() {
+          if (!splitterGuard) return;
+          const int origWidth = splitterGuard->handleWidth();
+          splitterGuard->setHandleWidth(origWidth + FLASH_HANDLE_WIDTH_INCREASE);
+          QTimer::singleShot(FLASH_DURATION_MS, [splitterGuard, origWidth]() {
+            if (splitterGuard) {
+              splitterGuard->setHandleWidth(origWidth);
+            }
+          });
+        });
+      }
+    }
+    qDebug() << "onNewFrameShortcut: added new frame after position" << pos << "(surgical)";
+    return;
+  }
+  
+  // Fall back to rebuildSections for Grid mode
   frames_.insert(frames_.begin() + pos + 1, FrameState());
-  
-  // Persist addresses and scale defaults
   persistGlobalFrameState();
-  
-  // Rebuild UI with the updated state
   rebuildSections((int)frames_.size());
   
   // Provide a visual cue by briefly flashing the divider handle
-  // Find the splitter that contains the newly added frame
   if (!currentSplitters_.empty()) {
     for (QSplitter *splitter : currentSplitters_) {
       if (!splitter) continue;
-      // Flash effect: briefly change the handle width to make it visible
-      // Use QPointer to ensure splitter is still valid when timer fires
       QPointer<QSplitter> splitterGuard(splitter);
       QTimer::singleShot(0, this, [splitterGuard]() {
         if (!splitterGuard) return;
@@ -610,7 +626,7 @@ void SplitWindow::onNewFrameShortcut() {
     }
   }
   
-  qDebug() << "onNewFrameShortcut: added new frame after position" << pos;
+  qDebug() << "onNewFrameShortcut: added new frame after position" << pos << "(rebuild)";
 }
 
 void SplitWindow::reloadFocusedFrame() {
@@ -630,18 +646,21 @@ void SplitWindow::onPlusFromFrame(SplitFrameWidget *who) {
   const QVariant v = who->property("logicalIndex");
   if (!v.isValid()) return;
   int pos = v.toInt();
+  
+  // Try surgical addition first (works for Vertical/Horizontal modes)
+  if (addSingleFrame(pos)) {
+    return;
+  }
+  
+  // Fall back to rebuildSections for Grid mode
   frames_.insert(frames_.begin() + pos + 1, FrameState());
-  // persist addresses and scale defaults
   persistGlobalFrameState();
-  // rebuild UI with the updated frames_
   rebuildSections((int)frames_.size());
-  // Focus the newly added frame's address bar. The new frame is at index pos+1.
-  // Use a queued connection to ensure focus is set after the layout has fully
-  // updated and all widgets are visible.
+  
+  // Focus the newly added frame's address bar
   const int newFrameIndex = pos + 1;
   QMetaObject::invokeMethod(this, [this, newFrameIndex]() {
     if (!central_) return;
-    // Find all SplitFrameWidget children and locate the one with logicalIndex == newFrameIndex
     const QList<SplitFrameWidget *> frames = central_->findChildren<SplitFrameWidget *>();
     for (SplitFrameWidget *frame : frames) {
       if (frame->property("logicalIndex").toInt() == newFrameIndex) {
@@ -821,6 +840,82 @@ void SplitWindow::updateFrameButtonStates(SplitFrameWidget *frame, int totalFram
   frame->setMinusEnabled(totalFrames > 1);
   frame->setUpEnabled(idx > 0);
   frame->setDownEnabled(idx < totalFrames - 1);
+}
+
+bool SplitWindow::addSingleFrame(int afterIndex) {
+  // Only support surgical addition for Vertical/Horizontal modes
+  // Grid mode requires rebuildSections due to nested splitter complexity
+  if (layoutMode_ == Grid) {
+    return false;
+  }
+  
+  // Verify we have a single splitter (Vertical/Horizontal mode)
+  if (currentSplitters_.empty() || !currentSplitters_[0]) {
+    qWarning() << "addSingleFrame: no splitter available";
+    return false;
+  }
+  
+  QSplitter *splitter = currentSplitters_[0];
+  const int insertPosition = afterIndex + 1;
+  
+  // Insert frame data into the model
+  frames_.insert(frames_.begin() + insertPosition, FrameState());
+  persistGlobalFrameState();
+  
+  // Create the new frame widget
+  auto *newFrame = new SplitFrameWidget(insertPosition);
+  newFrame->setProperty("logicalIndex", insertPosition);
+  newFrame->setProfile(profile_);
+  newFrame->setScaleFactor(frames_[insertPosition].scale);
+  newFrame->setAddress(frames_[insertPosition].address);
+  
+  // Connect all signals
+  connect(newFrame, &SplitFrameWidget::plusClicked, this, &SplitWindow::onPlusFromFrame);
+  connect(newFrame, &SplitFrameWidget::minusClicked, this, &SplitWindow::onMinusFromFrame);
+  connect(newFrame, &SplitFrameWidget::addressEdited, this, &SplitWindow::onAddressEdited);
+  connect(newFrame, &SplitFrameWidget::upClicked, this, &SplitWindow::onUpFromFrame);
+  connect(newFrame, &SplitFrameWidget::downClicked, this, &SplitWindow::onDownFromFrame);
+  connect(newFrame, &SplitFrameWidget::devToolsRequested, this, &SplitWindow::onFrameDevToolsRequested);
+  connect(newFrame, &SplitFrameWidget::translateRequested, this, &SplitWindow::onFrameTranslateRequested);
+  connect(newFrame, &SplitFrameWidget::scaleChanged, this, &SplitWindow::onFrameScaleChanged);
+  connect(newFrame, &SplitFrameWidget::interactionOccurred, this, &SplitWindow::onFrameInteraction);
+  connect(newFrame, &QObject::destroyed, this, [this, newFrame]() {
+    if (lastFocusedFrame_ == newFrame) lastFocusedFrame_ = nullptr;
+  });
+  
+  // Insert the widget into the splitter at the correct position
+  splitter->insertWidget(insertPosition, newFrame);
+  
+  // Update logical indices for all frames after the insertion point
+  const QList<SplitFrameWidget *> allFrames = central_->findChildren<SplitFrameWidget *>();
+  for (SplitFrameWidget *frame : allFrames) {
+    const QVariant v = frame->property("logicalIndex");
+    if (v.isValid()) {
+      const int idx = v.toInt();
+      if (idx > afterIndex && frame != newFrame) {
+        frame->setProperty("logicalIndex", idx + 1);
+      }
+    }
+  }
+  
+  // Update button states for all frames
+  const int totalFrames = (int)frames_.size();
+  for (SplitFrameWidget *frame : allFrames) {
+    updateFrameButtonStates(frame, totalFrames);
+  }
+  
+  // Update window title and menus
+  updateWindowTitle();
+  rebuildAllWindowMenus();
+  
+  // Focus the newly added frame's address bar
+  QMetaObject::invokeMethod(this, [this, newFrame]() {
+    if (newFrame) {
+      newFrame->focusAddress();
+    }
+  }, Qt::QueuedConnection);
+  
+  return true;
 }
 
 void SplitWindow::onAddressEdited(SplitFrameWidget *who, const QString &text) {

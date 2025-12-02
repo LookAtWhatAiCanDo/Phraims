@@ -218,6 +218,17 @@ private slots:
   void updateFrameButtonStates(SplitFrameWidget *frame, int totalFrames);
   
   /**
+   * @brief Adds a single frame without rebuilding all frames (Vertical/Horizontal modes only).
+   * @param afterIndex The index after which to insert the new frame
+   * @return true if surgical addition succeeded, false if rebuildSections is needed
+   *
+   * Surgically inserts a new frame into the layout, updates logical indices for frames
+   * after the insertion point, and preserves all other frames' state. Only works for
+   * Vertical and Horizontal layout modes; Grid mode requires rebuildSections().
+   */
+  bool addSingleFrame(int afterIndex);
+  
+  /**
    * @brief Handles address editing from a frame.
    * @param who The frame that emitted the signal
    * @param text The new address text

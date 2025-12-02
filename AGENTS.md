@@ -248,19 +248,32 @@ Instead, use the **surgical removal pattern** via `removeSingleFrame()`:
 10. Clears `lastFocusedFrame_` if it points to the removed frame
 11. Updates window title and rebuilds all window menus
 
+### Frame Addition Pattern
+When adding frames in **Vertical or Horizontal** layout modes, use the **surgical addition pattern** via `addSingleFrame()`:
+1. Inserts frame data into the `frames_` vector
+2. Persists the updated frame state via `persistGlobalFrameState()`
+3. Creates a new `SplitFrameWidget` with all signal connections
+4. Uses `QSplitter::insertWidget()` to insert at the correct position
+5. Updates logical indices for frames after the insertion point
+6. Updates button states for all frames using `updateFrameButtonStates()`
+7. Focuses the new frame's address bar
+
+For **Grid** layout mode, surgical addition is not supported due to nested splitter complexity. Grid mode must use `rebuildSections()` for frame addition.
+
 ### When to Use rebuildSections()
 `rebuildSections()` should ONLY be used when:
 - **Initial window construction**: Building frames for the first time
 - **Layout mode changes**: Switching between Vertical, Horizontal, and Grid layouts
 - **Profile switches**: Changing to a different browser profile (requires new QWebEngineProfile instances)
-- **Frame addition**: Adding new frames (optimization opportunity for future work)
+- **Frame addition in Grid mode**: Adding frames when in Grid layout (nested splitters make surgical addition infeasible)
 - **Frame reordering**: Moving frames up/down (QSplitter doesn't support widget reordering without rebuild)
 
 Note: Frame reordering requires `rebuildSections()` because QSplitter doesn't provide a way to reorder widgets without removing and re-adding them. A surgical approach that only swaps logical indices will not visually move the frames.
 
 ### Helper Methods
-- `updateFrameButtonStates(frame, totalFrames)`: Centralized logic for updating minus/up/down button enabled states based on frame position and total count. Avoids code duplication in `rebuildSections()` and `removeSingleFrame()`.
+- `updateFrameButtonStates(frame, totalFrames)`: Centralized logic for updating minus/up/down button enabled states based on frame position and total count. Avoids code duplication across multiple methods.
 - `removeSingleFrame(frameToRemove)`: Surgically removes a single frame without rebuilding all frames. Used by both `onMinusFromFrame()` (minus button) and `onCloseShortcut()` (Cmd/Ctrl+W).
+- `addSingleFrame(afterIndex)`: Surgically adds a new frame after the specified index without rebuilding all frames. Returns true on success, false if `rebuildSections()` is needed (Grid mode). Used by both `onPlusFromFrame()` (plus button) and `onNewFrameShortcut()` (Cmd/Ctrl+T).
 
 ### Frame Properties
 Each `SplitFrameWidget` has a `logicalIndex` dynamic property (set via `QObject::setProperty()`) that maps the widget to its position in the `frames_` vector. Always validate this property before using it:
