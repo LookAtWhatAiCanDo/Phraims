@@ -48,6 +48,10 @@ bool DEBUG_SHOW_WINDOW_ID = 0;
 namespace {
   constexpr int FLASH_HANDLE_WIDTH_INCREASE = 4;  // pixels to increase splitter handle width
   constexpr int FLASH_DURATION_MS = 150;          // milliseconds to show the flash
+  
+  // About dialog dimensions
+  constexpr int ABOUT_DIALOG_MIN_WIDTH = 400;     // minimum width for About dialog
+  constexpr int ABOUT_DIALOG_MAX_HEIGHT = 300;    // maximum height for text browser in About dialog
 }
 
 
@@ -1127,7 +1131,7 @@ void SplitWindow::showAboutDialog() {
   textBrowser->setFrameStyle(QFrame::NoFrame);
   textBrowser->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
   textBrowser->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  textBrowser->setMaximumHeight(300);
+  textBrowser->setMaximumHeight(ABOUT_DIALOG_MAX_HEIGHT);
   
   const QString aboutText = QString(
     "<div style='text-align: center;'>"
@@ -1156,7 +1160,7 @@ void SplitWindow::showAboutDialog() {
   connect(buttonBox, &QDialogButtonBox::accepted, &aboutDialog, &QDialog::accept);
   layout->addWidget(buttonBox);
   
-  aboutDialog.setMinimumWidth(400);
+  aboutDialog.setMinimumWidth(ABOUT_DIALOG_MIN_WIDTH);
   aboutDialog.exec();
 }
 
