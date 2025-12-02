@@ -248,26 +248,18 @@ Instead, use the **surgical removal pattern** via `removeSingleFrame()`:
 10. Clears `lastFocusedFrame_` if it points to the removed frame
 11. Updates window title and rebuilds all window menus
 
-### Frame Reordering Pattern (CRITICAL)
-When moving frames up or down, **NEVER** call `rebuildSections()` as it destroys and recreates all frames. Instead, use the **surgical reordering pattern**:
-1. Swap the data in the `frames_` vector
-2. Persist the updated frame state via `persistGlobalFrameState()`
-3. Find the two frames that need to swap logical indices
-4. Swap their `logicalIndex` properties
-5. Update button states for the swapped frames and their neighbors using `updateFrameButtonStates()`
-6. Update window title and menus
-
-This approach preserves all frame widgets and their state, allowing media playback to continue uninterrupted.
-
 ### When to Use rebuildSections()
 `rebuildSections()` should ONLY be used when:
 - **Initial window construction**: Building frames for the first time
 - **Layout mode changes**: Switching between Vertical, Horizontal, and Grid layouts
 - **Profile switches**: Changing to a different browser profile (requires new QWebEngineProfile instances)
 - **Frame addition**: Adding new frames (optimization opportunity for future work)
+- **Frame reordering**: Moving frames up/down (QSplitter doesn't support widget reordering without rebuild)
+
+Note: Frame reordering requires `rebuildSections()` because QSplitter doesn't provide a way to reorder widgets without removing and re-adding them. A surgical approach that only swaps logical indices will not visually move the frames.
 
 ### Helper Methods
-- `updateFrameButtonStates(frame, totalFrames)`: Centralized logic for updating minus/up/down button enabled states based on frame position and total count. Avoids code duplication in `rebuildSections()`, `removeSingleFrame()`, and frame reordering.
+- `updateFrameButtonStates(frame, totalFrames)`: Centralized logic for updating minus/up/down button enabled states based on frame position and total count. Avoids code duplication in `rebuildSections()` and `removeSingleFrame()`.
 - `removeSingleFrame(frameToRemove)`: Surgically removes a single frame without rebuilding all frames. Used by both `onMinusFromFrame()` (minus button) and `onCloseShortcut()` (Cmd/Ctrl+W).
 
 ### Frame Properties
