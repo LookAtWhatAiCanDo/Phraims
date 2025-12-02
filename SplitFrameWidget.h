@@ -147,6 +147,15 @@ public:
    */
   void setScaleFactor(double scale, bool notify = false);
 
+  /**
+   * @brief Stops all media playback in this frame.
+   *
+   * Pauses all audio and video elements in the page to prevent continued
+   * playback after the frame or window is closed. This is called when the
+   * window is closing to ensure media stops immediately.
+   */
+  void stopMediaPlayback();
+
 private slots:
   /**
    * @brief Handles HTML5 fullscreen requests from the page.

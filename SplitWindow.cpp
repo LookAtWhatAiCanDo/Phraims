@@ -763,6 +763,11 @@ void SplitWindow::onFrameScaleChanged(SplitFrameWidget *who, double scale) {
 }
 
 void SplitWindow::closeEvent(QCloseEvent *event) {
+  // Stop all media playback immediately to prevent audio/video from continuing
+  // after the window closes. This must be done first, before any state saving
+  // or cleanup, to ensure media stops as soon as possible.
+  stopAllFramesMediaPlayback();
+
   // Incognito windows should never persist state
   if (isIncognito_) {
     qDebug() << "SplitWindow::closeEvent: Incognito window - skipping all persistence";
@@ -878,6 +883,19 @@ int SplitWindow::frameIndexFor(SplitFrameWidget *frame) const {
   const QVariant v = frame->property("logicalIndex");
   if (!v.isValid()) return -1;
   return v.toInt();
+}
+
+void SplitWindow::stopAllFramesMediaPlayback() {
+  if (!central_) return;
+  
+  // Find all SplitFrameWidget children and stop their media playback
+  const QList<SplitFrameWidget *> frames = central_->findChildren<SplitFrameWidget *>();
+  for (SplitFrameWidget *frame : frames) {
+    if (frame) {
+      frame->stopMediaPlayback();
+    }
+  }
+  qDebug() << "SplitWindow::stopAllFramesMediaPlayback: stopped media in" << frames.size() << "frame(s)";
 }
 
 void SplitWindow::saveCurrentSplitterSizes() {

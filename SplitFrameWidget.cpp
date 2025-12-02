@@ -325,6 +325,32 @@ void SplitFrameWidget::refreshScaleUi() {
   if (scaleResetBtn_) scaleResetBtn_->setEnabled(std::abs(scaleFactor_ - 1.0) > epsilon);
 }
 
+void SplitFrameWidget::stopMediaPlayback() {
+  if (!webview_ || !webview_->page()) return;
+
+  // Use JavaScript to pause all audio and video elements in the page.
+  // This ensures media stops immediately when the frame or window is closing.
+  QString js = QStringLiteral(R"JS(
+    (function() {
+      try {
+        // Pause all audio elements
+        document.querySelectorAll('audio').forEach(function(audio) {
+          audio.pause();
+        });
+        // Pause all video elements
+        document.querySelectorAll('video').forEach(function(video) {
+          video.pause();
+        });
+      } catch(e) {
+        console.error('Failed to stop media playback:', e);
+      }
+    })();
+  )JS");
+
+  webview_->page()->runJavaScript(js);
+  qDebug() << "SplitFrameWidget::stopMediaPlayback: executed JS to pause all media elements";
+}
+
 void SplitFrameWidget::setProfile(QWebEngineProfile *profile) {
   if (!webview_ || !profile) return;
 
