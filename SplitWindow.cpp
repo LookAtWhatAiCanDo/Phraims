@@ -1152,10 +1152,27 @@ void SplitWindow::onCloseShortcut() {
   // If more than one frame exists, close the last/end frame instead of the window.
   if ((int)frames_.size() > 1) {
     qDebug() << "onCloseShortcut: removing last frame (Cmd-W pressed)";
-    // Remove the last frame and rebuild UI. Persist the frame state.
-    frames_.pop_back();
-    persistGlobalFrameState();
-    rebuildSections((int)frames_.size());
+    
+    // Find the frame with the highest logical index (the last frame)
+    const QList<SplitFrameWidget *> allFrames = central_->findChildren<SplitFrameWidget *>();
+    SplitFrameWidget *lastFrame = nullptr;
+    int maxIndex = -1;
+    
+    for (SplitFrameWidget *frame : allFrames) {
+      const QVariant v = frame->property("logicalIndex");
+      if (v.isValid()) {
+        const int idx = v.toInt();
+        if (idx > maxIndex) {
+          maxIndex = idx;
+          lastFrame = frame;
+        }
+      }
+    }
+    
+    // Remove the last frame surgically without rebuilding all frames
+    if (lastFrame) {
+      removeSingleFrame(lastFrame);
+    }
   } else {
     // Only one frame remains: close the window as normal.
     qDebug() << "onCloseShortcut: single frame, closing window";
