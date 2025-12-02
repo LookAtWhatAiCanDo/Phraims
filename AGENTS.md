@@ -127,6 +127,25 @@ The unified build workflow (`.github/workflows/build-phraims.yml`) consolidates 
 All platform builds follow the same pattern: checkout → artifact download → build → upload, with common env naming and only platform-specific differences (runner label, shell, script path, host Qt handling inside the scripts).
 Test workflows by creating a pull request or triggering them manually from the GitHub Actions UI.
 
+### Workflow Triggers
+- **Push to `main`**: Builds all platforms (skips if only README.md or AGENTS.md changed)
+- **Pull requests to `main`**: Builds all platforms from non-fork PRs
+- **Tag push (v*)**: Builds all platforms and creates/updates GitHub Release with artifacts
+- **Manual dispatch**: Allows selective platform/architecture builds via workflow_dispatch inputs
+
+### Artifact Publishing
+Workflow runs upload build artifacts to GitHub Actions for 90 days:
+- **macOS**: `Phraims-macOS-{arch}` containing `Phraims.dmg` from `build/macos-{arch}/`
+- **Windows**: `Phraims-Windows-{arch}` containing `Phraims-Installer-{arch}-Release.exe` from `build/windows-{arch}/`
+
+For tagged builds (e.g., `v0.55`), the workflow also:
+1. Creates a GitHub Release (if it doesn't exist) via the `create-release` job
+2. Attaches platform-specific artifacts with versioned names:
+   - **macOS**: `Phraims-{tag}-macOS-{arch}.dmg` (e.g., `Phraims-v0.55-macOS-arm64.dmg`)
+   - **Windows**: `Phraims-{tag}-Windows-{arch}.exe` (e.g., `Phraims-v0.55-Windows-x64.exe`)
+
+The `--clobber` flag ensures artifacts can be re-uploaded if a build is re-run for the same tag.
+
 ### macOS
 macOS builds run as a job with architecture matrix (workflow_dispatch input `arch` can select arm64, x86_64, or both);
 each arch uses its runner, downloads the matching `qtwebengine-macos-<ver>-<arch>` artifact via `ci/get-qtwebengine-macos.sh`,

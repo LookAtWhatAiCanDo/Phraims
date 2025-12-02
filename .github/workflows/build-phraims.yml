@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'
     paths-ignore:
       - README.md
       - AGENTS.md
@@ -44,9 +46,41 @@ on:
           - self-hosted
 
 jobs:
+  create-release:
+    name: Create GitHub Release
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: Extract tag name and create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          echo "Creating or updating release for tag: $TAG_NAME"
+          
+          # Check if release already exists
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Release $TAG_NAME already exists"
+          else
+            echo "Creating new release $TAG_NAME"
+            gh release create "$TAG_NAME" \
+              --title "Phraims $TAG_NAME" \
+              --notes "Release $TAG_NAME" \
+              --draft=false \
+              --prerelease=false
+          fi
+
   build-macos:
     name: Build macOS (${{ matrix.arch }})
-    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head_repo.fork == false) && (inputs.os == '' || inputs.os == 'macos') }}
+    needs: [create-release]
+    if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.head_repo.fork == false) && (inputs.os == '' || inputs.os == 'macos') }}
     runs-on: ${{ inputs.runner == 'self-hosted' && 'self-hosted' || fromJson('{"arm64":"macos-26","x86_64":"macos-15-intel"}')[matrix.arch] }}
     strategy:
       fail-fast: false
@@ -59,7 +93,7 @@ jobs:
       DEBUG: 0 # Set to 1 to add logging for milestones, 2 to add logging for everything (uses `set -x` in build scripts)
 
     permissions:
-      contents: read
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -91,9 +125,20 @@ jobs:
           path: build/macos-${{env.BUILD_ARCH}}/Phraims.dmg
           retention-days: 90
 
+      - name: Attach DMG to release (if tagged build)
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          ARTIFACT_NAME="Phraims-${TAG_NAME}-macOS-${{env.BUILD_ARCH}}.dmg"
+          cp "build/macos-${{env.BUILD_ARCH}}/Phraims.dmg" "$ARTIFACT_NAME"
+          gh release upload "$TAG_NAME" "$ARTIFACT_NAME" --clobber
+
   build-windows:
     name: Build Windows (${{ matrix.arch }})
-    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head_repo.fork == false) && (inputs.os == '' || inputs.os == 'windows') }}
+    needs: [create-release]
+    if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.head_repo.fork == false) && (inputs.os == '' || inputs.os == 'windows') }}
     runs-on: ${{ inputs.runner == 'self-hosted' && 'self-hosted' || fromJson('{"x64":"windows-2025","arm64":"windows-11-arm"}')[matrix.arch] }}
     strategy:
       fail-fast: false
@@ -105,7 +150,7 @@ jobs:
       QTWEBENGINE_TOKEN: ${{ secrets.PRIVATE_QTWEBENGINE_TOKEN }}
 
     permissions:
-      contents: read
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -137,3 +182,14 @@ jobs:
           name: Phraims-Windows-${{env.BUILD_ARCH}}
           path: build/windows-${{env.BUILD_ARCH}}/Phraims-Installer-${{env.BUILD_ARCH}}-Release.exe
           retention-days: 90
+
+      - name: Attach installer to release (if tagged build)
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tagName = $env:GITHUB_REF -replace '^refs/tags/', ''
+          $artifactName = "Phraims-$tagName-Windows-${{env.BUILD_ARCH}}.exe"
+          Copy-Item "build/windows-${{env.BUILD_ARCH}}/Phraims-Installer-${{env.BUILD_ARCH}}-Release.exe" $artifactName
+          gh release upload $tagName $artifactName --clobber

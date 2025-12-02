@@ -26,15 +26,23 @@ The eventual goal is to have fully dynamically dockable frames with a stretch go
 ##
 Proper `Release Management` is still a Work In Progress.  
 The eventual goal is to be a fully signed release with first class auto-update.  
-Until then, installs are currently only available via:
-1. Navigate to the [Actions](./actions) tab.
-1. Click on the latest workflow run for your platform.
-1. Scroll down to the "Artifacts" section.
-1. Download the appropriate `Phraims` artifact.
-1. Extract and run the app; you will need to allow your system security to install:
-  * macOS: System Settings -> Privacy & Security -> ...
+Until then, installs are currently available via:
 
-Artifacts are retained for 90 days.  
+### Option 1: GitHub Releases (Recommended for tagged versions)
+1. Navigate to the [Releases](https://github.com/LookAtWhatAiCanDo/Phraims/releases) page
+1. Download the appropriate installer for your platform:
+   - **macOS**: `Phraims-v{version}-macOS-{arch}.dmg` (arm64 for M1+ or x86_64 for Intel)
+   - **Windows**: `Phraims-v{version}-Windows-{arch}.exe` (x64 for Intel/AMD)
+1. Run the installer; you will need to allow your system security to install:
+   - macOS: System Settings → Privacy & Security → Open Anyway
+
+### Option 2: GitHub Actions Artifacts (Latest builds)
+1. Navigate to the [Actions](https://github.com/LookAtWhatAiCanDo/Phraims/actions) tab
+1. Click on the latest successful workflow run for your platform
+1. Scroll down to the "Artifacts" section
+1. Download the appropriate `Phraims-{Platform}-{arch}` artifact (90-day retention)
+1. Extract and run the app; you will need to allow your system security to install
+
 The workflow can also be triggered manually via the "Run workflow" button for building release candidates.
 
 ## Storage
