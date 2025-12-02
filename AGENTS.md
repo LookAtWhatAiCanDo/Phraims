@@ -133,6 +133,19 @@ When adding new keyboard shortcuts:
 - Scale factors are persisted per frame alongside addresses under the `frameScales` key in `AppSettings`. Whenever you add, remove, or reorder frames, update the paired scale vector so indices remain aligned. Migrating persistence logic must keep both lists backward compatible.
 - If you need traditional web zoom outside of this mechanism, avoid duplicating state—route everything through `setScaleFactor` so persistence and UI stay consistent.
 
+## Window Lifecycle and Media Cleanup
+When a window is closed, all media playback must be explicitly stopped to prevent audio/video from continuing after the window is gone. This is critical because `QWebEngineView` and `QWebEnginePage` objects continue playing media until they are asynchronously deleted via `deleteLater()`, which can take several event loop iterations.
+
+### Media Cleanup Implementation
+- **SplitFrameWidget::stopMediaPlayback()**: Uses JavaScript to pause all `<audio>` and `<video>` elements in the page. This method is called on each frame when the window is closing.
+- **SplitWindow::stopAllFramesMediaPlayback()**: Iterates through all `SplitFrameWidget` children and calls `stopMediaPlayback()` on each. This ensures all frames stop media immediately.
+- **SplitWindow::closeEvent()**: Calls `stopAllFramesMediaPlayback()` as the first action before any state saving or cleanup. This guarantees media stops as soon as the user closes the window.
+
+### Important Rules
+1. **Always stop media before closing**: Any code path that destroys frames or windows must call `stopMediaPlayback()` or `stopAllFramesMediaPlayback()` before deletion.
+2. **JavaScript-based cleanup**: Pausing media via JavaScript (`audio.pause()`, `video.pause()`) is the most reliable way to stop playback in `QWebEngineView`.
+3. **Maintain this pattern**: Future changes to window closing, frame destruction, or layout rebuilding must preserve this media cleanup behavior to prevent resource leaks and user confusion.
+
 ## Profiles System
 Phraims supports multiple browser profiles, allowing users to maintain separate browsing contexts with isolated cookies, cache, history, and other data.
 

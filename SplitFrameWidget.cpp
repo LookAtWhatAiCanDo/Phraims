@@ -330,16 +330,22 @@ void SplitFrameWidget::stopMediaPlayback() {
 
   // Use JavaScript to pause all audio and video elements in the page.
   // This ensures media stops immediately when the frame or window is closing.
+  // Calling load() with empty string after pause helps release resources and
+  // stops buffering.
   QString js = QStringLiteral(R"JS(
     (function() {
       try {
-        // Pause all audio elements
+        // Pause and clear all audio elements
         document.querySelectorAll('audio').forEach(function(audio) {
           audio.pause();
+          audio.src = '';
+          audio.load();
         });
-        // Pause all video elements
+        // Pause and clear all video elements
         document.querySelectorAll('video').forEach(function(video) {
           video.pause();
+          video.src = '';
+          video.load();
         });
       } catch(e) {
         console.error('Failed to stop media playback:', e);

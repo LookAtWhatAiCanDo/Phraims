@@ -886,7 +886,10 @@ int SplitWindow::frameIndexFor(SplitFrameWidget *frame) const {
 }
 
 void SplitWindow::stopAllFramesMediaPlayback() {
-  if (!central_) return;
+  if (!central_) {
+    qDebug() << "SplitWindow::stopAllFramesMediaPlayback: central_ is null, cannot stop media";
+    return;
+  }
   
   // Find all SplitFrameWidget children and stop their media playback
   const QList<SplitFrameWidget *> frames = central_->findChildren<SplitFrameWidget *>();
