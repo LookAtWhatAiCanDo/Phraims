@@ -1163,6 +1163,22 @@ void SplitWindow::showAboutDialog() {
   layout->addWidget(buttonBox);
   
   aboutDialog.setMinimumWidth(ABOUT_DIALOG_MIN_WIDTH);
+  
+  // Center the dialog on the screen containing the active window
+  // This ensures consistent positioning regardless of which window is active
+  QScreen *screen = this->screen();
+  if (!screen) {
+    screen = QGuiApplication::primaryScreen();
+  }
+  if (screen) {
+    const QRect screenGeometry = screen->availableGeometry();
+    aboutDialog.adjustSize();  // Ensure dialog has calculated its size
+    const QRect dialogGeometry = aboutDialog.geometry();
+    const int x = screenGeometry.x() + (screenGeometry.width() - dialogGeometry.width()) / 2;
+    const int y = screenGeometry.y() + (screenGeometry.height() - dialogGeometry.height()) / 2;
+    aboutDialog.move(x, y);
+  }
+  
   aboutDialog.exec();
 }
 
