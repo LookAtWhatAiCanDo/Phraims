@@ -94,6 +94,25 @@ elseif(WIN32)
   # Ensure the executable is built as a GUI subsystem without a console window
   set_target_properties(Phraims PROPERTIES WIN32_EXECUTABLE TRUE)
 
+else()
+  # Linux and other platforms: standard executable build
+  qt_add_executable(Phraims
+    main.cpp
+    AppSettings.h
+    Utils.h
+    Utils.cpp
+    EscapeFilter.h
+    MyWebEnginePage.h
+    MyWebEngineView.h
+    SplitterDoubleClickFilter.h
+    DomPatch.h
+    DomPatch.cpp
+    SplitFrameWidget.h
+    SplitFrameWidget.cpp
+    SplitWindow.h
+    SplitWindow.cpp
+  )
+
 endif()
 
 target_link_libraries(Phraims
