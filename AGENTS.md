@@ -170,6 +170,7 @@ The application implements standard keyboard shortcuts for common operations:
 
 ### Frame Management Shortcuts
 - **Command-T** (macOS) / **Ctrl+T** (other platforms): Add new frame after the currently focused frame
+- **Command+Click** (macOS) / **Ctrl+Click** (other platforms): Open link in a new frame adjacent to the current one
 - **Command-R** (macOS) / **Ctrl+R** (other platforms): Reload the focused frame via the View ▸ Reload Frame action
 - **Command-Shift-R** (macOS) / **Ctrl+Shift+R** (other platforms): Reload the focused frame while bypassing cache via View ▸ Reload Frame (Bypass Cache)
 - **Command-N** (macOS) / **Ctrl+N** (other platforms): Open a new window
@@ -187,6 +188,14 @@ When adding new keyboard shortcuts:
 - Provide visual feedback when shortcuts are triggered (e.g., brief animation or status message)
 - Ensure shortcuts don't interfere with text input fields by using the main window context
 - Document new shortcuts in both `README.md` and this file
+
+### Mouse Modifier Shortcuts
+Mouse modifier shortcuts (e.g., Ctrl/Cmd+Click) are handled at the page level:
+- **MyWebEnginePage::createWindow()**: Intercepts requests to open links in new windows/tabs. When `WebBrowserBackgroundTab` type is requested (triggered by Ctrl/Cmd+click), the method creates a temporary page and connects to its `navigationRequested` signal to capture the URL.
+- The captured URL is emitted via the `openInNewFrameRequested` signal, which is relayed through SplitFrameWidget to SplitWindow.
+- SplitWindow handles the signal by creating a new frame adjacent to the current one and loading the URL there.
+- **MyWebEngineView::createWindow()**: Returns `nullptr` for background tabs to delegate handling to the page, and returns `this` for popup windows to load them in the same view.
+- This pattern preserves the current profile/incognito state and maintains consistency with other frame creation operations.
 
 ## Frame Scale Controls
 - Each frame header exposes `A-`, `A+`, and `1x` buttons that zoom only the embedded `QWebEngineView`. The header chrome intentionally stays a constant size so controls remain predictable; under the hood the buttons call `SplitFrameWidget::setScaleFactor`, which forwards the value to `QWebEngineView::setZoomFactor`.

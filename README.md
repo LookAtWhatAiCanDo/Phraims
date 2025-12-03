@@ -62,6 +62,7 @@ The workflow can also be triggered manually via the "Run workflow" button for bu
 #### Frame Management
 - **New Frame**: Click the `+` button on any frame or press `⌘T` (Command-T on macOS) or `Ctrl+T` (other platforms) to add a new frame after the currently focused frame.  
   When adding a new frame the address bar is automatically focused so you can start typing immediately.
+- **Open Link in New Frame**: Hold `⌘` (Command on macOS) or `Ctrl` (other platforms) and click a link to open it in a new frame adjacent to the current one. Alternatively, right-click a link and select "Open Link in New Frame" from the context menu.
 - **Remove Frame**: Click the `-` button on any frame to remove it (confirmation required)
 - **Reorder Frames**: Use the `↑` and `↓` buttons to move frames up or down
 - **Double-click any splitter handle** to instantly resize the two adjacent panes to equal sizes (50/50 split).
