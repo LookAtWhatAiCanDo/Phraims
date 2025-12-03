@@ -1,4 +1,5 @@
-#ifdef Q_OS_MACOS
+//#ifdef Q_OS_MACOS
+#if defined(Q_OS_MACOS) || defined(__APPLE__)
 
 #include "SparkleUpdater.h"
 #include <QDebug>

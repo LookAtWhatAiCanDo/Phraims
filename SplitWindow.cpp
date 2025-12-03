@@ -1406,10 +1406,12 @@ void SplitWindow::showAboutDialog() {
     "<p>A web browser that divides each window into multiple resizable web page frames.</p>"
     "<p>Built with Qt %3 and QtWebEngine (Chromium)</p>"
     "<p><a href='%4'>%4</a></p>"
-  ).arg(QCoreApplication::applicationName())
-   .arg(QString::fromUtf8(PHRAIMS_VERSION))
-   .arg(QString::fromUtf8(qVersion()))
-   .arg(QString::fromUtf8(PHRAIMS_HOMEPAGE_URL));
+  ).arg(
+    QCoreApplication::applicationName(),
+    QString::fromUtf8(PHRAIMS_VERSION),
+    QString::fromUtf8(qVersion()),
+    QString::fromUtf8(PHRAIMS_HOMEPAGE_URL)
+  );
   
   textBrowser->setHtml(aboutText);
   

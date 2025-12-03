@@ -177,12 +177,11 @@ target_link_libraries(Phraims
 
 # macOS: Link Sparkle framework if available
 if(APPLE)
+
   # Try to find Sparkle framework in standard macOS locations
   find_library(SPARKLE_FRAMEWORK Sparkle
     PATHS
-      /Library/Frameworks
-      ~/Library/Frameworks
-      ${CMAKE_SOURCE_DIR}/Frameworks
+      ${CMAKE_BINARY_DIR}/Frameworks
   )
   
   if(SPARKLE_FRAMEWORK)
@@ -190,15 +189,20 @@ if(APPLE)
     target_link_libraries(Phraims PRIVATE ${SPARKLE_FRAMEWORK})
     
     # Copy Sparkle.framework into the app bundle
+    # Use `ditto` to preserve symlinks
     add_custom_command(TARGET Phraims POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${SPARKLE_FRAMEWORK}
-        $<TARGET_BUNDLE_DIR:Phraims>/Contents/Frameworks/Sparkle.framework
-      COMMENT "Copying Sparkle.framework into app bundle"
+      COMMAND /bin/mkdir -p
+        "$<TARGET_BUNDLE_DIR:Phraims>/Contents/Frameworks"
+      COMMAND /usr/bin/ditto
+        "${SPARKLE_FRAMEWORK}"
+        "$<TARGET_BUNDLE_DIR:Phraims>/Contents/Frameworks/Sparkle.framework"
+      COMMENT "Copying Sparkle.framework into app bundle with symlinks"
+      VERBATIM
     )
   else()
     message(WARNING "Sparkle framework not found - macOS auto-updates will use manual download fallback")
   endif()
+
 endif()
 
 # Windows: Link WinSparkle library if available
