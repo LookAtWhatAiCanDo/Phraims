@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QWebEnginePage>
-#include <QWebEngineNewWindowRequest>
+#include <QWebEngineNavigationRequest>
 #include <QDebug>
 
 class MyWebEnginePage : public QWebEnginePage {
@@ -34,17 +34,28 @@ protected:
         // This is what we want to intercept to open in a new frame
         if (type == QWebEnginePage::WebBrowserBackgroundTab) {
             qDebug() << "MyWebEnginePage::createWindow: background tab requested (Ctrl/Cmd+click)";
-            // The URL will be set via acceptNavigationRequest on the returned page,
-            // but we need to capture it. Create a temporary page to receive the URL.
-            auto *tempPage = new QWebEnginePage(profile(), nullptr);
-            connect(tempPage, &QWebEnginePage::urlChanged, this, [this, tempPage](const QUrl &url) {
-                qDebug() << "MyWebEnginePage: captured URL for new frame:" << url;
-                if (url.isValid() && !url.isEmpty()) {
-                    emit openInNewFrameRequested(url);
-                }
-                // Clean up the temporary page
-                tempPage->deleteLater();
-            });
+            // Create a temporary page to capture the navigation request.
+            // We can't just emit a signal here because the URL isn't known yet;
+            // it will be delivered via navigation on the returned page.
+            auto *tempPage = new MyWebEnginePage(profile(), nullptr);
+            
+            // Connect to acceptNavigationRequest on the temp page to intercept the URL
+            // We use a unique connection that disconnects after first use
+            QMetaObject::Connection *conn = new QMetaObject::Connection();
+            *conn = connect(tempPage, &QWebEnginePage::navigationRequested, this,
+                [this, tempPage, conn](QWebEngineNavigationRequest &request) {
+                    qDebug() << "MyWebEnginePage: captured navigation request for new frame:" << request.url();
+                    if (request.url().isValid() && !request.url().isEmpty()) {
+                        emit openInNewFrameRequested(request.url());
+                    }
+                    // Reject the navigation since we're opening in a new frame instead
+                    request.reject();
+                    // Clean up the temporary page and connection
+                    QObject::disconnect(*conn);
+                    delete conn;
+                    tempPage->deleteLater();
+                });
+            
             return tempPage;
         }
         
