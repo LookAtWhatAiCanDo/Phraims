@@ -32,13 +32,35 @@ X86_64_DMG="build/macos-x86_64/Phraims.dmg"
 ARM64_LENGTH=""
 X86_64_LENGTH=""
 
+# Helper function to get file size portably
+get_file_size() {
+  local file="$1"
+  if [[ ! -f "$file" ]]; then
+    echo ""
+    return
+  fi
+  
+  # Try BSD stat first (macOS)
+  if stat -f%z "$file" 2>/dev/null; then
+    return
+  fi
+  
+  # Try GNU stat (Linux)
+  if stat -c%s "$file" 2>/dev/null; then
+    return
+  fi
+  
+  # Fallback to wc -c for maximum portability
+  wc -c < "$file" 2>/dev/null || echo ""
+}
+
 if [[ -f "$ARM64_DMG" ]]; then
-  ARM64_LENGTH=$(stat -f%z "$ARM64_DMG" 2>/dev/null || stat -c%s "$ARM64_DMG" 2>/dev/null || echo "")
+  ARM64_LENGTH=$(get_file_size "$ARM64_DMG")
   debug "ARM64 DMG size: $ARM64_LENGTH bytes"
 fi
 
 if [[ -f "$X86_64_DMG" ]]; then
-  X86_64_LENGTH=$(stat -f%z "$X86_64_DMG" 2>/dev/null || stat -c%s "$X86_64_DMG" 2>/dev/null || echo "")
+  X86_64_LENGTH=$(get_file_size "$X86_64_DMG")
   debug "x86_64 DMG size: $X86_64_LENGTH bytes"
 fi
 
@@ -60,7 +82,6 @@ cat > appcast.xml <<EOF
         $RELEASE_NOTES
       ]]></description>
       <pubDate>$(date -R)</pubDate>
-      <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
       <enclosure
         url="https://github.com/LookAtWhatAiCanDo/Phraims/releases/download/$TAG_NAME/Phraims-$TAG_NAME-macOS-arm64.dmg"
         sparkle:version="$VERSION"
@@ -68,8 +89,8 @@ cat > appcast.xml <<EOF
         ${ARM64_LENGTH:+length=\"$ARM64_LENGTH\"}
         type="application/octet-stream"
         sparkle:edSignature="<!-- Ed25519 signature will be added by signing process -->"
+        sparkle:minimumSystemVersion="11.0"
       />
-      <sparkle:minimumSystemVersion>10.15</sparkle:minimumSystemVersion>
       <enclosure
         url="https://github.com/LookAtWhatAiCanDo/Phraims/releases/download/$TAG_NAME/Phraims-$TAG_NAME-macOS-x86_64.dmg"
         sparkle:version="$VERSION"
@@ -77,6 +98,7 @@ cat > appcast.xml <<EOF
         ${X86_64_LENGTH:+length=\"$X86_64_LENGTH\"}
         type="application/octet-stream"
         sparkle:edSignature="<!-- Ed25519 signature will be added by signing process -->"
+        sparkle:minimumSystemVersion="10.15"
       />
     </item>
   </channel>

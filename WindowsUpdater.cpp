@@ -7,6 +7,7 @@
 #include <QDir>
 #include <QStandardPaths>
 #include <QProcess>
+#include <QDateTime>
 #include <QDebug>
 #include <windows.h>
 #include <shellapi.h>
@@ -118,7 +119,11 @@ bool WindowsUpdater::launchInstaller(const QString &installerPath) {
   sei.fMask = SEE_MASK_DEFAULT;
   sei.lpVerb = L"runas";  // Request elevation
   sei.lpFile = reinterpret_cast<LPCWSTR>(nativePath.utf16());
-  sei.lpParameters = L"/SILENT"; // Run installer silently
+  // Note: Assumes NSIS-based installer. Adjust flag for other installer types:
+  // - NSIS: /S
+  // - MSI: /quiet or /qn
+  // - InnoSetup: /VERYSILENT
+  sei.lpParameters = L"/S"; // Run installer silently (NSIS silent flag)
   sei.nShow = SW_SHOWNORMAL;
   
   const BOOL result = ShellExecuteExW(&sei);

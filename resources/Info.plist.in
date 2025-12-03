@@ -26,7 +26,7 @@
   <string>NSApplication</string>
   <!-- Sparkle update framework (optional) -->
   <key>SUFeedURL</key>
-  <string>https://github.com/LookAtWhatAiCanDo/Phraims/releases.atom</string>
+  <string>https://github.com/LookAtWhatAiCanDo/Phraims/releases/latest/download/appcast.xml</string>
   <key>SUEnableAutomaticChecks</key>
   <false/>
   <key>SUScheduledCheckInterval</key>
