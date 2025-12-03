@@ -40,7 +40,8 @@ protected:
             auto *tempPage = new MyWebEnginePage(profile(), nullptr);
             
             // Connect to navigationRequested on the temp page to intercept the URL.
-            // The connection will be automatically destroyed when tempPage is deleted.
+            // Qt::UniqueConnection ensures this lambda is only invoked once, and
+            // the connection is automatically destroyed when tempPage is deleted.
             connect(tempPage, &QWebEnginePage::navigationRequested, this,
                 [this, tempPage](QWebEngineNavigationRequest &request) {
                     qDebug() << "MyWebEnginePage: captured navigation request for new frame:" << request.url();
@@ -51,7 +52,7 @@ protected:
                     request.reject();
                     // Clean up the temporary page (connection auto-disconnects on deletion)
                     tempPage->deleteLater();
-                });
+                }, Qt::UniqueConnection);
             
             return tempPage;
         }
