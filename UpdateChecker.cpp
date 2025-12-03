@@ -96,6 +96,7 @@ QString UpdateChecker::getDownloadUrlForPlatform(const QJsonArray &assets) {
   // macOS: Look for .dmg file matching current architecture
   const QString arch = QSysInfo::currentCpuArchitecture();
   // On Apple Silicon, QSysInfo returns "arm64"
+  // Also check "aarch64" for compatibility with older Qt versions
   if (arch == "arm64" || arch == "aarch64") {
     platformPattern = "macOS-arm64.dmg";
   } else {

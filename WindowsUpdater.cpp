@@ -12,6 +12,15 @@
 #include <windows.h>
 #include <shellapi.h>
 
+// Installer silent flag - can be overridden at compile time
+// Common values:
+//   NSIS: /S
+//   MSI: /quiet or /qn
+//   InnoSetup: /VERYSILENT
+#ifndef PHRAIMS_INSTALLER_SILENT_FLAG
+  #define PHRAIMS_INSTALLER_SILENT_FLAG L"/S"
+#endif
+
 WindowsUpdater::WindowsUpdater(QObject *parent)
   : QObject(parent)
   , networkManager_(new QNetworkAccessManager(this))
@@ -119,11 +128,7 @@ bool WindowsUpdater::launchInstaller(const QString &installerPath) {
   sei.fMask = SEE_MASK_DEFAULT;
   sei.lpVerb = L"runas";  // Request elevation
   sei.lpFile = reinterpret_cast<LPCWSTR>(nativePath.utf16());
-  // Note: Assumes NSIS-based installer. Adjust flag for other installer types:
-  // - NSIS: /S
-  // - MSI: /quiet or /qn
-  // - InnoSetup: /VERYSILENT
-  sei.lpParameters = L"/S"; // Run installer silently (NSIS silent flag)
+  sei.lpParameters = PHRAIMS_INSTALLER_SILENT_FLAG; // Silent install flag
   sei.nShow = SW_SHOWNORMAL;
   
   const BOOL result = ShellExecuteExW(&sei);

@@ -85,8 +85,8 @@ cat > appcast.xml <<EOF
       <enclosure
         url="https://github.com/LookAtWhatAiCanDo/Phraims/releases/download/$TAG_NAME/Phraims-$TAG_NAME-macOS-arm64.dmg"
         sparkle:version="$VERSION"
-        sparkle:shortVersionString="$VERSION"
-        ${ARM64_LENGTH:+length=\"$ARM64_LENGTH\"}
+        sparkle:shortVersionString="$VERSION"$(if [[ -n "$ARM64_LENGTH" ]]; then echo "
+        length=\"$ARM64_LENGTH\""; fi)
         type="application/octet-stream"
         sparkle:edSignature="<!-- Ed25519 signature will be added by signing process -->"
         sparkle:minimumSystemVersion="11.0"
@@ -94,8 +94,8 @@ cat > appcast.xml <<EOF
       <enclosure
         url="https://github.com/LookAtWhatAiCanDo/Phraims/releases/download/$TAG_NAME/Phraims-$TAG_NAME-macOS-x86_64.dmg"
         sparkle:version="$VERSION"
-        sparkle:shortVersionString="$VERSION"
-        ${X86_64_LENGTH:+length=\"$X86_64_LENGTH\"}
+        sparkle:shortVersionString="$VERSION"$(if [[ -n "$X86_64_LENGTH" ]]; then echo "
+        length=\"$X86_64_LENGTH\""; fi)
         type="application/octet-stream"
         sparkle:edSignature="<!-- Ed25519 signature will be added by signing process -->"
         sparkle:minimumSystemVersion="10.15"
