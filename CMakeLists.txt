@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(Phraims VERSION 0.55 LANGUAGES CXX)
+# Enable Objective-C++ for macOS Sparkle integration
+if(APPLE)
+  project(Phraims VERSION 0.55 LANGUAGES CXX OBJCXX)
+else()
+  project(Phraims VERSION 0.55 LANGUAGES CXX)
+endif()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -70,6 +75,11 @@ if(APPLE)
     resources/resources.qrc
     ${app_icon_macos}
   )
+  # Mark SparkleUpdater.mm as Objective-C++ source
+  set_source_files_properties(SparkleUpdater.mm PROPERTIES
+    COMPILE_FLAGS "-x objective-c++"
+  )
+  
   set_target_properties(Phraims PROPERTIES
     MACOSX_BUNDLE TRUE
     MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
