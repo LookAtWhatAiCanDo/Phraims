@@ -39,20 +39,17 @@ protected:
             // it will be delivered via navigation on the returned page.
             auto *tempPage = new MyWebEnginePage(profile(), nullptr);
             
-            // Connect to acceptNavigationRequest on the temp page to intercept the URL
-            // We use a unique connection that disconnects after first use
-            QMetaObject::Connection *conn = new QMetaObject::Connection();
-            *conn = connect(tempPage, &QWebEnginePage::navigationRequested, this,
-                [this, tempPage, conn](QWebEngineNavigationRequest &request) {
+            // Connect to navigationRequested on the temp page to intercept the URL.
+            // The connection will be automatically destroyed when tempPage is deleted.
+            connect(tempPage, &QWebEnginePage::navigationRequested, this,
+                [this, tempPage](QWebEngineNavigationRequest &request) {
                     qDebug() << "MyWebEnginePage: captured navigation request for new frame:" << request.url();
                     if (request.url().isValid() && !request.url().isEmpty()) {
                         emit openInNewFrameRequested(request.url());
                     }
                     // Reject the navigation since we're opening in a new frame instead
                     request.reject();
-                    // Clean up the temporary page and connection
-                    QObject::disconnect(*conn);
-                    delete conn;
+                    // Clean up the temporary page (connection auto-disconnects on deletion)
                     tempPage->deleteLater();
                 });
             
