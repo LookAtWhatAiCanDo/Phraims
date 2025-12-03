@@ -246,11 +246,16 @@ Phraims includes built-in update checking to help you stay current with the late
   - Install manually by dragging to Applications folder
 
 **Windows**
-- Downloads the installer automatically
-- Shows progress bar during download
-- Launches installer with elevated privileges (you'll see a UAC prompt)
-- Phraims exits automatically to allow the installer to update files
-- Installer runs silently and relaunches Phraims when complete
+- Integrated with WinSparkle library for seamless updates
+- If WinSparkle is available:
+  - Downloads and verifies updates automatically (DSA/EdDSA signatures)
+  - Shows native update dialog with release notes
+  - Installs update with proper elevation and relaunches
+  - Automatic rollback if update fails
+  - Same appcast feed as macOS Sparkle
+- If WinSparkle not available (development builds):
+  - Opens your browser to download the latest installer
+  - Install manually with elevated privileges
 
 **Linux**
 - Opens your browser to the GitHub releases page

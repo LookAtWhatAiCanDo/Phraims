@@ -133,8 +133,8 @@ elseif(WIN32)
     UpdateChecker.cpp
     UpdateDialog.h
     UpdateDialog.cpp
-    WindowsUpdater.h
-    WindowsUpdater.cpp
+    WinSparkleUpdater.h
+    WinSparkleUpdater.cpp
     resources/resources.qrc
     "${CMAKE_CURRENT_BINARY_DIR}/phraims.rc"
   )
@@ -198,6 +198,47 @@ if(APPLE)
     )
   else()
     message(WARNING "Sparkle framework not found - macOS auto-updates will use manual download fallback")
+  endif()
+endif()
+
+# Windows: Link WinSparkle library if available
+if(WIN32)
+  # Try to find WinSparkle library
+  find_library(WINSPARKLE_LIBRARY WinSparkle
+    PATHS
+      ${CMAKE_SOURCE_DIR}/WinSparkle
+      ${CMAKE_SOURCE_DIR}/lib
+      "C:/Program Files/WinSparkle"
+      "C:/Program Files (x86)/WinSparkle"
+  )
+  
+  find_path(WINSPARKLE_INCLUDE_DIR winsparkle.h
+    PATHS
+      ${CMAKE_SOURCE_DIR}/WinSparkle/include
+      ${CMAKE_SOURCE_DIR}/include
+      "C:/Program Files/WinSparkle/include"
+      "C:/Program Files (x86)/WinSparkle/include"
+  )
+  
+  if(WINSPARKLE_LIBRARY AND WINSPARKLE_INCLUDE_DIR)
+    message(STATUS "Found WinSparkle library: ${WINSPARKLE_LIBRARY}")
+    message(STATUS "Found WinSparkle include dir: ${WINSPARKLE_INCLUDE_DIR}")
+    target_include_directories(Phraims PRIVATE ${WINSPARKLE_INCLUDE_DIR})
+    target_link_libraries(Phraims PRIVATE ${WINSPARKLE_LIBRARY})
+    
+    # Copy WinSparkle.dll next to the executable
+    get_filename_component(WINSPARKLE_DIR ${WINSPARKLE_LIBRARY} DIRECTORY)
+    find_file(WINSPARKLE_DLL WinSparkle.dll PATHS ${WINSPARKLE_DIR} ${WINSPARKLE_DIR}/../bin NO_DEFAULT_PATH)
+    if(WINSPARKLE_DLL)
+      add_custom_command(TARGET Phraims POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          ${WINSPARKLE_DLL}
+          $<TARGET_FILE_DIR:Phraims>
+        COMMENT "Copying WinSparkle.dll to output directory"
+      )
+    endif()
+  else()
+    message(WARNING "WinSparkle library not found - Windows auto-updates will use manual download fallback")
   endif()
 endif()
 

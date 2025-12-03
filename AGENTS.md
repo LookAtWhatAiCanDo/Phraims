@@ -420,18 +420,20 @@ Phraims implements a cross-platform auto-update mechanism to keep users on the l
   - Platform-specific update buttons and progress indicators
   - Handles user choices: update now, view release notes, or remind later
 
-- **WindowsUpdater** (`WindowsUpdater.h/.cpp`): Windows-specific update implementation
-  - Downloads installer from GitHub releases
-  - Shows progress bar during download
-  - Launches installer with elevated privileges (UAC prompt)
-  - Exits application to allow installer to replace executable
-
 - **SparkleUpdater** (`SparkleUpdater.h/.mm`): macOS Sparkle framework integration
   - Qt-friendly wrapper around Sparkle's SPUStandardUpdaterController
   - Conditionally compiled only on macOS (`#ifdef Q_OS_MACOS`)
   - Gracefully degrades to manual download if Sparkle framework not present
   - Handles update checking, downloading, verification, and installation
   - Uses Objective-C++ (.mm) for Cocoa/Foundation framework interop
+
+- **WinSparkleUpdater** (`WinSparkleUpdater.h/.cpp`): Windows WinSparkle library integration
+  - Qt-friendly wrapper around WinSparkle C API
+  - Conditionally compiled only on Windows (`#ifdef Q_OS_WIN`)
+  - Gracefully degrades to manual download if WinSparkle library not present
+  - Handles update checking, downloading, signature verification, and installation
+  - Same appcast feed format as macOS Sparkle (unified feed approach)
+  - Built-in DSA/EdDSA signature verification and rollback support
 
 ### Platform-Specific Behavior
 
@@ -451,13 +453,17 @@ Phraims implements a cross-platform auto-update mechanism to keep users on the l
     - `SUPublicEDKey`: Placeholder for Ed25519 public key
 
 #### Windows
-- **Implemented**: Full bespoke updater
-  - Downloads installer executable from GitHub releases
-  - Shows progress bar with byte counts
-  - Launches installer with `/SILENT` flag for unattended install
-  - Uses `ShellExecuteExW` with `runas` verb for UAC elevation
-  - Application exits after launching installer
-- **Future**: Code signing for installer verification
+- **Implemented**: WinSparkle library integration with fallback to manual download
+  - Uses WinSparkle (Windows port of Sparkle framework)
+  - Reads same appcast feed as macOS (appcast.xml)
+  - Built-in DSA/EdDSA signature verification
+  - Automatic update download, installation, and rollback
+  - Native Windows update UI consistent with Sparkle
+  - If WinSparkle library not found at build time:
+    - Compile warning shown during build
+    - Falls back to opening browser for manual installer download
+  - Shares appcast.xml with macOS (reduces CI complexity)
+  - Supports delta updates and automatic rollback on failure
 
 #### Linux
 - **Current**: Opens browser to release page for manual download

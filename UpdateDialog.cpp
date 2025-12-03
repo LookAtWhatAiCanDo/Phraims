@@ -12,7 +12,7 @@
 #include <QMessageBox>
 
 #ifdef Q_OS_WIN
-#include "WindowsUpdater.h"
+#include "WinSparkleUpdater.h"
 #endif
 
 #ifdef Q_OS_MACOS
@@ -84,9 +84,9 @@ void UpdateDialog::setupUi() {
   // Platform-specific update button
   updateButton_ = new QPushButton(this);
 #ifdef Q_OS_MACOS
-  updateButton_->setText(tr("Download Update"));
+  updateButton_->setText(tr("Check for Update"));
 #elif defined(Q_OS_WIN)
-  updateButton_->setText(tr("Download and Install"));
+  updateButton_->setText(tr("Check for Update"));
 #else
   updateButton_->setText(tr("Download"));
 #endif
@@ -105,7 +105,11 @@ void UpdateDialog::onUpdateButtonClicked() {
     accept();
   }
 #elif defined(Q_OS_WIN)
-  downloadAndInstallWindows();
+  // On Windows, try WinSparkle first, then fallback to manual download
+  if (!triggerWinSparkleUpdate()) {
+    openUrl(updateInfo_.downloadUrl.isEmpty() ? updateInfo_.releaseUrl : updateInfo_.downloadUrl);
+    accept();
+  }
 #else
   // Linux: Open release page for manual download
   openUrl(updateInfo_.releaseUrl);
@@ -149,54 +153,33 @@ bool UpdateDialog::triggerSparkleUpdate() {
 #endif
 
 #ifdef Q_OS_WIN
-void UpdateDialog::downloadAndInstallWindows() {
-  if (updateInfo_.downloadUrl.isEmpty()) {
-    // No direct download URL, open release page instead
-    openUrl(updateInfo_.releaseUrl);
+bool UpdateDialog::triggerWinSparkleUpdate() {
+  // Check if WinSparkle is available
+  if (!WinSparkleUpdater::isAvailable()) {
+    qDebug() << "WinSparkle library not available, falling back to manual download";
+    return false;
+  }
+  
+  // Create WinSparkle updater if not already created
+  if (!winSparkleUpdater_) {
+    winSparkleUpdater_ = new WinSparkleUpdater(this);
+    
+    // Initialize with appcast URL (same feed as macOS Sparkle)
+    const QString appcastUrl = QStringLiteral("https://github.com/LookAtWhatAiCanDo/Phraims/releases/latest/download/appcast.xml");
+    if (!winSparkleUpdater_->initialize(appcastUrl)) {
+      qWarning() << "Failed to initialize WinSparkle";
+      return false;
+    }
+  }
+  
+  // Trigger update check
+  if (winSparkleUpdater_->checkForUpdates()) {
+    // WinSparkle will handle the rest - close our dialog
     accept();
-    return;
+    return true;
   }
   
-  // Create and configure Windows updater
-  if (!windowsUpdater_) {
-    windowsUpdater_ = new WindowsUpdater(this);
-    
-    // Connect progress signals
-    connect(windowsUpdater_, &WindowsUpdater::downloadProgress, this,
-      [this](qint64 bytesReceived, qint64 bytesTotal) {
-        if (bytesTotal > 0) {
-          progressBar_->setMaximum(static_cast<int>(bytesTotal));
-          progressBar_->setValue(static_cast<int>(bytesReceived));
-          progressBar_->setVisible(true);
-        }
-      });
-    
-    // Connect completion signals
-    connect(windowsUpdater_, &WindowsUpdater::downloadCompleted, this,
-      [this](const QString &installerPath) {
-        Q_UNUSED(installerPath);
-        progressBar_->setVisible(false);
-      });
-    
-    connect(windowsUpdater_, &WindowsUpdater::installerLaunched, this,
-      [this]() {
-        QMessageBox::information(this, tr("Update Starting"),
-          tr("The installer has been launched. Phraims will now exit to complete the update."));
-        QApplication::quit();
-      });
-    
-    connect(windowsUpdater_, &WindowsUpdater::downloadFailed, this,
-      [this](const QString &errorMessage) {
-        progressBar_->setVisible(false);
-        QMessageBox::warning(this, tr("Update Failed"), errorMessage);
-        updateButton_->setEnabled(true);
-      });
-  }
-  
-  // Disable the update button and start download
-  updateButton_->setEnabled(false);
-  progressBar_->setValue(0);
-  progressBar_->setVisible(true);
-  windowsUpdater_->downloadUpdate(updateInfo_.downloadUrl);
+  // If WinSparkle check failed, fallback to manual download
+  return false;
 }
 #endif

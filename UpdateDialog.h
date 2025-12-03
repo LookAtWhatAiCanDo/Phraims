@@ -9,7 +9,7 @@ class QPushButton;
 class QProgressBar;
 
 #ifdef Q_OS_WIN
-class WindowsUpdater;
+class WinSparkleUpdater;
 #endif
 
 #ifdef Q_OS_MACOS
@@ -22,7 +22,7 @@ class SparkleUpdater;
  * Shows release notes, version information, and provides platform-specific
  * update actions:
  * - macOS: "Update" button triggers Sparkle update flow (if available)
- * - Windows: "Download and Install" button downloads and stages update
+ * - Windows: "Update" button triggers WinSparkle update flow (if available)
  * - Linux: "Download" button opens browser to release page
  */
 class UpdateDialog : public QDialog {
@@ -66,12 +66,10 @@ private:
 
 #ifdef Q_OS_WIN
   /**
-   * @brief Downloads and installs the Windows update.
-   *
-   * Downloads the installer, verifies it (if signature present),
-   * and launches it with elevated privileges.
+   * @brief Triggers WinSparkle update check (if available).
+   * @return true if WinSparkle handled the update, false otherwise
    */
-  void downloadAndInstallWindows();
+  bool triggerWinSparkleUpdate();
 #endif
 
 #ifdef Q_OS_MACOS
@@ -94,7 +92,7 @@ private:
   QProgressBar *progressBar_ = nullptr;
 
 #ifdef Q_OS_WIN
-  WindowsUpdater *windowsUpdater_ = nullptr; ///< Windows updater instance
+  WinSparkleUpdater *winSparkleUpdater_ = nullptr; ///< Windows WinSparkle updater instance
 #endif
 
 #ifdef Q_OS_MACOS
