@@ -9,6 +9,11 @@
 #include <QUrl>
 #include <QApplication>
 #include <QStyle>
+#include <QMessageBox>
+
+#ifdef Q_OS_WIN
+#include "WindowsUpdater.h"
+#endif
 
 UpdateDialog::UpdateDialog(const UpdateChecker::UpdateInfo &info, QWidget *parent)
   : QDialog(parent)
@@ -131,9 +136,46 @@ void UpdateDialog::downloadAndInstallWindows() {
     return;
   }
   
-  // TODO: Implement Windows updater
-  // For now, just open the download URL
-  openUrl(updateInfo_.downloadUrl);
-  accept();
+  // Create and configure Windows updater
+  if (!windowsUpdater_) {
+    windowsUpdater_ = new WindowsUpdater(this);
+    
+    // Connect progress signals
+    connect(windowsUpdater_, &WindowsUpdater::downloadProgress, this,
+      [this](qint64 bytesReceived, qint64 bytesTotal) {
+        if (bytesTotal > 0) {
+          progressBar_->setMaximum(static_cast<int>(bytesTotal));
+          progressBar_->setValue(static_cast<int>(bytesReceived));
+          progressBar_->setVisible(true);
+        }
+      });
+    
+    // Connect completion signals
+    connect(windowsUpdater_, &WindowsUpdater::downloadCompleted, this,
+      [this](const QString &installerPath) {
+        Q_UNUSED(installerPath);
+        progressBar_->setVisible(false);
+      });
+    
+    connect(windowsUpdater_, &WindowsUpdater::installerLaunched, this,
+      [this]() {
+        QMessageBox::information(this, tr("Update Starting"),
+          tr("The installer has been launched. Phraims will now exit to complete the update."));
+        QApplication::quit();
+      });
+    
+    connect(windowsUpdater_, &WindowsUpdater::downloadFailed, this,
+      [this](const QString &errorMessage) {
+        progressBar_->setVisible(false);
+        QMessageBox::warning(this, tr("Update Failed"), errorMessage);
+        updateButton_->setEnabled(true);
+      });
+  }
+  
+  // Disable the update button and start download
+  updateButton_->setEnabled(false);
+  progressBar_->setValue(0);
+  progressBar_->setVisible(true);
+  windowsUpdater_->downloadUpdate(updateInfo_.downloadUrl);
 }
 #endif

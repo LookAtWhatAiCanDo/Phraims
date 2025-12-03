@@ -8,6 +8,10 @@ class QTextBrowser;
 class QPushButton;
 class QProgressBar;
 
+#ifdef Q_OS_WIN
+class WindowsUpdater;
+#endif
+
 /**
  * @brief Dialog for displaying update information and managing updates.
  *
@@ -84,4 +88,8 @@ private:
   QPushButton *viewNotesButton_ = nullptr;
   QPushButton *remindLaterButton_ = nullptr;
   QProgressBar *progressBar_ = nullptr;
+
+#ifdef Q_OS_WIN
+  WindowsUpdater *windowsUpdater_ = nullptr; ///< Windows updater instance
+#endif
 };

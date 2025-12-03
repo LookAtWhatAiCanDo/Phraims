@@ -121,6 +121,8 @@ elseif(WIN32)
     UpdateChecker.cpp
     UpdateDialog.h
     UpdateDialog.cpp
+    WindowsUpdater.h
+    WindowsUpdater.cpp
     resources/resources.qrc
     "${CMAKE_CURRENT_BINARY_DIR}/phraims.rc"
   )
