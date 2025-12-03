@@ -235,9 +235,15 @@ Phraims includes built-in update checking to help you stay current with the late
 #### Update Behavior by Platform
 
 **macOS**
-- Currently opens your browser to download the latest `.dmg`
-- Install manually by dragging to Applications folder
-- Future: Seamless in-app updates via Sparkle framework
+- Integrated with Sparkle framework for seamless updates
+- If Sparkle is available:
+  - Downloads and verifies updates automatically
+  - Shows native update dialog with release notes
+  - Installs update and relaunches without leaving the app
+  - No manual approval needed (quarantine-safe)
+- If Sparkle not available (development builds):
+  - Opens your browser to download the latest `.dmg`
+  - Install manually by dragging to Applications folder
 
 **Windows**
 - Downloads the installer automatically
@@ -318,6 +324,24 @@ cmake .. -DCMAKE_PREFIX_PATH="$(brew --prefix qt6)"
 cmake --build . --config Release
 ./Phraims
 ```
+
+#### Building with Sparkle (macOS Auto-Updates)
+To enable seamless in-app updates on macOS, install the Sparkle framework before building:
+
+```bash
+# Download and install Sparkle 2.x
+# Visit https://sparkle-project.org/ for latest release
+# Extract and copy Sparkle.framework to one of these locations:
+#   - /Library/Frameworks/
+#   - ~/Library/Frameworks/
+#   - or place in project root under Frameworks/
+
+# CMake will automatically detect and link Sparkle if found
+cmake .. -DCMAKE_PREFIX_PATH="$(brew --prefix qt6)"
+cmake --build . --config Release
+```
+
+If Sparkle is not found, CMake will show a warning and build without Sparkle support. The app will still function normally but will use manual download links instead of in-app updates.
 
 #### Application Icons
 The application uses platform-specific icon formats for proper display in taskbars, title bars, and file explorers:
