@@ -9,7 +9,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 6.9 COMPONENTS Widgets WebEngineWidgets REQUIRED)
+find_package(Qt6 6.9 COMPONENTS Widgets WebEngineWidgets Network REQUIRED)
 
 # Generate version.h from version.h.in with current project version
 configure_file(
@@ -61,6 +61,10 @@ if(APPLE)
     SplitFrameWidget.cpp
     SplitWindow.h
     SplitWindow.cpp
+    UpdateChecker.h
+    UpdateChecker.cpp
+    UpdateDialog.h
+    UpdateDialog.cpp
     resources/resources.qrc
     ${app_icon_macos}
   )
@@ -113,6 +117,10 @@ elseif(WIN32)
     SplitFrameWidget.cpp
     SplitWindow.h
     SplitWindow.cpp
+    UpdateChecker.h
+    UpdateChecker.cpp
+    UpdateDialog.h
+    UpdateDialog.cpp
     resources/resources.qrc
     "${CMAKE_CURRENT_BINARY_DIR}/phraims.rc"
   )
@@ -137,6 +145,10 @@ else()
     SplitFrameWidget.cpp
     SplitWindow.h
     SplitWindow.cpp
+    UpdateChecker.h
+    UpdateChecker.cpp
+    UpdateDialog.h
+    UpdateDialog.cpp
     resources/resources.qrc
   )
 
@@ -145,11 +157,8 @@ endif()
 target_link_libraries(Phraims
   PRIVATE
     Qt6::Widgets
-)
-
-target_link_libraries(Phraims
-  PRIVATE
     Qt6::WebEngineWidgets
+    Qt6::Network
 )
 
 # Add build directory to include path so generated version.h can be found

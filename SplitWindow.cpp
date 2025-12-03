@@ -4,6 +4,8 @@
 #include "SplitFrameWidget.h"
 #include "SplitterDoubleClickFilter.h"
 #include "SplitWindow.h"
+#include "UpdateChecker.h"
+#include "UpdateDialog.h"
 #include "Utils.h"
 #include "version.h"
 #include <algorithm>
@@ -233,8 +235,11 @@ SplitWindow::SplitWindow(const QString &windowId, bool isIncognito, QWidget *par
   connect(closeAct, &QAction::triggered, this, &SplitWindow::onCloseShortcut);
   windowMenu_->addSeparator();
 
-  // Help menu: About dialog
+  // Help menu: Check for Updates and About dialog
   auto *helpMenu = menuBar()->addMenu(tr("Help"));
+  QAction *checkUpdatesAction = helpMenu->addAction(tr("Check for Updates..."));
+  connect(checkUpdatesAction, &QAction::triggered, this, &SplitWindow::checkForUpdates);
+  helpMenu->addSeparator();
   QAction *aboutAction = helpMenu->addAction(tr("About Phraims"));
   connect(aboutAction, &QAction::triggered, this, &SplitWindow::showAboutDialog);
 
@@ -1438,6 +1443,51 @@ void SplitWindow::showAboutDialog() {
   }
   
   aboutDialog.exec();
+}
+
+void SplitWindow::checkForUpdates() {
+  auto *checker = new UpdateChecker(this);
+  
+  // Show a progress/checking message
+  QDialog *checkingDialog = new QDialog(this);
+  checkingDialog->setWindowTitle(tr("Checking for Updates"));
+  checkingDialog->setModal(true);
+  auto *layout = new QVBoxLayout(checkingDialog);
+  auto *label = new QLabel(tr("Checking for updates..."), checkingDialog);
+  layout->addWidget(label);
+  checkingDialog->setMinimumWidth(300);
+  checkingDialog->show();
+  
+  // Handle successful update check
+  connect(checker, &UpdateChecker::updateCheckCompleted, this, 
+    [this, checkingDialog](const UpdateChecker::UpdateInfo &info) {
+      checkingDialog->close();
+      checkingDialog->deleteLater();
+      
+      if (info.updateAvailable) {
+        // Show update dialog
+        UpdateDialog *updateDialog = new UpdateDialog(info, this);
+        updateDialog->setAttribute(Qt::WA_DeleteOnClose);
+        updateDialog->show();
+      } else {
+        // Show "up to date" message
+        QMessageBox::information(this, tr("No Updates Available"),
+          tr("You are running the latest version of Phraims (%1).").arg(info.currentVersion));
+      }
+    });
+  
+  // Handle update check failure
+  connect(checker, &UpdateChecker::updateCheckFailed, this,
+    [this, checkingDialog](const QString &errorMessage) {
+      checkingDialog->close();
+      checkingDialog->deleteLater();
+      
+      QMessageBox::warning(this, tr("Update Check Failed"),
+        tr("Could not check for updates:\n%1").arg(errorMessage));
+    });
+  
+  // Start the check
+  checker->checkForUpdates();
 }
 
 void SplitWindow::updateWindowMenu() {
