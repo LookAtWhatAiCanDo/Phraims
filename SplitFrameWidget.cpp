@@ -189,6 +189,9 @@ SplitFrameWidget::SplitFrameWidget(int index, QWidget *parent) : QFrame(parent) 
   connect(webview_, &MyWebEngineView::translateRequested, this, [this](const QUrl &url) {
     emit translateRequested(this, url);
   });
+  connect(webview_, &MyWebEngineView::openLinkInNewFrameRequested, this, [this](const QUrl &url) {
+    emit openLinkInNewFrameRequested(this, url);
+  });
 }
 
 QWebEnginePage *SplitFrameWidget::page() const { return webview_ ? webview_->page() : nullptr; }

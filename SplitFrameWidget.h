@@ -213,6 +213,13 @@ signals:
    * @param translateUrl The Google Translate URL to open
    */
   void translateRequested(SplitFrameWidget *who, const QUrl &translateUrl);
+
+  /**
+   * @brief Requests opening a link in a new frame.
+   * @param who Pointer to this frame widget
+   * @param linkUrl The URL to open in a new frame
+   */
+  void openLinkInNewFrameRequested(SplitFrameWidget *who, const QUrl &linkUrl);
   
   /**
    * @brief Emitted when the frame's scale changes.

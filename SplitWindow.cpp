@@ -442,6 +442,7 @@ void SplitWindow::rebuildSections(int n) {
       connect(frame, &SplitFrameWidget::downClicked, this, &SplitWindow::onDownFromFrame);
       connect(frame, &SplitFrameWidget::devToolsRequested, this, &SplitWindow::onFrameDevToolsRequested);
       connect(frame, &SplitFrameWidget::translateRequested, this, &SplitWindow::onFrameTranslateRequested);
+      connect(frame, &SplitFrameWidget::openLinkInNewFrameRequested, this, &SplitWindow::onFrameOpenLinkInNewFrameRequested);
       connect(frame, &SplitFrameWidget::scaleChanged, this, &SplitWindow::onFrameScaleChanged);
       connect(frame, &SplitFrameWidget::interactionOccurred, this, &SplitWindow::onFrameInteraction);
       connect(frame, &QObject::destroyed, this, [this, frame]() {
@@ -491,6 +492,7 @@ void SplitWindow::rebuildSections(int n) {
         connect(frame, &SplitFrameWidget::downClicked, this, &SplitWindow::onDownFromFrame);
         connect(frame, &SplitFrameWidget::devToolsRequested, this, &SplitWindow::onFrameDevToolsRequested);
         connect(frame, &SplitFrameWidget::translateRequested, this, &SplitWindow::onFrameTranslateRequested);
+        connect(frame, &SplitFrameWidget::openLinkInNewFrameRequested, this, &SplitWindow::onFrameOpenLinkInNewFrameRequested);
         connect(frame, &SplitFrameWidget::scaleChanged, this, &SplitWindow::onFrameScaleChanged);
         connect(frame, &SplitFrameWidget::interactionOccurred, this, &SplitWindow::onFrameInteraction);
         connect(frame, &QObject::destroyed, this, [this, frame]() {
@@ -877,6 +879,7 @@ bool SplitWindow::addSingleFrame(int afterIndex) {
   connect(newFrame, &SplitFrameWidget::downClicked, this, &SplitWindow::onDownFromFrame);
   connect(newFrame, &SplitFrameWidget::devToolsRequested, this, &SplitWindow::onFrameDevToolsRequested);
   connect(newFrame, &SplitFrameWidget::translateRequested, this, &SplitWindow::onFrameTranslateRequested);
+  connect(newFrame, &SplitFrameWidget::openLinkInNewFrameRequested, this, &SplitWindow::onFrameOpenLinkInNewFrameRequested);
   connect(newFrame, &SplitFrameWidget::scaleChanged, this, &SplitWindow::onFrameScaleChanged);
   connect(newFrame, &SplitFrameWidget::interactionOccurred, this, &SplitWindow::onFrameInteraction);
   connect(newFrame, &QObject::destroyed, this, [this, newFrame]() {
@@ -1213,6 +1216,48 @@ void SplitWindow::onFrameTranslateRequested(SplitFrameWidget *who, const QUrl &t
   if (!translateUrl.isValid()) return;
   // Open the translation URL in a new Phraims window
   createAndShowWindow(translateUrl.toString());
+}
+
+void SplitWindow::onFrameOpenLinkInNewFrameRequested(SplitFrameWidget *who, const QUrl &linkUrl) {
+  if (!linkUrl.isValid()) return;
+  
+  // Get the logical index of the requesting frame
+  const QVariant v = who->property("logicalIndex");
+  if (!v.isValid()) return;
+  int pos = v.toInt();
+  const int newFrameIndex = pos + 1;
+  
+  // Try surgical addition first (works for Vertical/Horizontal modes)
+  if (addSingleFrame(pos)) {
+    // addSingleFrame created an empty frame; now set its address
+    if (newFrameIndex >= 0 && newFrameIndex < static_cast<int>(frames_.size())) {
+      frames_[newFrameIndex].address = linkUrl.toString();
+      persistGlobalFrameState();
+      
+      // Find the newly created frame widget and apply the address to it
+      const QString linkAddress = linkUrl.toString();
+      QMetaObject::invokeMethod(this, [this, newFrameIndex, linkAddress]() {
+        if (!central_) return;
+        if (newFrameIndex < 0 || newFrameIndex >= static_cast<int>(frames_.size())) return;
+        const QList<SplitFrameWidget *> frameWidgets = central_->findChildren<SplitFrameWidget *>();
+        for (SplitFrameWidget *frame : frameWidgets) {
+          if (frame->property("logicalIndex").toInt() == newFrameIndex) {
+            frame->setAddress(linkAddress);
+            break;
+          }
+        }
+      }, Qt::QueuedConnection);
+    }
+    return;
+  }
+  
+  // Fall back to rebuildSections for Grid mode
+  FrameState newFrame;
+  newFrame.address = linkUrl.toString();
+  newFrame.scale = 1.0;
+  frames_.insert(frames_.begin() + newFrameIndex, newFrame);
+  persistGlobalFrameState();
+  rebuildSections((int)frames_.size());
 }
 
 void SplitWindow::onFrameInteraction(SplitFrameWidget *who) {

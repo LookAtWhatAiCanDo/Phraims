@@ -297,6 +297,7 @@ Phraims supports Incognito (private) browsing windows that provide ephemeral ses
 ## Web View Context Menu
 - Navigation actions (Back, Forward, Reload) and editing commands (Cut, Copy, Paste, Select All) mirror Qt's built-in `QWebEnginePage` actions.
 - **Copy Link Address** appears when right-clicking a hyperlink and copies the fully encoded target URL to the clipboard for easy sharing.
+- **Open Link in New Frame** appears when right-clicking a hyperlink and creates a new frame adjacent to the current one, loading the link there. Preserves the current window's profile/incognito state.
 - **Translate…** opens Google Translate either with the selected text or the full page URL and spawns a new window.
 - **Inspect…** forwards the request to DevTools, letting the parent window decide how to open the inspector.
 
