@@ -363,12 +363,22 @@ protected:
   /**
    * @brief Overrides window creation to load popups in the current view.
    * @param type The type of window being requested
-   * @return This view instance, causing the popup to load in place
+   * @return This view instance for popups, nullptr otherwise
+   *
+   * Background tabs (Ctrl/Cmd+click) are handled at the page level via
+   * MyWebEnginePage::createWindow. This method only handles popup windows.
    */
   MyWebEngineView *createWindow(QWebEnginePage::WebWindowType type) override {
     qDebug() << "MyWebEngineView::createWindow: type=" << type;
-    // Load popup targets in the same view. Returning 'this' tells the
-    // engine to use the current view for the new window's contents.
+    
+    // Let the page handle background tabs (Ctrl/Cmd+click)
+    if (type == QWebEnginePage::WebBrowserBackgroundTab) {
+      qDebug() << "MyWebEngineView::createWindow: delegating background tab to page";
+      return nullptr;
+    }
+    
+    // For popup windows, load them in the same view
+    qDebug() << "MyWebEngineView::createWindow: loading popup in same view";
     return this;
   }
 

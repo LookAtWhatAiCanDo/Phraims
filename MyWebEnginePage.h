@@ -1,12 +1,58 @@
 #pragma once
 
 #include <QWebEnginePage>
+#include <QWebEngineNewWindowRequest>
+#include <QDebug>
 
 class MyWebEnginePage : public QWebEnginePage {
     Q_OBJECT
 public:
     using QWebEnginePage::QWebEnginePage;
+
+signals:
+    /**
+     * @brief Emitted when a link should open in a new frame (e.g., Ctrl/Cmd+click).
+     * @param url The URL to open in a new frame
+     */
+    void openInNewFrameRequested(const QUrl &url);
+
 protected:
+    /**
+     * @brief Creates a new window for navigation requests.
+     * @param type The type of window being requested
+     * @return A new page instance or nullptr
+     *
+     * This method is called when a link is clicked with modifiers (Ctrl/Cmd+click)
+     * or when JavaScript requests a new window. For background tabs/windows
+     * (typically Ctrl/Cmd+click), we emit a signal to open the link in a new frame.
+     * For popup windows, we return nullptr to allow the default behavior.
+     */
+    QWebEnginePage *createWindow(QWebEnginePage::WebWindowType type) override {
+        qDebug() << "MyWebEnginePage::createWindow: type=" << type;
+        
+        // WebBrowserBackgroundTab is triggered by Ctrl/Cmd+click on links
+        // This is what we want to intercept to open in a new frame
+        if (type == QWebEnginePage::WebBrowserBackgroundTab) {
+            qDebug() << "MyWebEnginePage::createWindow: background tab requested (Ctrl/Cmd+click)";
+            // The URL will be set via acceptNavigationRequest on the returned page,
+            // but we need to capture it. Create a temporary page to receive the URL.
+            auto *tempPage = new QWebEnginePage(profile(), nullptr);
+            connect(tempPage, &QWebEnginePage::urlChanged, this, [this, tempPage](const QUrl &url) {
+                qDebug() << "MyWebEnginePage: captured URL for new frame:" << url;
+                if (url.isValid() && !url.isEmpty()) {
+                    emit openInNewFrameRequested(url);
+                }
+                // Clean up the temporary page
+                tempPage->deleteLater();
+            });
+            return tempPage;
+        }
+        
+        // For popup windows, return nullptr to use default behavior (load in same view)
+        qDebug() << "MyWebEnginePage::createWindow: returning nullptr for type" << type;
+        return nullptr;
+    }
+
     void javaScriptConsoleMessage(JavaScriptConsoleMessageLevel level,
                                   const QString& message,
                                   int lineNumber,

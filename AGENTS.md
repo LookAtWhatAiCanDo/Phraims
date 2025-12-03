@@ -170,6 +170,7 @@ The application implements standard keyboard shortcuts for common operations:
 
 ### Frame Management Shortcuts
 - **Command-T** (macOS) / **Ctrl+T** (other platforms): Add new frame after the currently focused frame
+- **Command+Click** (macOS) / **Ctrl+Click** (other platforms): Open link in a new frame adjacent to the current one
 - **Command-R** (macOS) / **Ctrl+R** (other platforms): Reload the focused frame via the View ▸ Reload Frame action
 - **Command-Shift-R** (macOS) / **Ctrl+Shift+R** (other platforms): Reload the focused frame while bypassing cache via View ▸ Reload Frame (Bypass Cache)
 - **Command-N** (macOS) / **Ctrl+N** (other platforms): Open a new window

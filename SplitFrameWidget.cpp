@@ -1,5 +1,6 @@
 #include "SplitFrameWidget.h"
 #include "MyWebEngineView.h"
+#include "MyWebEnginePage.h"
 #include "EscapeFilter.h"
 #include "DomPatch.h"
 #include <QApplication>
@@ -367,11 +368,17 @@ void SplitFrameWidget::setProfile(QWebEngineProfile *profile) {
   qDebug() << "SplitFrameWidget::setProfile: profile persistentStoragePath=" << profile->persistentStoragePath();
 
   // assign a fresh page associated with the shared profile
-  auto *page = new QWebEnginePage(profile, webview_);
+  auto *page = new MyWebEnginePage(profile, webview_);
   qDebug() << "SplitFrameWidget::setProfile: attaching page" << page;
   webview_->setPage(page);
 
   webview_->setZoomFactor(scaleFactor_);
+
+  // Connect the page's openInNewFrameRequested signal to relay it up
+  QObject::connect(page, &MyWebEnginePage::openInNewFrameRequested, this, [this](const QUrl &url) {
+    qDebug() << "SplitFrameWidget: page requested opening URL in new frame:" << url;
+    emit openLinkInNewFrameRequested(this, url);
+  });
 
   // Ensure DOM patches are applied on every load for this page.
   QObject::connect(page, &QWebEnginePage::loadFinished, page, [page](bool) {
