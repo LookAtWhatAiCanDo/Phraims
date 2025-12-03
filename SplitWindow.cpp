@@ -1460,9 +1460,10 @@ void SplitWindow::checkForUpdates() {
   
   // Handle successful update check
   connect(checker, &UpdateChecker::updateCheckCompleted, this, 
-    [this, checkingDialog](const UpdateChecker::UpdateInfo &info) {
+    [this, checkingDialog, checker](const UpdateChecker::UpdateInfo &info) {
       checkingDialog->close();
       checkingDialog->deleteLater();
+      checker->deleteLater();
       
       if (info.updateAvailable) {
         // Show update dialog
@@ -1478,9 +1479,10 @@ void SplitWindow::checkForUpdates() {
   
   // Handle update check failure
   connect(checker, &UpdateChecker::updateCheckFailed, this,
-    [this, checkingDialog](const QString &errorMessage) {
+    [this, checkingDialog, checker](const QString &errorMessage) {
       checkingDialog->close();
       checkingDialog->deleteLater();
+      checker->deleteLater();
       
       QMessageBox::warning(this, tr("Update Check Failed"),
         tr("Could not check for updates:\n%1").arg(errorMessage));

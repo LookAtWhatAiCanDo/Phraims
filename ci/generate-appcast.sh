@@ -82,20 +82,42 @@ cat > appcast.xml <<EOF
         $RELEASE_NOTES
       ]]></description>
       <pubDate>$(date -R)</pubDate>
+EOF
+
+# Add ARM64 enclosure
+cat >> appcast.xml <<EOF
       <enclosure
         url="https://github.com/LookAtWhatAiCanDo/Phraims/releases/download/$TAG_NAME/Phraims-$TAG_NAME-macOS-arm64.dmg"
         sparkle:version="$VERSION"
-        sparkle:shortVersionString="$VERSION"$(if [[ -n "$ARM64_LENGTH" ]]; then echo "
-        length=\"$ARM64_LENGTH\""; fi)
+        sparkle:shortVersionString="$VERSION"
+EOF
+
+# Add length attribute only if we have the file size
+if [[ -n "$ARM64_LENGTH" ]]; then
+  echo "        length=\"$ARM64_LENGTH\"" >> appcast.xml
+fi
+
+cat >> appcast.xml <<EOF
         type="application/octet-stream"
         sparkle:edSignature="<!-- Ed25519 signature will be added by signing process -->"
         sparkle:minimumSystemVersion="11.0"
       />
+EOF
+
+# Add x86_64 enclosure
+cat >> appcast.xml <<EOF
       <enclosure
         url="https://github.com/LookAtWhatAiCanDo/Phraims/releases/download/$TAG_NAME/Phraims-$TAG_NAME-macOS-x86_64.dmg"
         sparkle:version="$VERSION"
-        sparkle:shortVersionString="$VERSION"$(if [[ -n "$X86_64_LENGTH" ]]; then echo "
-        length=\"$X86_64_LENGTH\""; fi)
+        sparkle:shortVersionString="$VERSION"
+EOF
+
+# Add length attribute only if we have the file size
+if [[ -n "$X86_64_LENGTH" ]]; then
+  echo "        length=\"$X86_64_LENGTH\"" >> appcast.xml
+fi
+
+cat >> appcast.xml <<EOF
         type="application/octet-stream"
         sparkle:edSignature="<!-- Ed25519 signature will be added by signing process -->"
         sparkle:minimumSystemVersion="10.15"

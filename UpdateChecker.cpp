@@ -104,11 +104,13 @@ QString UpdateChecker::getDownloadUrlForPlatform(const QJsonArray &assets) {
   }
 #elif defined(Q_OS_WIN)
   // Windows: Look for .exe installer
-  #ifdef _M_ARM64
+  // Use Qt's cross-compiler architecture detection for better portability
+  const QString winArch = QSysInfo::currentCpuArchitecture();
+  if (winArch == "arm64" || winArch == "aarch64") {
     platformPattern = "Windows-arm64.exe";
-  #else
+  } else {
     platformPattern = "Windows-x64.exe";
-  #endif
+  }
 #elif defined(Q_OS_LINUX)
   // Linux: Look for appropriate package (AppImage, deb, etc.)
   // For now, just return the release page URL

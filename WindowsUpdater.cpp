@@ -35,8 +35,10 @@ void WindowsUpdater::downloadUpdate(const QString &downloadUrl) {
   }
   
   QNetworkRequest request(downloadUrl);
+  // Use SameOriginRedirectPolicy for security - only follow redirects within same origin
+  // This prevents HTTPS to HTTP downgrade attacks during update downloads
   request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, 
-                      QNetworkRequest::NoLessSafeRedirectPolicy);
+                      QNetworkRequest::SameOriginRedirectPolicy);
   
   currentReply_ = networkManager_->get(request);
   
