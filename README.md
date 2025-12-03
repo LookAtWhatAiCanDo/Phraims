@@ -221,6 +221,51 @@ The web view context menu provides quick access to common actions:
   - Opens in a new Phraims window
 - **Inspect…**: Opens DevTools for page inspection and debugging
 
+### Auto-Updates
+Phraims includes built-in update checking to help you stay current with the latest features and fixes.
+
+#### Checking for Updates
+- Access via **Help → Check for Updates...** in the menu bar
+- Phraims will query GitHub for the latest release
+- If an update is available, you'll see:
+  - Version comparison (current vs. latest)
+  - Release notes highlighting what's new
+  - Platform-appropriate update options
+
+#### Update Behavior by Platform
+
+**macOS**
+- Currently opens your browser to download the latest `.dmg`
+- Install manually by dragging to Applications folder
+- Future: Seamless in-app updates via Sparkle framework
+
+**Windows**
+- Downloads the installer automatically
+- Shows progress bar during download
+- Launches installer with elevated privileges (you'll see a UAC prompt)
+- Phraims exits automatically to allow the installer to update files
+- Installer runs silently and relaunches Phraims when complete
+
+**Linux**
+- Opens your browser to the GitHub releases page
+- Download and install manually using your preferred method
+- Respects distribution package management conventions
+
+#### Manual Downloads
+All releases are available at:
+https://github.com/LookAtWhatAiCanDo/Phraims/releases
+
+Choose the appropriate file for your platform:
+- **macOS**: `Phraims-v{version}-macOS-{arch}.dmg`
+- **Windows**: `Phraims-v{version}-Windows-{arch}.exe`
+- **Linux**: See releases page for available packages
+
+#### Release Channels
+Currently only stable releases are published. Beta/nightly channels may be added in the future.
+
+#### Privacy Note
+Update checks connect to GitHub's API to fetch release information. No personal data or usage statistics are transmitted. The request includes only the application name and current version in the User-Agent header.
+
 ## TODOs
 - Improve Menu
   - Make similar to Chrome, VSCode, OBS, etc.

@@ -77,6 +77,17 @@ jobs:
               --prerelease=false
           fi
 
+      - name: Generate version manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          chmod +x ci/generate-version-manifest.sh
+          TAG_NAME="$TAG_NAME" ci/generate-version-manifest.sh
+          
+          # Upload version.json to release
+          gh release upload "$TAG_NAME" version.json --clobber
+
   build-macos:
     name: Build macOS (${{ matrix.arch }})
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head_repo.fork == false) && (inputs.os == '' || inputs.os == 'macos') }}

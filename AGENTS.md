@@ -404,6 +404,95 @@ ReturnType methodName(ParamType name);
 
 This documentation style enables IDE tooltips, generates API documentation with Doxygen, and helps maintainers understand code intent.
 
+## Auto-Update System
+Phraims implements a cross-platform auto-update mechanism to keep users on the latest version:
+
+### Architecture
+- **UpdateChecker** (`UpdateChecker.h/.cpp`): Core update checking logic that queries GitHub API for the latest release
+  - Fetches release information from `https://api.github.com/repos/LookAtWhatAiCanDo/Phraims/releases/latest`
+  - Parses release metadata including version, download URLs, and release notes
+  - Compares semantic versions to determine if update is available
+  - Platform-aware download URL selection based on architecture
+
+- **UpdateDialog** (`UpdateDialog.h/.cpp`): UI for displaying update information and triggering platform-specific update flows
+  - Shows current vs. latest version comparison
+  - Displays release notes from GitHub in Markdown format
+  - Platform-specific update buttons and progress indicators
+  - Handles user choices: update now, view release notes, or remind later
+
+- **WindowsUpdater** (`WindowsUpdater.h/.cpp`): Windows-specific update implementation
+  - Downloads installer from GitHub releases
+  - Shows progress bar during download
+  - Launches installer with elevated privileges (UAC prompt)
+  - Exits application to allow installer to replace executable
+
+### Platform-Specific Behavior
+
+#### macOS
+- **Current**: Opens browser to download URL (manual download)
+- **Future**: Will integrate Sparkle framework for seamless in-app updates
+  - Requires appcast feed generation in CI
+  - Ed25519 signature verification for security
+  - Quarantine-safe updates without manual approval
+
+#### Windows
+- **Implemented**: Full bespoke updater
+  - Downloads installer executable from GitHub releases
+  - Shows progress bar with byte counts
+  - Launches installer with `/SILENT` flag for unattended install
+  - Uses `ShellExecuteExW` with `runas` verb for UAC elevation
+  - Application exits after launching installer
+- **Future**: Code signing for installer verification
+
+#### Linux
+- **Current**: Opens browser to release page for manual download
+- **Rationale**: Linux users typically prefer package manager updates
+- No auto-install to respect distribution package management conventions
+
+### Update Check Flow
+1. User selects `Help → Check for Updates...`
+2. `SplitWindow::checkForUpdates()` creates UpdateChecker instance
+3. Progress dialog shows "Checking for updates..."
+4. UpdateChecker queries GitHub API asynchronously
+5. On success:
+   - If update available: Show UpdateDialog with release notes
+   - If up to date: Show info message
+6. On failure: Show error message with details
+
+### Version Comparison
+- Uses semantic versioning (MAJOR.MINOR.PATCH)
+- `UpdateChecker::compareVersions()` handles numeric component comparison
+- Strips 'v' prefix from tags (e.g., "v0.56" → "0.56")
+- Returns -1, 0, or 1 for less than, equal, or greater than
+
+### CI Integration
+- Version manifest (`version.json`) generated during tagged builds
+- Contains platform-specific download URLs and metadata
+- Uploaded to GitHub releases alongside binaries
+- Format supports future extensibility (signature hashes, file sizes, etc.)
+
+### Security Considerations
+- **macOS**: Future Sparkle integration will use Ed25519 signatures
+- **Windows**: Future code signing will verify installer authenticity
+- **Linux**: Users rely on distribution package verification
+- GitHub API uses HTTPS for all communications
+- No automatic code execution without user confirmation (except Windows silent install after UAC)
+
+### Future Enhancements
+- Automatic update checks on startup (with user preference toggle)
+- Update check interval configuration (daily, weekly, manual only)
+- Beta/stable channel selection
+- Delta updates for bandwidth efficiency
+- Rollback capability if update fails
+- Background download with notification when ready
+
+### Settings Keys
+No persistent settings yet; all update checks are user-initiated. Future additions:
+- `updateCheckEnabled` (bool): Enable automatic update checks
+- `updateCheckInterval` (int): Days between automatic checks
+- `updateChannel` (string): "stable" or "beta"
+- `lastUpdateCheck` (datetime): Timestamp of last check
+
 ## Testing Guidelines
 Automated tests are not yet wired in; rely on the acceptance scenarios listed in `README.md` until a `tests/` suite is added. Document new manual test cases alongside features, and script them via Qt Test or GTest once coverage becomes practical. When adding tests, place sources under `tests/`, update `CMakeLists.txt` to call `enable_testing()` and `add_test`, and execute with `ctest --test-dir build`. Always verify splitter persistence by resizing panes, quitting, and relaunching.
 
