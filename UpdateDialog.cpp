@@ -15,6 +15,10 @@
 #include "WindowsUpdater.h"
 #endif
 
+#ifdef Q_OS_MACOS
+#include "SparkleUpdater.h"
+#endif
+
 UpdateDialog::UpdateDialog(const UpdateChecker::UpdateInfo &info, QWidget *parent)
   : QDialog(parent)
   , updateInfo_(info)
@@ -121,8 +125,25 @@ void UpdateDialog::openUrl(const QString &url) {
 
 #ifdef Q_OS_MACOS
 bool UpdateDialog::triggerSparkleUpdate() {
-  // TODO: Integrate with Sparkle framework
-  // For now, return false to use manual download
+  // Check if Sparkle is available
+  if (!SparkleUpdater::isAvailable()) {
+    qDebug() << "Sparkle framework not available, falling back to manual download";
+    return false;
+  }
+  
+  // Create Sparkle updater if not already created
+  if (!sparkleUpdater_) {
+    sparkleUpdater_ = new SparkleUpdater(this);
+  }
+  
+  // Trigger update check
+  if (sparkleUpdater_->checkForUpdates()) {
+    // Sparkle will handle the rest - close our dialog
+    accept();
+    return true;
+  }
+  
+  // If Sparkle check failed, fallback to manual download
   return false;
 }
 #endif

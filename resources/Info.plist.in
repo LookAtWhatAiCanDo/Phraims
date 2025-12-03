@@ -24,5 +24,14 @@
   <string>@CMAKE_OSX_DEPLOYMENT_TARGET@</string>
   <key>NSPrincipalClass</key>
   <string>NSApplication</string>
+  <!-- Sparkle update framework (optional) -->
+  <key>SUFeedURL</key>
+  <string>https://github.com/LookAtWhatAiCanDo/Phraims/releases.atom</string>
+  <key>SUEnableAutomaticChecks</key>
+  <false/>
+  <key>SUScheduledCheckInterval</key>
+  <integer>86400</integer>
+  <key>SUPublicEDKey</key>
+  <string><!-- Ed25519 public key for signature verification will be added here --></string>
 </dict>
 </plist>

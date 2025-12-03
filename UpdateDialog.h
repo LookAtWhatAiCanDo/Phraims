@@ -12,6 +12,10 @@ class QProgressBar;
 class WindowsUpdater;
 #endif
 
+#ifdef Q_OS_MACOS
+class SparkleUpdater;
+#endif
+
 /**
  * @brief Dialog for displaying update information and managing updates.
  *
@@ -91,5 +95,9 @@ private:
 
 #ifdef Q_OS_WIN
   WindowsUpdater *windowsUpdater_ = nullptr; ///< Windows updater instance
+#endif
+
+#ifdef Q_OS_MACOS
+  SparkleUpdater *sparkleUpdater_ = nullptr; ///< macOS Sparkle updater instance
 #endif
 };

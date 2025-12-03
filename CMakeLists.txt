@@ -65,6 +65,8 @@ if(APPLE)
     UpdateChecker.cpp
     UpdateDialog.h
     UpdateDialog.cpp
+    SparkleUpdater.h
+    SparkleUpdater.mm
     resources/resources.qrc
     ${app_icon_macos}
   )
@@ -162,6 +164,32 @@ target_link_libraries(Phraims
     Qt6::WebEngineWidgets
     Qt6::Network
 )
+
+# macOS: Link Sparkle framework if available
+if(APPLE)
+  # Try to find Sparkle framework in standard macOS locations
+  find_library(SPARKLE_FRAMEWORK Sparkle
+    PATHS
+      /Library/Frameworks
+      ~/Library/Frameworks
+      ${CMAKE_SOURCE_DIR}/Frameworks
+  )
+  
+  if(SPARKLE_FRAMEWORK)
+    message(STATUS "Found Sparkle framework: ${SPARKLE_FRAMEWORK}")
+    target_link_libraries(Phraims PRIVATE ${SPARKLE_FRAMEWORK})
+    
+    # Copy Sparkle.framework into the app bundle
+    add_custom_command(TARGET Phraims POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${SPARKLE_FRAMEWORK}
+        $<TARGET_BUNDLE_DIR:Phraims>/Contents/Frameworks/Sparkle.framework
+      COMMENT "Copying Sparkle.framework into app bundle"
+    )
+  else()
+    message(WARNING "Sparkle framework not found - macOS auto-updates will use manual download fallback")
+  endif()
+endif()
 
 # Add build directory to include path so generated version.h can be found
 target_include_directories(Phraims PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")

@@ -77,16 +77,23 @@ jobs:
               --prerelease=false
           fi
 
-      - name: Generate version manifest
+      - name: Generate version manifest and appcast
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG_NAME="${GITHUB_REF#refs/tags/}"
+          
+          # Generate version manifest
           chmod +x ci/generate-version-manifest.sh
           TAG_NAME="$TAG_NAME" ci/generate-version-manifest.sh
           
-          # Upload version.json to release
+          # Generate Sparkle appcast feed
+          chmod +x ci/generate-appcast.sh
+          TAG_NAME="$TAG_NAME" ci/generate-appcast.sh
+          
+          # Upload both files to release
           gh release upload "$TAG_NAME" version.json --clobber
+          gh release upload "$TAG_NAME" appcast.xml --clobber
 
   build-macos:
     name: Build macOS (${{ matrix.arch }})
