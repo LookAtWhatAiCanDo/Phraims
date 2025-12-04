@@ -73,7 +73,7 @@ jobs:
             gh release create "$TAG_NAME" \
               --title "Phraims $TAG_NAME" \
               --notes "Release $TAG_NAME" \
-              --draft=false \
+              --draft=true \
               --prerelease=false
           fi
 

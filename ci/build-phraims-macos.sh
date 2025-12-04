@@ -510,7 +510,7 @@ verify_webengine_payload() {
 }
 
 ### SECTION: Signing
-adhoc_sign_bundle() {
+sign_bundle() {
   step "Code signing app bundle"
 
   local IDENTITY="${MACOS_IDENTITY:-}"
@@ -636,7 +636,7 @@ main() {
   validate_bundle_links
   verify_webengine_payload
 
-  adhoc_sign_bundle
+  sign_bundle
   
   debug_artifacts
 
