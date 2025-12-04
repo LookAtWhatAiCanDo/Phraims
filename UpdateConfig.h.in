@@ -7,6 +7,8 @@
  *
  * Centralizes update-related constants to avoid duplication across
  * platform-specific implementations and configuration files.
+ *
+ * This file is generated at build time from UpdateConfig.h.in by CMake.
  */
 namespace UpdateConfig {
   /**
@@ -15,8 +17,8 @@ namespace UpdateConfig {
    * This feed is used by both macOS (Sparkle) and Windows (WinSparkle)
    * for checking and downloading updates.
    *
-   * Note: This value is also used in resources/Info.plist.in for macOS.
-   * Keep them synchronized manually until build-time substitution is implemented.
+   * The value is configured in CMakeLists.txt via PHRAIMS_APPCAST_URL
+   * and automatically substituted at build time.
    */
-  constexpr const char* APPCAST_URL = "https://github.com/LookAtWhatAiCanDo/Phraims/releases/latest/download/appcast.xml";
+  constexpr const char* APPCAST_URL = "@PHRAIMS_APPCAST_URL@";
 }
