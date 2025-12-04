@@ -11,12 +11,12 @@
 #include <QStyle>
 #include <QMessageBox>
 
-#ifdef Q_OS_WIN
-#include "WinSparkleUpdater.h"
+#ifdef Q_OS_MACOS
+#include "MacSparkleUpdater.h"
 #endif
 
-#ifdef Q_OS_MACOS
-#include "SparkleUpdater.h"
+#ifdef Q_OS_WIN
+#include "WinSparkleUpdater.h"
 #endif
 
 UpdateDialog::UpdateDialog(const UpdateChecker::UpdateInfo &info, QWidget *parent)

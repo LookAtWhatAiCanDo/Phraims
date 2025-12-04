@@ -1,7 +1,7 @@
-//#ifdef Q_OS_MACOS
-#if defined(Q_OS_MACOS) || defined(__APPLE__)
+#include "MacSparkleUpdater.h"
 
-#include "SparkleUpdater.h"
+#ifdef Q_OS_MACOS
+
 #include <QDebug>
 
 // Import Sparkle framework if available

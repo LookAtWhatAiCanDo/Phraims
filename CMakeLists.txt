@@ -70,14 +70,16 @@ if(APPLE)
     UpdateChecker.cpp
     UpdateDialog.h
     UpdateDialog.cpp
-    SparkleUpdater.h
-    SparkleUpdater.mm
+    MacSparkleUpdater.h
+    MacSparkleUpdater.mm
     resources/resources.qrc
     ${app_icon_macos}
   )
   # Mark SparkleUpdater.mm as Objective-C++ source
+  # `-fobjc-arc` prevents:
+  #   "warning: '__bridge_retained' casts have no effect when not using ARC [-Warc-bridge-casts-disallowed-in-nonarc]"
   set_source_files_properties(SparkleUpdater.mm PROPERTIES
-    COMPILE_FLAGS "-x objective-c++"
+    COMPILE_FLAGS "-x objective-c++ -fobjc-arc"
   )
   
   set_target_properties(Phraims PROPERTIES
