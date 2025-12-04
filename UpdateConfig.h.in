@@ -1,0 +1,24 @@
+#pragma once
+
+#include <QString>
+
+/**
+ * @brief Shared configuration for auto-update system.
+ *
+ * Centralizes update-related constants to avoid duplication across
+ * platform-specific implementations and configuration files.
+ *
+ * This file is generated at build time from UpdateConfig.h.in by CMake.
+ */
+namespace UpdateConfig {
+  /**
+   * @brief URL to the Sparkle/WinSparkle appcast feed.
+   *
+   * This feed is used by both macOS (Sparkle) and Windows (WinSparkle)
+   * for checking and downloading updates.
+   *
+   * The value is configured in CMakeLists.txt via PHRAIMS_APPCAST_URL
+   * and automatically substituted at build time.
+   */
+  constexpr const char* APPCAST_URL = "@PHRAIMS_APPCAST_URL@";
+}

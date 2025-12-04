@@ -16,10 +16,20 @@ set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 6.9 COMPONENTS Widgets WebEngineWidgets Network REQUIRED)
 
+# Define appcast URL for auto-updates (used by Sparkle/WinSparkle)
+set(PHRAIMS_APPCAST_URL "https://github.com/LookAtWhatAiCanDo/Phraims/releases/latest/download/appcast.xml")
+
 # Generate version.h from version.h.in with current project version
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/version.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/version.h"
+  @ONLY
+)
+
+# Generate UpdateConfig.h from UpdateConfig.h.in with appcast URL
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/UpdateConfig.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/UpdateConfig.h"
   @ONLY
 )
 

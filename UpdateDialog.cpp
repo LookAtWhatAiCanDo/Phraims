@@ -1,4 +1,5 @@
 #include "UpdateDialog.h"
+#include "UpdateConfig.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -165,8 +166,7 @@ bool UpdateDialog::triggerWinSparkleUpdate() {
     winSparkleUpdater_ = new WinSparkleUpdater(this);
     
     // Initialize with appcast URL (same feed as macOS Sparkle)
-    const QString appcastUrl = QStringLiteral("https://github.com/LookAtWhatAiCanDo/Phraims/releases/latest/download/appcast.xml");
-    if (!winSparkleUpdater_->initialize(appcastUrl)) {
+    if (!winSparkleUpdater_->initialize(QString::fromLatin1(UpdateConfig::APPCAST_URL))) {
       qWarning() << "Failed to initialize WinSparkle";
       return false;
     }
