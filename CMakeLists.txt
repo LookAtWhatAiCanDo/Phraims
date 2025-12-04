@@ -75,10 +75,10 @@ if(APPLE)
     resources/resources.qrc
     ${app_icon_macos}
   )
-  # Mark SparkleUpdater.mm as Objective-C++ source
+  # Mark MacSparkleUpdater.mm as Objective-C++ source
   # `-fobjc-arc` prevents:
   #   "warning: '__bridge_retained' casts have no effect when not using ARC [-Warc-bridge-casts-disallowed-in-nonarc]"
-  set_source_files_properties(SparkleUpdater.mm PROPERTIES
+  set_source_files_properties(MacSparkleUpdater.mm PROPERTIES
     COMPILE_FLAGS "-x objective-c++ -fobjc-arc"
   )
   
@@ -177,26 +177,36 @@ target_link_libraries(Phraims
     Qt6::Network
 )
 
-# macOS: Link Sparkle framework if available
+# macOS: Link [Mac] Sparkle framework if available
 if(APPLE)
 
-  # Try to find Sparkle framework in standard macOS locations
-  find_library(SPARKLE_FRAMEWORK Sparkle
-    PATHS
-      ${CMAKE_BINARY_DIR}/Frameworks
+  # Try to find Sparkle.framework in a way compatible with both CI and Qt Creator.
+  # First look in CI build/source Frameworks first.
+  # Then look in Homebrew Caskroom.
+  file(GLOB SPARKLE_CASKROOM_CANDIDATES
+    ${CMAKE_BINARY_DIR}/Frameworks/Sparkle.framework
+    /opt/homebrew/Caskroom/sparkle/*/Sparkle.framework
+    /usr/local/Caskroom/sparkle/*/Sparkle.framework
   )
-  
-  if(SPARKLE_FRAMEWORK)
-    message(STATUS "Found Sparkle framework: ${SPARKLE_FRAMEWORK}")
-    target_link_libraries(Phraims PRIVATE ${SPARKLE_FRAMEWORK})
-    
-    # Copy Sparkle.framework into the app bundle
-    # Use `ditto` to preserve symlinks
+
+  if(SPARKLE_CASKROOM_CANDIDATES)
+    list(SORT SPARKLE_CANDIDATES)
+    list(REVERSE SPARKLE_CANDIDATES)
+    list(GET SPARKLE_CASKROOM_CANDIDATES 0 SPARKLE_FRAMEWORK_DIR)
+    set(SPARKLE_LIB "${SPARKLE_FRAMEWORK_DIR}/Sparkle")
+  endif()
+
+  if(SPARKLE_LIB)
+    message(STATUS "Found Sparkle library: ${SPARKLE_LIB}")
+    message(STATUS "Using Sparkle framework directory: ${SPARKLE_FRAMEWORK_DIR}")
+    target_link_libraries(Phraims PRIVATE ${SPARKLE_LIB})
+
+    # Copy the full framework bundle into the app bundle (preserve symlinks)
     add_custom_command(TARGET Phraims POST_BUILD
       COMMAND /bin/mkdir -p
         "$<TARGET_BUNDLE_DIR:Phraims>/Contents/Frameworks"
       COMMAND /usr/bin/ditto
-        "${SPARKLE_FRAMEWORK}"
+        "${SPARKLE_FRAMEWORK_DIR}"
         "$<TARGET_BUNDLE_DIR:Phraims>/Contents/Frameworks/Sparkle.framework"
       COMMENT "Copying Sparkle.framework into app bundle with symlinks"
       VERBATIM
