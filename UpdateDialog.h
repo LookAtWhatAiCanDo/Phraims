@@ -13,7 +13,7 @@ class WinSparkleUpdater;
 #endif
 
 #ifdef Q_OS_MACOS
-class SparkleUpdater;
+class MacSparkleUpdater;
 #endif
 
 /**
@@ -64,20 +64,20 @@ private:
    */
   void openUrl(const QString &url);
 
-#ifdef Q_OS_WIN
-  /**
-   * @brief Triggers WinSparkle update check (if available).
-   * @return true if WinSparkle handled the update, false otherwise
-   */
-  bool triggerWinSparkleUpdate();
-#endif
-
 #ifdef Q_OS_MACOS
   /**
    * @brief Triggers Sparkle update check (if available).
    * @return true if Sparkle handled the update, false otherwise
    */
   bool triggerSparkleUpdate();
+#endif
+
+#ifdef Q_OS_WIN
+  /**
+   * @brief Triggers WinSparkle update check (if available).
+   * @return true if WinSparkle handled the update, false otherwise
+   */
+  bool triggerWinSparkleUpdate();
 #endif
 
   UpdateChecker::UpdateInfo updateInfo_; ///< Update information to display
@@ -91,11 +91,11 @@ private:
   QPushButton *remindLaterButton_ = nullptr;
   QProgressBar *progressBar_ = nullptr;
 
-#ifdef Q_OS_WIN
-  WinSparkleUpdater *winSparkleUpdater_ = nullptr; ///< Windows WinSparkle updater instance
+#ifdef Q_OS_MACOS
+  MacSparkleUpdater *macSparkleUpdater_ = nullptr; ///< macOS Sparkle updater instance
 #endif
 
-#ifdef Q_OS_MACOS
-  SparkleUpdater *sparkleUpdater_ = nullptr; ///< macOS Sparkle updater instance
+#ifdef Q_OS_WIN
+  WinSparkleUpdater *winSparkleUpdater_ = nullptr; ///< Windows WinSparkle updater instance
 #endif
 };

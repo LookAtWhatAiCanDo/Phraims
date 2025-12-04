@@ -18,20 +18,20 @@
  * If Sparkle is not available, methods will return false and the app can fallback
  * to manual download links.
  */
-class SparkleUpdater : public QObject {
+class MacSparkleUpdater : public QObject {
   Q_OBJECT
 
 public:
   /**
-   * @brief Constructs a SparkleUpdater.
+   * @brief Constructs a MacSparkleUpdater.
    * @param parent Optional parent object
    */
-  explicit SparkleUpdater(QObject *parent = nullptr);
+  explicit MacSparkleUpdater(QObject *parent = nullptr);
 
   /**
    * @brief Destructor - cleans up Sparkle resources.
    */
-  ~SparkleUpdater() override;
+  ~MacSparkleUpdater() override;
 
   /**
    * @brief Checks if Sparkle framework is available.

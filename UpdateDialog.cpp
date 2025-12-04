@@ -98,9 +98,9 @@ void UpdateDialog::setupUi() {
 }
 
 void UpdateDialog::onUpdateButtonClicked() {
-#ifdef Q_OS_MACOS
+#if defined(Q_OS_MACOS)
   // On macOS, try Sparkle first, then fallback to manual download
-  if (!triggerSparkleUpdate()) {
+  if (!triggerMacSparkleUpdate()) {
     openUrl(updateInfo_.downloadUrl.isEmpty() ? updateInfo_.releaseUrl : updateInfo_.downloadUrl);
     accept();
   }
@@ -130,18 +130,18 @@ void UpdateDialog::openUrl(const QString &url) {
 #ifdef Q_OS_MACOS
 bool UpdateDialog::triggerSparkleUpdate() {
   // Check if Sparkle is available
-  if (!SparkleUpdater::isAvailable()) {
+  if (!MacSparkleUpdater::isAvailable()) {
     qDebug() << "Sparkle framework not available, falling back to manual download";
     return false;
   }
   
   // Create Sparkle updater if not already created
-  if (!sparkleUpdater_) {
-    sparkleUpdater_ = new SparkleUpdater(this);
+  if (!macSparkleUpdater_) {
+    macSparkleUpdater_ = new MacSparkleUpdater(this);
   }
   
   // Trigger update check
-  if (sparkleUpdater_->checkForUpdates()) {
+  if (macSparkleUpdater_->checkForUpdates()) {
     // Sparkle will handle the rest - close our dialog
     accept();
     return true;
@@ -150,7 +150,7 @@ bool UpdateDialog::triggerSparkleUpdate() {
   // If Sparkle check failed, fallback to manual download
   return false;
 }
-#endif
+#endif // Q_OS_MACOS
 
 #ifdef Q_OS_WIN
 bool UpdateDialog::triggerWinSparkleUpdate() {
@@ -182,4 +182,4 @@ bool UpdateDialog::triggerWinSparkleUpdate() {
   // If WinSparkle check failed, fallback to manual download
   return false;
 }
-#endif
+#endif // Q_OS_WIN

@@ -13,7 +13,7 @@
   #warning "Sparkle framework not found - macOS auto-updates will be disabled"
 #endif
 
-SparkleUpdater::SparkleUpdater(QObject *parent)
+MacSparkleUpdater::MacSparkleUpdater(QObject *parent)
   : QObject(parent)
   , updaterController_(nullptr)
 {
@@ -33,11 +33,11 @@ SparkleUpdater::SparkleUpdater(QObject *parent)
     }
   }
 #else
-  qWarning() << "SparkleUpdater created but Sparkle framework is not available";
+  qWarning() << "MacSparkleUpdater created but Sparkle framework is not available";
 #endif
 }
 
-SparkleUpdater::~SparkleUpdater() {
+MacSparkleUpdater::~MacSparkleUpdater() {
 #if SPARKLE_AVAILABLE
   if (updaterController_) {
     @autoreleasepool {
@@ -49,7 +49,7 @@ SparkleUpdater::~SparkleUpdater() {
 #endif
 }
 
-bool SparkleUpdater::isAvailable() {
+bool MacSparkleUpdater::isAvailable() {
 #if SPARKLE_AVAILABLE
   return YES;
 #else
@@ -57,10 +57,10 @@ bool SparkleUpdater::isAvailable() {
 #endif
 }
 
-bool SparkleUpdater::checkForUpdates() {
+bool MacSparkleUpdater::checkForUpdates() {
 #if SPARKLE_AVAILABLE
   if (!updaterController_) {
-    qWarning() << "Sparkle updater not initialized";
+    qWarning() << "MacSparkleUpdater not initialized";
     return false;
   }
   
@@ -75,7 +75,7 @@ bool SparkleUpdater::checkForUpdates() {
 #endif
 }
 
-bool SparkleUpdater::setAutomaticCheckEnabled(bool enabled) {
+bool MacSparkleUpdater::setAutomaticCheckEnabled(bool enabled) {
 #if SPARKLE_AVAILABLE
   if (!updaterController_) {
     return false;
@@ -92,7 +92,7 @@ bool SparkleUpdater::setAutomaticCheckEnabled(bool enabled) {
 #endif
 }
 
-bool SparkleUpdater::setCheckInterval(int seconds) {
+bool MacSparkleUpdater::setCheckInterval(int seconds) {
 #if SPARKLE_AVAILABLE
   if (!updaterController_) {
     return false;
