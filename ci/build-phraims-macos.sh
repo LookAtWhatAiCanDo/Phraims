@@ -64,10 +64,12 @@ initialize_environment() {
 
 ### SECTION: Ensure package manager
 ensure_homebrew() {
+  step "Ensuring Homebrew is installed"
   if ! command -v brew >/dev/null 2>&1; then
     step "Homebrew not found; installing..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   fi
+
   if [ -x "/opt/homebrew/bin/brew" ]; then
     # Some environments block /bin/ps inside brew shellenv; ignore failures and fall back.
     local env_out
@@ -97,6 +99,9 @@ ensure_homebrew() {
     echo "Homebrew installation not detected after install" >&2
     exit 1
   fi
+
+  step "Updating Homebrew"
+  brew update --quiet
 }
 
 ### SECTION: Sparkle detection and copy (small, safe helpers)
@@ -158,10 +163,6 @@ ensure_hostqt() {
   export HOMEBREW_NO_ENV_HINTS=1
   local packages=("$@")
   step "Ensuring Homebrew packages: ${packages[*]}"
-  if [ "${FORCE_BREW_UPDATE:-1}" -eq 1 ]; then
-    step "Updating Homebrew"
-    brew update --quiet
-  fi
   for pkg in "${packages[@]}"; do
     if ! brew list --versions "$pkg" >/dev/null 2>&1; then
       echo "  - installing $pkg"
