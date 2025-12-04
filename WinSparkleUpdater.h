@@ -1,8 +1,8 @@
 #pragma once
 
-#ifdef Q_OS_WIN
-
 #include <QObject>
+
+#ifdef Q_OS_WIN
 
 /**
  * @brief Windows WinSparkle framework integration for auto-updates.
