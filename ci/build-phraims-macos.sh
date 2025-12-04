@@ -229,24 +229,6 @@ build_project() {
   [ -d "${APP_PATH}" ] || { echo "Expected app bundle at ${APP_PATH}" >&2; exit 1; }
 }
 
-### SECTION: Patch Sparkle rpath before macdeployqt
-patch_sparkle_rpath() {
-  # Some tools (including macdeployqt) can choke on unresolved @rpath entries
-  # for third-party frameworks like Sparkle. Before running macdeployqt, make
-  # sure the main executable points directly at the copy of Sparkle we bundle
-  # under Contents/Frameworks instead of using @rpath.
-  local exe="${APP_PATH}/Contents/MacOS/Phraims"
-  [ -f "$exe" ] || return 0
-
-  local old="@rpath/Sparkle.framework/Versions/B/Sparkle"
-  local new="@executable_path/../Frameworks/Sparkle.framework/Versions/B/Sparkle"
-
-  if otool -L "$exe" | grep -q "$old"; then
-    step "Patching Sparkle install name in main executable"
-    install_name_tool -change "$old" "$new" "$exe"
-  fi
-}
-
 ### SECTION: Qt Platform Specific Deployment
 run_qt_platform_deployment() {
   mkdir -p "${STAGING_LIB_DIR}" "${APP_PATH}/Contents/Frameworks"
@@ -643,8 +625,6 @@ main() {
 
   configure_cmake
   build_project
-
-  patch_sparkle_rpath
 
   run_qt_platform_deployment
   materialize_bundle_symlinks

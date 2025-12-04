@@ -201,14 +201,28 @@ if(APPLE)
     message(STATUS "Using Sparkle framework directory: ${SPARKLE_FRAMEWORK_DIR}")
     target_link_libraries(Phraims PRIVATE ${SPARKLE_LIB})
 
+    if(NOT DEFINED CODESIGN_IDENTITY)
+      set(CODESIGN_IDENTITY "-") # ad-hoc by default for local dev
+    endif()
+
     # Copy the full framework bundle into the app bundle (preserve symlinks)
     add_custom_command(TARGET Phraims POST_BUILD
+      COMMAND /bin/echo "Ditto copy 'Sparkle.framework' to target bundle"
       COMMAND /bin/mkdir -p
         "$<TARGET_BUNDLE_DIR:Phraims>/Contents/Frameworks"
       COMMAND /usr/bin/ditto
         "${SPARKLE_FRAMEWORK_DIR}"
         "$<TARGET_BUNDLE_DIR:Phraims>/Contents/Frameworks/Sparkle.framework"
-      COMMENT "Copying Sparkle.framework into app bundle with symlinks"
+      COMMAND /bin/sh -c " \
+APP=\"$<TARGET_BUNDLE_DIR:Phraims>\"; \
+EXE=\"$APP/Contents/MacOS/Phraims\"; \
+OLD=\"@rpath/Sparkle.framework/Versions/B/Sparkle\"; \
+NEW=\"@executable_path/../Frameworks/Sparkle.framework/Versions/B/Sparkle\"; \
+if otool -L \"$EXE\" | grep -q \"$OLD\"; then \
+  echo \"Patching Sparkle install name in main executable\"; \
+  install_name_tool -change \"$OLD\" \"$NEW\" \"$EXE\"; \
+fi \
+"
       VERBATIM
     )
   else()
