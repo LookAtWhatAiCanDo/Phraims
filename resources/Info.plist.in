@@ -25,6 +25,7 @@
   <key>NSPrincipalClass</key>
   <string>NSApplication</string>
   <!-- Sparkle update framework (optional) -->
+  <!-- NOTE: This URL must match UpdateConfig::APPCAST_URL in UpdateConfig.h -->
   <key>SUFeedURL</key>
   <string>https://github.com/LookAtWhatAiCanDo/Phraims/releases/latest/download/appcast.xml</string>
   <key>SUEnableAutomaticChecks</key>
