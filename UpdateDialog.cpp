@@ -101,7 +101,7 @@ void UpdateDialog::setupUi() {
 void UpdateDialog::onUpdateButtonClicked() {
 #if defined(Q_OS_MACOS)
   // On macOS, try Sparkle first, then fallback to manual download
-  if (!triggerMacSparkleUpdate()) {
+  if (!triggerSparkleUpdate()) {
     openUrl(updateInfo_.downloadUrl.isEmpty() ? updateInfo_.releaseUrl : updateInfo_.downloadUrl);
     accept();
   }
