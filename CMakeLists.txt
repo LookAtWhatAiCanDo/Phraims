@@ -1,10 +1,15 @@
 cmake_minimum_required(VERSION 3.16)
 
+set(PHRAIMS_VERSION 0.56)
+
+# Define appcast URL for auto-updates (used by Sparkle/WinSparkle)
+set(PHRAIMS_APPCAST_URL "https://github.com/LookAtWhatAiCanDo/Phraims/releases/latest/download/appcast.xml")
+
 # Enable Objective-C++ for macOS Sparkle integration
 if(APPLE)
-  project(Phraims VERSION 0.55 LANGUAGES CXX OBJCXX)
+  project(Phraims VERSION ${PHRAIMS_VERSION} LANGUAGES CXX OBJCXX)
 else()
-  project(Phraims VERSION 0.55 LANGUAGES CXX)
+  project(Phraims VERSION ${PHRAIMS_VERSION} LANGUAGES CXX)
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
@@ -15,9 +20,6 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 6.9 COMPONENTS Widgets WebEngineWidgets Network REQUIRED)
-
-# Define appcast URL for auto-updates (used by Sparkle/WinSparkle)
-set(PHRAIMS_APPCAST_URL "https://github.com/LookAtWhatAiCanDo/Phraims/releases/latest/download/appcast.xml")
 
 # Generate version.h from version.h.in with current project version
 configure_file(
@@ -47,7 +49,7 @@ if(APPLE)
   set(app_icon_macos "${CMAKE_CURRENT_SOURCE_DIR}/resources/phraims.icns")
   set_source_files_properties(${app_icon_macos} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 
-  set(MACOSX_BUNDLE_EXECUTABLE_NAME Phraims)
+  set(MACOSX_BUNDLE_EXECUTABLE_NAME "${PROJECT_NAME}")
   set(MACOSX_BUNDLE_ICON_FILE phraims.icns)
   set(MACOSX_BUNDLE_BUNDLE_NAME "${PROJECT_NAME}")
   set(MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}")
