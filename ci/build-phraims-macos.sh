@@ -53,15 +53,23 @@ initialize_environment() {
 
   ensure_homebrew
 
+  # Ensure Sparkle framework is available for macOS auto-update (Sparkle)
+  if ! ensure_sparkle; then
+    echo "Warning: Sparkle framework not found or could not be installed automatically." >&2
+    echo "Please install Sparkle (Homebrew formula 'sparkle' or place Sparkle.framework under /Library/Frameworks)" >&2
+  fi
+
   ensure_hostqt qtbase qtdeclarative qtwebchannel qtpositioning qtvirtualkeyboard qtsvg qtserialport brotli ninja cmake
 }
 
 ### SECTION: Ensure package manager
 ensure_homebrew() {
+  step "Ensuring Homebrew is installed"
   if ! command -v brew >/dev/null 2>&1; then
     step "Homebrew not found; installing..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   fi
+
   if [ -x "/opt/homebrew/bin/brew" ]; then
     # Some environments block /bin/ps inside brew shellenv; ignore failures and fall back.
     local env_out
@@ -91,6 +99,62 @@ ensure_homebrew() {
     echo "Homebrew installation not detected after install" >&2
     exit 1
   fi
+
+  step "Updating Homebrew"
+  brew update --quiet
+}
+
+### SECTION: Sparkle detection and copy (small, safe helpers)
+find_sparkle_framework() {
+  # Search common locations (limited depth) for Sparkle.framework
+  local roots=("${BUILD_DIR}" "/opt/homebrew" "/usr/local" "$HOME/Library" "/Library" "/System/Library" )
+  local r found
+  for r in "${roots[@]}"; do
+    [ -d "${r}" ] || continue
+    found=$(find "${r}" -maxdepth 6 -type d -name 'Sparkle.framework' 2>/dev/null | head -n1 || true)
+    if [ -n "${found}" ]; then
+      SPARKLE_FRAMEWORK_PREFIX="${found}"
+      return 0
+    fi
+  done
+  return 1
+}
+
+ensure_sparkle() {
+  step "Ensuring Sparkle.framework (detect & copy)"
+  # If already present under repo Frameworks, done
+  if [ -d "${REPO_ROOT}/Frameworks/Sparkle.framework" ]; then
+    SPARKLE_FRAMEWORK_PREFIX="${REPO_ROOT}/Frameworks/Sparkle.framework"
+    debug "Sparkle.framework already in repo Frameworks"
+    return 0
+  fi
+
+  # Try to find an existing framework
+  if find_sparkle_framework; then
+    mkdir -p "${BUILD_DIR}/Frameworks"
+    ditto "${SPARKLE_FRAMEWORK_PREFIX}" "${BUILD_DIR}/Frameworks/$(basename "${SPARKLE_FRAMEWORK_PREFIX}")"
+    SPARKLE_FRAMEWORK_PREFIX="${BUILD_DIR}/Frameworks/$(basename "${SPARKLE_FRAMEWORK_PREFIX}")"
+    step "Copied Sparkle.framework to ${SPARKLE_FRAMEWORK_PREFIX}"
+    return 0
+  fi
+
+  # Attempt to install cask (non-fatal)
+  if command -v brew >/dev/null 2>&1; then
+    step "Installing Sparkle cask via Homebrew (if available)"
+    brew tap homebrew/cask >/dev/null 2>&1 || true
+    brew install --cask sparkle || true
+  fi
+
+  # Try detecting again after cask install
+  if find_sparkle_framework; then
+    mkdir -p "${BUILD_DIR}/Frameworks"
+    ditto "${SPARKLE_FRAMEWORK_PREFIX}" "${BUILD_DIR}/Frameworks/$(basename "${SPARKLE_FRAMEWORK_PREFIX}")"
+    SPARKLE_FRAMEWORK_PREFIX="${BUILD_DIR}/Frameworks/$(basename "${SPARKLE_FRAMEWORK_PREFIX}")"
+    step "Copied Sparkle.framework to ${SPARKLE_FRAMEWORK_PREFIX}"
+    return 0
+  fi
+
+  return 1
 }
 
 ### SECTION: Host Qt acquisition
@@ -99,10 +163,6 @@ ensure_hostqt() {
   export HOMEBREW_NO_ENV_HINTS=1
   local packages=("$@")
   step "Ensuring Homebrew packages: ${packages[*]}"
-  if [ "${FORCE_BREW_UPDATE:-1}" -eq 1 ]; then
-    step "Updating Homebrew"
-    brew update --quiet
-  fi
   for pkg in "${packages[@]}"; do
     if ! brew list --versions "$pkg" >/dev/null 2>&1; then
       echo "  - installing $pkg"
@@ -187,16 +247,17 @@ run_qt_platform_deployment() {
   done
   lib_paths+=("${STAGING_LIB_DIR}")
 
-  step "Running macdeployqt"
   local -a args=("${APP_PATH}" "-always-overwrite")
   if [ "$DEBUG" -eq 1 ]; then
     args+=("-verbose=2")
   fi
   for p in "${lib_paths[@]}"; do args+=("-libpath=$p"); done
+  step "Running macdeployqt (can take several minutes) ..."
+  echo "time macdeployqt ${args[*]}"
   if [ "$DEBUG" -eq 1 ]; then
-    macdeployqt "${args[@]}" | tee "${LOG_FILE}"
+    time macdeployqt "${args[@]}" | tee "${LOG_FILE}"
   else
-    macdeployqt "${args[@]}" >"${LOG_FILE}" 2>&1
+    time macdeployqt "${args[@]}" >"${LOG_FILE}" 2>&1
   fi
   if grep -q "ERROR:" "${LOG_FILE}"; then
     echo "macdeployqt reported errors; see ${LOG_FILE}" >&2
@@ -259,6 +320,13 @@ fix_rpaths() {
 
   for f in "${files[@]}"; do
     file "$f" | grep -q "Mach-O" || continue
+
+    # Skip all Sparkle.framework binaries
+    if [[ "$f" == *"/Sparkle.framework/"* ]]; then
+      debug "Skipping rpath/install-name fixes for Sparkle binary: $f"
+      continue
+    fi
+
     local helper_rpath="@executable_path/../Frameworks"
     if [[ "$f" == *"/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess" ]]; then
       helper_rpath="@executable_path/../../../../../../../Frameworks"
@@ -360,8 +428,16 @@ validate_bundle_links() {
 
   for f in "${files[@]}"; do
     file "$f" | grep -q "Mach-O" || continue
-    local rpaths=()
-    while IFS= read -r rp; do rpaths+=("$rp"); done < <(file_rpaths "$f")
+
+    # Skip Sparkle.framework binaries from dependency validation.
+    # Sparkle's own install name often appears as an @rpath self-reference,
+    # and we intentionally avoid rewriting its load commands due to
+    # headerpad/code-signing constraints. Treat these as self-contained.
+    if [[ "$f" == *"/Sparkle.framework/"* ]]; then
+      debug "Skipping dependency validation for Sparkle binary: $f"
+      continue
+    fi
+
     while IFS= read -r line; do
       local dep="${line#"	"}"; dep="${dep%% (*}"
       case "$dep" in
@@ -384,9 +460,14 @@ validate_bundle_links() {
           ;;
         @rpath/*)
           local tail="${dep#@rpath/}" resolved=0
-          for rp in "${rpaths[@]}"; do
-            if [ -f "$(expand_path "$f" "$rp")/${tail}" ]; then resolved=1; break; fi
-          done
+          # Walk this file's rpaths on the fly and see if any resolve the @rpath reference
+          while IFS= read -r rp; do
+            if [ -f "$(expand_path "$f" "$rp")/${tail}" ]; then
+              resolved=1
+              break
+            fi
+          done < <(file_rpaths "$f")
+
           if [ "$resolved" -eq 0 ]; then
             echo "  [!] $f depends on ${dep} (unresolved within bundle)"
             bad=1
@@ -429,10 +510,86 @@ verify_webengine_payload() {
 }
 
 ### SECTION: Signing
-adhoc_sign_bundle() {
-  step "Ad-hoc signing app bundle (deep)"
-  codesign --force --deep --sign - --timestamp=none "${APP_PATH}"
-  codesign -vv "${APP_PATH}"
+sign_bundle() {
+  step "Code signing app bundle"
+
+  local IDENTITY="${MACOS_IDENTITY:-}"
+  local FWK="$APP_PATH/Contents/Frameworks/Sparkle.framework"
+  local VER="$FWK/Versions/Current"
+
+  if [ -z "$IDENTITY" ]; then
+    step "No MACOS_IDENTITY provided; doing simple ad-hoc signing (no entitlements)"
+
+    # Sparkle helpers
+    codesign --force --sign - "$VER/Autoupdate"
+    codesign --force --sign - "$VER/Updater.app"
+    for svc in "$VER/XPCServices"/*.xpc; do
+      [ -e "$svc" ] || continue
+      codesign --force --sign - "$svc"
+    done
+
+    # Framework
+    codesign --force --sign - "$FWK"
+
+    # App
+    codesign --force --deep --sign - "$APP_PATH"
+
+    echo "Verifying (ad-hoc)…"
+    # codesign -vvv --deep will return non-zero for ad-hoc builds that
+    # don't satisfy a designated requirement; we don't want set -e to abort
+    # the script in that case, so temporarily disable -e.
+    set +e
+    codesign -vvv --deep "$APP_PATH"
+    codesign_status=$?
+    set -e
+    if [ "${codesign_status}" -ne 0 ]; then
+      echo "WARN: codesign verification FAILED (exit code ${codesign_status}), but this is acceptable for ad-hoc signed builds"
+    fi
+    return
+  fi
+
+  step "Using code signing identity: $IDENTITY"
+
+  echo "Signing Sparkle helpers…"
+  codesign --force --options runtime --timestamp \
+    --sign "$IDENTITY" \
+    "$VER/Autoupdate"
+  codesign --force --options runtime --timestamp \
+    --sign "$IDENTITY" \
+    "$VER/Updater.app"
+  for svc in "$VER/XPCServices"/*.xpc; do
+    [ -e "$svc" ] || continue
+    codesign --force --options runtime --timestamp \
+      --sign "$IDENTITY" \
+      "$svc"
+  done
+
+  echo "Signing Sparkle.framework…"
+  codesign --force --options runtime --timestamp \
+    --sign "$IDENTITY" \
+    "$FWK"
+
+  echo "Signing app bundle with hardened runtime + entitlements…"
+  codesign --force --options runtime --timestamp --deep \
+    --entitlements "ci/Phraims.entitlements" \
+    --sign "$IDENTITY" \
+    "$APP_PATH"
+
+  echo "Verifying…"
+  codesign -vvv --deep --strict "$APP_PATH"
+  echo "Running Gatekeeper assessment (spctl)…"
+  local spctl_status=0
+  if spctl --assess --type execute --verbose "$APP_PATH"; then
+    echo "Gatekeeper assessment: PASS"
+  else
+    spctl_status=$?
+    if [ "${PHRAIMS_RELEASE:-0}" -eq 1 ]; then
+      echo "Gatekeeper assessment FAILED (exit code ${spctl_status}) for release build; aborting." >&2
+      exit "${spctl_status}"
+    else
+      echo "WARN: Gatekeeper assessment FAILED (exit code ${spctl_status}), but this is normal for local/dev builds that have not been sent for notarization yet."
+    fi
+  fi
 }
 
 ### SECTION: Debug artifacts
@@ -479,7 +636,7 @@ main() {
   validate_bundle_links
   verify_webengine_payload
 
-  adhoc_sign_bundle
+  sign_bundle
   
   debug_artifacts
 

@@ -73,9 +73,27 @@ jobs:
             gh release create "$TAG_NAME" \
               --title "Phraims $TAG_NAME" \
               --notes "Release $TAG_NAME" \
-              --draft=false \
+              --draft=true \
               --prerelease=false
           fi
+
+      - name: Generate version manifest and appcast
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          
+          # Generate version manifest
+          chmod +x ci/generate-version-manifest.sh
+          TAG_NAME="$TAG_NAME" ci/generate-version-manifest.sh
+          
+          # Generate Sparkle appcast feed
+          chmod +x ci/generate-appcast.sh
+          TAG_NAME="$TAG_NAME" ci/generate-appcast.sh
+          
+          # Upload both files to release
+          gh release upload "$TAG_NAME" version.json --clobber
+          gh release upload "$TAG_NAME" appcast.xml --clobber
 
   build-macos:
     name: Build macOS (${{ matrix.arch }})

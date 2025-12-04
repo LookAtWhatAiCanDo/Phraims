@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(Phraims VERSION 0.55 LANGUAGES CXX)
+# Enable Objective-C++ for macOS Sparkle integration
+if(APPLE)
+  project(Phraims VERSION 0.55 LANGUAGES CXX OBJCXX)
+else()
+  project(Phraims VERSION 0.55 LANGUAGES CXX)
+endif()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -9,12 +14,22 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 6.9 COMPONENTS Widgets WebEngineWidgets REQUIRED)
+find_package(Qt6 6.9 COMPONENTS Widgets WebEngineWidgets Network REQUIRED)
+
+# Define appcast URL for auto-updates (used by Sparkle/WinSparkle)
+set(PHRAIMS_APPCAST_URL "https://github.com/LookAtWhatAiCanDo/Phraims/releases/latest/download/appcast.xml")
 
 # Generate version.h from version.h.in with current project version
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/version.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/version.h"
+  @ONLY
+)
+
+# Generate UpdateConfig.h from UpdateConfig.h.in with appcast URL
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/UpdateConfig.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/UpdateConfig.h"
   @ONLY
 )
 
@@ -61,9 +76,22 @@ if(APPLE)
     SplitFrameWidget.cpp
     SplitWindow.h
     SplitWindow.cpp
+    UpdateChecker.h
+    UpdateChecker.cpp
+    UpdateDialog.h
+    UpdateDialog.cpp
+    MacSparkleUpdater.h
+    MacSparkleUpdater.mm
     resources/resources.qrc
     ${app_icon_macos}
   )
+  # Mark MacSparkleUpdater.mm as Objective-C++ source
+  # `-fobjc-arc` prevents:
+  #   "warning: '__bridge_retained' casts have no effect when not using ARC [-Warc-bridge-casts-disallowed-in-nonarc]"
+  set_source_files_properties(MacSparkleUpdater.mm PROPERTIES
+    COMPILE_FLAGS "-x objective-c++ -fobjc-arc"
+  )
+  
   set_target_properties(Phraims PROPERTIES
     MACOSX_BUNDLE TRUE
     MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
@@ -113,6 +141,12 @@ elseif(WIN32)
     SplitFrameWidget.cpp
     SplitWindow.h
     SplitWindow.cpp
+    UpdateChecker.h
+    UpdateChecker.cpp
+    UpdateDialog.h
+    UpdateDialog.cpp
+    WinSparkleUpdater.h
+    WinSparkleUpdater.cpp
     resources/resources.qrc
     "${CMAKE_CURRENT_BINARY_DIR}/phraims.rc"
   )
@@ -137,6 +171,10 @@ else()
     SplitFrameWidget.cpp
     SplitWindow.h
     SplitWindow.cpp
+    UpdateChecker.h
+    UpdateChecker.cpp
+    UpdateDialog.h
+    UpdateDialog.cpp
     resources/resources.qrc
   )
 
@@ -145,12 +183,104 @@ endif()
 target_link_libraries(Phraims
   PRIVATE
     Qt6::Widgets
+    Qt6::WebEngineWidgets
+    Qt6::Network
 )
 
-target_link_libraries(Phraims
-  PRIVATE
-    Qt6::WebEngineWidgets
-)
+# macOS: Link [Mac] Sparkle framework if available
+if(APPLE)
+
+  # Try to find Sparkle.framework in a way compatible with both CI and Qt Creator.
+  # First look in CI build/source Frameworks first.
+  # Then look in Homebrew Caskroom.
+  file(GLOB SPARKLE_CASKROOM_CANDIDATES
+    ${CMAKE_BINARY_DIR}/Frameworks/Sparkle.framework
+    /opt/homebrew/Caskroom/sparkle/*/Sparkle.framework
+    /usr/local/Caskroom/sparkle/*/Sparkle.framework
+  )
+
+  if(SPARKLE_CASKROOM_CANDIDATES)
+    list(SORT SPARKLE_CANDIDATES)
+    list(REVERSE SPARKLE_CANDIDATES)
+    list(GET SPARKLE_CASKROOM_CANDIDATES 0 SPARKLE_FRAMEWORK_DIR)
+    set(SPARKLE_LIB "${SPARKLE_FRAMEWORK_DIR}/Sparkle")
+  endif()
+
+  if(SPARKLE_LIB)
+    message(STATUS "Found Sparkle library: ${SPARKLE_LIB}")
+    message(STATUS "Using Sparkle framework directory: ${SPARKLE_FRAMEWORK_DIR}")
+    target_link_libraries(Phraims PRIVATE ${SPARKLE_LIB})
+
+    if(NOT DEFINED CODESIGN_IDENTITY)
+      set(CODESIGN_IDENTITY "-") # ad-hoc by default for local dev
+    endif()
+
+    # Copy the full framework bundle into the app bundle (preserve symlinks)
+    add_custom_command(TARGET Phraims POST_BUILD
+      COMMAND /bin/echo "Ditto copy 'Sparkle.framework' to target bundle"
+      COMMAND /bin/mkdir -p
+        "$<TARGET_BUNDLE_DIR:Phraims>/Contents/Frameworks"
+      COMMAND /usr/bin/ditto
+        "${SPARKLE_FRAMEWORK_DIR}"
+        "$<TARGET_BUNDLE_DIR:Phraims>/Contents/Frameworks/Sparkle.framework"
+      COMMAND /bin/sh -c " \
+APP=\"$<TARGET_BUNDLE_DIR:Phraims>\"; \
+EXE=\"$APP/Contents/MacOS/Phraims\"; \
+OLD=\"@rpath/Sparkle.framework/Versions/B/Sparkle\"; \
+NEW=\"@executable_path/../Frameworks/Sparkle.framework/Versions/B/Sparkle\"; \
+if otool -L \"$EXE\" | grep -q \"$OLD\"; then \
+  echo \"Patching Sparkle install name in main executable\"; \
+  install_name_tool -change \"$OLD\" \"$NEW\" \"$EXE\"; \
+fi \
+"
+      VERBATIM
+    )
+  else()
+    message(WARNING "Sparkle framework not found - macOS auto-updates will use manual download fallback")
+  endif()
+
+endif()
+
+# Windows: Link WinSparkle library if available
+if(WIN32)
+  # Try to find WinSparkle library
+  find_library(WINSPARKLE_LIBRARY WinSparkle
+    PATHS
+      ${CMAKE_SOURCE_DIR}/WinSparkle
+      ${CMAKE_SOURCE_DIR}/lib
+      "C:/Program Files/WinSparkle"
+      "C:/Program Files (x86)/WinSparkle"
+  )
+  
+  find_path(WINSPARKLE_INCLUDE_DIR winsparkle.h
+    PATHS
+      ${CMAKE_SOURCE_DIR}/WinSparkle/include
+      ${CMAKE_SOURCE_DIR}/include
+      "C:/Program Files/WinSparkle/include"
+      "C:/Program Files (x86)/WinSparkle/include"
+  )
+  
+  if(WINSPARKLE_LIBRARY AND WINSPARKLE_INCLUDE_DIR)
+    message(STATUS "Found WinSparkle library: ${WINSPARKLE_LIBRARY}")
+    message(STATUS "Found WinSparkle include dir: ${WINSPARKLE_INCLUDE_DIR}")
+    target_include_directories(Phraims PRIVATE ${WINSPARKLE_INCLUDE_DIR})
+    target_link_libraries(Phraims PRIVATE ${WINSPARKLE_LIBRARY})
+    
+    # Copy WinSparkle.dll next to the executable
+    get_filename_component(WINSPARKLE_DIR ${WINSPARKLE_LIBRARY} DIRECTORY)
+    find_file(WINSPARKLE_DLL WinSparkle.dll PATHS ${WINSPARKLE_DIR} ${WINSPARKLE_DIR}/../bin NO_DEFAULT_PATH)
+    if(WINSPARKLE_DLL)
+      add_custom_command(TARGET Phraims POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          ${WINSPARKLE_DLL}
+          $<TARGET_FILE_DIR:Phraims>
+        COMMENT "Copying WinSparkle.dll to output directory"
+      )
+    endif()
+  else()
+    message(WARNING "WinSparkle library not found - Windows auto-updates will use manual download fallback")
+  endif()
+endif()
 
 # Add build directory to include path so generated version.h can be found
 target_include_directories(Phraims PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")

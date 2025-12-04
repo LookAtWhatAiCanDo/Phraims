@@ -373,6 +373,17 @@ private slots:
    */
   void showAboutDialog();
 
+  /**
+   * @brief Checks for application updates.
+   *
+   * Queries GitHub API for the latest release and displays an update dialog
+   * if a newer version is available. Shows appropriate UI for the platform:
+   * - macOS: Sparkle-based update flow (or manual download)
+   * - Windows: Download and install flow
+   * - Linux: Manual download notification
+   */
+  void checkForUpdates();
+
 protected:
   /**
    * @brief Handles window close events.

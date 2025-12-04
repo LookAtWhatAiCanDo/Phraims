@@ -222,6 +222,62 @@ The web view context menu provides quick access to common actions:
   - Opens in a new Phraims window
 - **Inspect…**: Opens DevTools for page inspection and debugging
 
+### Auto-Updates
+Phraims includes built-in update checking to help you stay current with the latest features and fixes.
+
+#### Checking for Updates
+- Access via **Help → Check for Updates...** in the menu bar
+- Phraims will query GitHub for the latest release
+- If an update is available, you'll see:
+  - Version comparison (current vs. latest)
+  - Release notes highlighting what's new
+  - Platform-appropriate update options
+
+#### Update Behavior by Platform
+
+**macOS**
+- Integrated with Sparkle framework for seamless updates
+- If Sparkle is available:
+  - Downloads and verifies updates automatically
+  - Shows native update dialog with release notes
+  - Installs update and relaunches without leaving the app
+  - No manual approval needed (quarantine-safe)
+- If Sparkle not available (development builds):
+  - Opens your browser to download the latest `.dmg`
+  - Install manually by dragging to Applications folder
+
+**Windows**
+- Integrated with WinSparkle library for seamless updates
+- If WinSparkle is available:
+  - Downloads and verifies updates automatically (DSA/EdDSA signatures)
+  - Shows native update dialog with release notes
+  - Installs update with proper elevation and relaunches
+  - Automatic rollback if update fails
+  - Same appcast feed as macOS Sparkle
+- If WinSparkle not available (development builds):
+  - Opens your browser to download the latest installer
+  - Install manually with elevated privileges
+
+**Linux**
+- Opens your browser to the GitHub releases page
+- Download and install manually using your preferred method
+- Respects distribution package management conventions
+
+#### Manual Downloads
+All releases are available at:
+https://github.com/LookAtWhatAiCanDo/Phraims/releases
+
+Choose the appropriate file for your platform:
+- **macOS**: `Phraims-v{version}-macOS-{arch}.dmg`
+- **Windows**: `Phraims-v{version}-Windows-{arch}.exe`
+- **Linux**: See releases page for available packages
+
+#### Release Channels
+Currently only stable releases are published. Beta/nightly channels may be added in the future.
+
+#### Privacy Note
+Update checks connect to GitHub's API to fetch release information. No personal data or usage statistics are transmitted. The request includes only the application name and current version in the User-Agent header.
+
 ## TODOs
 - Improve Menu
   - Make similar to Chrome, VSCode, OBS, etc.
@@ -274,6 +330,24 @@ cmake .. -DCMAKE_PREFIX_PATH="$(brew --prefix qt6)"
 cmake --build . --config Release
 ./Phraims
 ```
+
+#### Building with Sparkle (macOS Auto-Updates)
+To enable seamless in-app updates on macOS, install the Sparkle framework before building:
+
+```bash
+# Download and install Sparkle 2.x
+# Visit https://sparkle-project.org/ for latest release
+# Extract and copy Sparkle.framework to one of these locations:
+#   - /Library/Frameworks/
+#   - ~/Library/Frameworks/
+#   - or place in project root under Frameworks/
+
+# CMake will automatically detect and link Sparkle if found
+cmake .. -DCMAKE_PREFIX_PATH="$(brew --prefix qt6)"
+cmake --build . --config Release
+```
+
+If Sparkle is not found, CMake will show a warning and build without Sparkle support. The app will still function normally but will use manual download links instead of in-app updates.
 
 #### Application Icons
 The application uses platform-specific icon formats for proper display in taskbars, title bars, and file explorers:
