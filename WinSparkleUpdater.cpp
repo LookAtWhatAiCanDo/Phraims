@@ -1,6 +1,7 @@
+#include "WinSparkleUpdater.h"
+
 #ifdef Q_OS_WIN
 
-#include "WinSparkleUpdater.h"
 #include <QDebug>
 #include <QString>
 
