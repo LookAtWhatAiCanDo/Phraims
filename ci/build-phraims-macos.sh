@@ -552,8 +552,13 @@ adhoc_sign_bundle() {
     codesign --force --deep --sign - "$APP_PATH"
 
     echo "Verifying (ad-hoc)…"
+    # codesign -vvv --deep will return non-zero for ad-hoc builds that
+    # don't satisfy a designated requirement; we don't want set -e to abort
+    # the script in that case, so temporarily disable -e.
+    set +e
     codesign -vvv --deep "$APP_PATH"
     codesign_status=$?
+    set -e
     if [ "${codesign_status}" -ne 0 ]; then
       echo "WARN: codesign verification FAILED (exit code ${codesign_status}), but this is acceptable for ad-hoc signed builds"
     fi
