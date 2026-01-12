@@ -150,10 +150,10 @@ public:
   /**
    * @brief Stops all media playback in this frame.
    *
-   * Immediately mutes the page audio (synchronous) and freezes the page lifecycle
-   * to stop background activity. Also runs JavaScript to pause and clear all audio
-   * and video elements. This multi-layered approach ensures media stops immediately
-   * when the frame or window is closed, preventing audio from continuing to play.
+   * Immediately mutes the page audio (synchronous) to stop audio output, then runs
+   * JavaScript to pause and clear all audio and video elements. Does not freeze the
+   * page lifecycle as that can prevent proper cleanup and cause window close failures.
+   * This ensures media stops immediately when the frame or window is closed.
    * Called when the window is closing.
    */
   void stopMediaPlayback();

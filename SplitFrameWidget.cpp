@@ -339,9 +339,10 @@ void SplitFrameWidget::stopMediaPlayback() {
   // runJavaScript() is asynchronous and may not execute before destruction.
   page->setAudioMuted(true);
   
-  // Set the lifecycle state to frozen to stop background activity and media loading.
-  // This helps ensure the page stops processing and releases resources.
-  page->setLifecycleState(QWebEnginePage::LifecycleState::Frozen);
+  // NOTE: We intentionally do NOT freeze the page lifecycle here because
+  // freezing can prevent proper page cleanup and cause the window to fail
+  // to close properly (window appears hidden but not destroyed, still shows
+  // in Window menu). Instead, we rely on muting + JavaScript cleanup.
   
   // Use JavaScript to pause all audio and video elements in the page.
   // This provides additional cleanup beyond muting, ensuring elements are
@@ -369,7 +370,7 @@ void SplitFrameWidget::stopMediaPlayback() {
   )JS");
 
   page->runJavaScript(js);
-  qDebug() << "SplitFrameWidget::stopMediaPlayback: muted audio, froze page, and executed JS to pause all media elements";
+  qDebug() << "SplitFrameWidget::stopMediaPlayback: muted audio and executed JS to pause all media elements";
 }
 
 void SplitFrameWidget::setProfile(QWebEngineProfile *profile) {
