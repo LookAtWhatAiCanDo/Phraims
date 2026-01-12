@@ -332,10 +332,21 @@ void SplitFrameWidget::refreshScaleUi() {
 void SplitFrameWidget::stopMediaPlayback() {
   if (!webview_ || !webview_->page()) return;
 
+  QWebEnginePage *page = webview_->page();
+  
+  // CRITICAL: Immediately mute audio to stop playback synchronously.
+  // This prevents audio from continuing after the window closes since
+  // runJavaScript() is asynchronous and may not execute before destruction.
+  page->setAudioMuted(true);
+  
+  // Set the lifecycle state to frozen to stop background activity and media loading.
+  // This helps ensure the page stops processing and releases resources.
+  page->setLifecycleState(QWebEnginePage::LifecycleState::Frozen);
+  
   // Use JavaScript to pause all audio and video elements in the page.
-  // This ensures media stops immediately when the frame or window is closing.
-  // Calling load() with empty string after pause helps release resources and
-  // stops buffering.
+  // This provides additional cleanup beyond muting, ensuring elements are
+  // properly stopped and resources released. This is asynchronous but the
+  // muting above ensures audio stops immediately.
   QString js = QStringLiteral(R"JS(
     (function() {
       try {
@@ -357,8 +368,8 @@ void SplitFrameWidget::stopMediaPlayback() {
     })();
   )JS");
 
-  webview_->page()->runJavaScript(js);
-  qDebug() << "SplitFrameWidget::stopMediaPlayback: executed JS to pause all media elements";
+  page->runJavaScript(js);
+  qDebug() << "SplitFrameWidget::stopMediaPlayback: muted audio, froze page, and executed JS to pause all media elements";
 }
 
 void SplitFrameWidget::setProfile(QWebEngineProfile *profile) {

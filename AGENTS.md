@@ -207,13 +207,17 @@ Mouse modifier shortcuts (e.g., Ctrl/Cmd+Click) are handled at the page level:
 When a window is closed, all media playback must be explicitly stopped to prevent audio/video from continuing after the window is gone. This is critical because `QWebEngineView` and `QWebEnginePage` objects continue playing media until they are asynchronously deleted via `deleteLater()`, which can take several event loop iterations.
 
 ### Media Cleanup Implementation
-- **SplitFrameWidget::stopMediaPlayback()**: Uses JavaScript to pause all `<audio>` and `<video>` elements in the page. This method is called on each frame when the window is closing.
+- **SplitFrameWidget::stopMediaPlayback()**: Uses a multi-layered approach to ensure media stops immediately:
+  1. Calls `setAudioMuted(true)` on the QWebEnginePage (synchronous) to immediately stop audio output
+  2. Calls `setLifecycleState(Frozen)` to freeze the page and stop background activity
+  3. Runs JavaScript to pause all `<audio>` and `<video>` elements and clear their sources (asynchronous cleanup)
+  This method is called on each frame when the window is closing.
 - **SplitWindow::stopAllFramesMediaPlayback()**: Iterates through all `SplitFrameWidget` children and calls `stopMediaPlayback()` on each. This ensures all frames stop media immediately.
 - **SplitWindow::closeEvent()**: Calls `stopAllFramesMediaPlayback()` as the first action before any state saving or cleanup. This guarantees media stops as soon as the user closes the window.
 
 ### Important Rules
 1. **Always stop media before closing**: Any code path that destroys frames or windows must call `stopMediaPlayback()` or `stopAllFramesMediaPlayback()` before deletion.
-2. **JavaScript-based cleanup**: Pausing media via JavaScript (`audio.pause()`, `video.pause()`) is the most reliable way to stop playback in `QWebEngineView`.
+2. **Multi-layered cleanup**: The combination of synchronous muting, lifecycle freezing, and asynchronous JavaScript ensures media stops immediately even if the window is destroyed before JavaScript executes.
 3. **Maintain this pattern**: Future changes to window closing, frame destruction, or layout rebuilding must preserve this media cleanup behavior to prevent resource leaks and user confusion.
 
 ## Profiles System
