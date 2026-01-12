@@ -11,9 +11,13 @@ Phraims is a multi-frame web browser built with Qt6 and QtWebEngine (Chromium-ba
 
 ## Quick Start for Contributors
 
-1. **Setup**: Install Qt6 (e.g., `brew install qt6` on macOS)
-2. **Build**: `cmake -S . -B build -DCMAKE_PREFIX_PATH=$(brew --prefix qt6) && cmake --build build`
-3. **Run**: `./build/Phraims`
+1. **Setup**: Install Qt6 for your platform
+   - macOS: `brew install qt6`
+   - Windows: Download from qt.io or use vcpkg
+   - Linux: Use package manager (e.g., `apt install qt6-base-dev qt6-webengine-dev`)
+2. **Build**: `cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/qt6 && cmake --build build`
+   - On macOS with Homebrew: replace `/path/to/qt6` with `$(brew --prefix qt6)`
+3. **Run**: `./build/Phraims` (on Unix) or `.\build\Release\Phraims.exe` (on Windows)
 4. **Before making changes**:
    - Read AGENTS.md for detailed architecture
    - Understand the module you're modifying
