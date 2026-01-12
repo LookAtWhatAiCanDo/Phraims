@@ -9,6 +9,36 @@ Phraims is a multi-frame web browser built with Qt6 and QtWebEngine (Chromium-ba
 - **Main Components**: SplitWindow (main window), SplitFrameWidget (individual frames), QtWebEngine (web rendering)
 - **Current Version**: 0.55 (defined in CMakeLists.txt)
 
+## Quick Start for Contributors
+
+1. **Setup**: Install Qt6 for your platform
+   - macOS: `brew install qt6`
+   - Windows: Download from qt.io or use vcpkg
+   - Linux: Use package manager (e.g., `apt install qt6-base-dev qt6-webengine-dev`)
+2. **Build**: 
+   ```bash
+   # Generic command (replace /path/to/qt6 with your Qt6 installation path)
+   cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/qt6 && cmake --build build
+   
+   # macOS with Homebrew (evaluates brew --prefix qt6 automatically)
+   cmake -S . -B build -DCMAKE_PREFIX_PATH=$(brew --prefix qt6) && cmake --build build
+   ```
+3. **Run**: `./build/Phraims` (on Unix) or `.\build\Release\Phraims.exe` (on Windows)
+4. **Before making changes**:
+   - Read AGENTS.md for detailed architecture
+   - Understand the module you're modifying
+   - Test your build setup works
+5. **Making changes**:
+   - Follow coding style (2 spaces, PascalCase for classes, trailing underscore for members)
+   - Use AppSettings for persistence, never QSettings directly
+   - Update documentation (AGENTS.md, README.md) when changing behavior
+   - Test manually: build, run, exercise your feature, quit/relaunch to verify persistence
+6. **Before committing**:
+   - Ensure code builds without errors
+   - Verify your changes work as expected
+   - Update relevant documentation
+   - Write clear commit message describing the change
+
 ## Essential Guidelines
 
 ### Persistence Rules (MANDATORY)
@@ -44,6 +74,31 @@ cmake --build build --config Release
 
 # Clean
 cmake --build build --target clean
+```
+
+### Example Code Patterns
+
+**Correct way to persist settings:**
+```cpp
+// Good - uses AppSettings wrapper
+AppSettings s;
+s.setValue("myKey", value);
+```
+
+**Correct way to add keyboard shortcuts:**
+```cpp
+// Good - uses Qt::CTRL (maps to Cmd on macOS, Ctrl elsewhere)
+QAction* action = new QAction("My Action", this);
+action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_T));
+```
+
+**Correct way to remove a frame:**
+```cpp
+// Good - surgical removal preserves other frames
+removeSingleFrame(frameToRemove);
+
+// Bad - rebuilds all frames, stops media playback
+rebuildSections();
 ```
 
 ### Module Organization
@@ -105,11 +160,41 @@ cmake --build build --target clean
 - Version appears in: About dialog, startup logs, build artifacts
 - Update CMakeLists.txt, regenerate, update README.md, rebuild
 
+### Security Considerations
+- **Never commit secrets or credentials** to source code
+- Use `AppSettings` for user preferences (UI state, window geometry, frame addresses) but not for sensitive data (passwords, tokens, private keys)
+- Sensitive data should be stored in platform-specific secure storage (Keychain on macOS, Credential Manager on Windows)
+- Profile data is stored unencrypted in filesystem; treat it as user-controlled, not secret
+- Incognito mode provides session isolation but data exists in memory during runtime
+- Web content runs in Chromium sandbox via QtWebEngine
+- Be cautious with user-provided URLs and JavaScript execution
+
+### Testing Strategy
+- Manual testing is primary verification method (see README.md acceptance scenarios)
+- Always test persistence by quitting and relaunching the application
+- Test profile switching, frame operations, and window restoration
+- Verify Incognito mode doesn't persist data to disk
+- Test on target platforms when possible:
+  - macOS: arm64 (M1+) and x86_64 (Intel)
+  - Windows: x64 and arm64
+  - Linux: x64 (limited support, no automated builds yet)
+- Automated tests are planned but not yet implemented
+
+### Common Pitfalls
+- **Frame lifecycle**: Don't use `rebuildSections()` when `removeSingleFrame()` or `addSingleFrame()` would work - it stops media playback in all frames
+- **QSettings**: Never instantiate directly; breaking this rule causes persistence bugs
+- **Memory management**: Qt parent-child ownership is used; be careful with `deleteLater()`
+- **Signal connections**: Verify connections are established before emitting signals
+- **Profile switching**: Must call `rebuildSections()` to update QWebEngineProfile instances
+- **Keyboard shortcuts**: Platform differences are handled by Qt; don't add conditional logic
+
 ### Agent Responsibilities
 - Keep AGENTS.md and README.md synchronized with code changes
 - Update Doxygen comments when modifying APIs
 - Generate descriptive commit messages
 - Store learned patterns in documentation immediately
+- When fixing bugs, document the root cause and solution in AGENTS.md
+- Test changes manually before committing (build, run, exercise feature)
 
 ## More Details
 
