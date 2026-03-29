@@ -23,14 +23,14 @@ find_package(Qt6 6.9 COMPONENTS Widgets WebEngineWidgets Network REQUIRED)
 
 # Generate version.h from version.h.in with current project version
 configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/version.h.in"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/version.h"
   @ONLY
 )
 
 # Generate UpdateConfig.h from UpdateConfig.h.in with appcast URL
 configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/UpdateConfig.h.in"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/UpdateConfig.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/UpdateConfig.h"
   @ONLY
 )
@@ -64,33 +64,33 @@ if(APPLE)
 
   qt_add_executable(Phraims
     MACOSX_BUNDLE
-    main.cpp
-    AppSettings.h
-    Utils.h
-    Utils.cpp
-    EscapeFilter.h
-    MyWebEnginePage.h
-    MyWebEngineView.h
-    SplitterDoubleClickFilter.h
-    DomPatch.h
-    DomPatch.cpp
-    SplitFrameWidget.h
-    SplitFrameWidget.cpp
-    SplitWindow.h
-    SplitWindow.cpp
-    UpdateChecker.h
-    UpdateChecker.cpp
-    UpdateDialog.h
-    UpdateDialog.cpp
-    MacSparkleUpdater.h
-    MacSparkleUpdater.mm
+    src/main.cpp
+    src/AppSettings.h
+    src/Utils.h
+    src/Utils.cpp
+    src/EscapeFilter.h
+    src/MyWebEnginePage.h
+    src/MyWebEngineView.h
+    src/SplitterDoubleClickFilter.h
+    src/DomPatch.h
+    src/DomPatch.cpp
+    src/SplitFrameWidget.h
+    src/SplitFrameWidget.cpp
+    src/SplitWindow.h
+    src/SplitWindow.cpp
+    src/UpdateChecker.h
+    src/UpdateChecker.cpp
+    src/UpdateDialog.h
+    src/UpdateDialog.cpp
+    src/MacSparkleUpdater.h
+    src/MacSparkleUpdater.mm
     resources/resources.qrc
     ${app_icon_macos}
   )
   # Mark MacSparkleUpdater.mm as Objective-C++ source
   # `-fobjc-arc` prevents:
   #   "warning: '__bridge_retained' casts have no effect when not using ARC [-Warc-bridge-casts-disallowed-in-nonarc]"
-  set_source_files_properties(MacSparkleUpdater.mm PROPERTIES
+  set_source_files_properties(src/MacSparkleUpdater.mm PROPERTIES
     COMPILE_FLAGS "-x objective-c++ -fobjc-arc"
   )
   
@@ -129,26 +129,26 @@ elseif(WIN32)
   )
   
   qt_add_executable(Phraims
-    main.cpp
-    AppSettings.h
-    Utils.h
-    Utils.cpp
-    EscapeFilter.h
-    MyWebEnginePage.h
-    MyWebEngineView.h
-    SplitterDoubleClickFilter.h
-    DomPatch.h
-    DomPatch.cpp
-    SplitFrameWidget.h
-    SplitFrameWidget.cpp
-    SplitWindow.h
-    SplitWindow.cpp
-    UpdateChecker.h
-    UpdateChecker.cpp
-    UpdateDialog.h
-    UpdateDialog.cpp
-    WinSparkleUpdater.h
-    WinSparkleUpdater.cpp
+    src/main.cpp
+    src/AppSettings.h
+    src/Utils.h
+    src/Utils.cpp
+    src/EscapeFilter.h
+    src/MyWebEnginePage.h
+    src/MyWebEngineView.h
+    src/SplitterDoubleClickFilter.h
+    src/DomPatch.h
+    src/DomPatch.cpp
+    src/SplitFrameWidget.h
+    src/SplitFrameWidget.cpp
+    src/SplitWindow.h
+    src/SplitWindow.cpp
+    src/UpdateChecker.h
+    src/UpdateChecker.cpp
+    src/UpdateDialog.h
+    src/UpdateDialog.cpp
+    src/WinSparkleUpdater.h
+    src/WinSparkleUpdater.cpp
     resources/resources.qrc
     "${CMAKE_CURRENT_BINARY_DIR}/phraims.rc"
   )
@@ -159,24 +159,24 @@ elseif(WIN32)
 else()
   # Linux and other platforms: standard executable build
   qt_add_executable(Phraims
-    main.cpp
-    AppSettings.h
-    Utils.h
-    Utils.cpp
-    EscapeFilter.h
-    MyWebEnginePage.h
-    MyWebEngineView.h
-    SplitterDoubleClickFilter.h
-    DomPatch.h
-    DomPatch.cpp
-    SplitFrameWidget.h
-    SplitFrameWidget.cpp
-    SplitWindow.h
-    SplitWindow.cpp
-    UpdateChecker.h
-    UpdateChecker.cpp
-    UpdateDialog.h
-    UpdateDialog.cpp
+    src/main.cpp
+    src/AppSettings.h
+    src/Utils.h
+    src/Utils.cpp
+    src/EscapeFilter.h
+    src/MyWebEnginePage.h
+    src/MyWebEngineView.h
+    src/SplitterDoubleClickFilter.h
+    src/DomPatch.h
+    src/DomPatch.cpp
+    src/SplitFrameWidget.h
+    src/SplitFrameWidget.cpp
+    src/SplitWindow.h
+    src/SplitWindow.cpp
+    src/UpdateChecker.h
+    src/UpdateChecker.cpp
+    src/UpdateDialog.h
+    src/UpdateDialog.cpp
     resources/resources.qrc
   )
 

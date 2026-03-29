@@ -1,26 +1,35 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-The codebase follows a modular structure with classes separated into dedicated files:
+The codebase follows a modular structure with all source code organized in the `src/` directory:
 
-- **main.cpp** - Application entry point with QApplication initialization, single-instance guard, and window restoration logic
-- **SplitWindow.h/.cpp** - Main window class managing splitter layouts, menus, persistence, and multi-window coordination
-- **SplitFrameWidget.h/.cpp** - Individual frame widget for each split section with navigation controls and WebEngine view
-- **MyWebEngineView.h** (header-only) - Custom QWebEngineView subclass providing context menus and window creation behavior
-- **DomPatch.h/.cpp** - DOM patch structures, JSON persistence helpers, and patch management dialog
-- **EscapeFilter.h** (header-only) - Event filter for handling Escape key during fullscreen mode
-- **SplitterDoubleClickFilter.h** (header-only) - Event filter for handling double-clicks on splitter handles to resize panes equally
-- **Utils.h/.cpp** - Shared utilities including GroupScope RAII helper, window menu icons, global window tracking, and legacy migration logic
-- **version.h.in** - Template for CMake-generated version.h containing version constants and project URL
+- **src/main.cpp** - Application entry point with QApplication initialization, single-instance guard, and window restoration logic
+- **src/SplitWindow.h/.cpp** - Main window class managing splitter layouts, menus, persistence, and multi-window coordination
+- **src/SplitFrameWidget.h/.cpp** - Individual frame widget for each split section with navigation controls and WebEngine view
+- **src/MyWebEngineView.h** (header-only) - Custom QWebEngineView subclass providing context menus and window creation behavior
+- **src/MyWebEnginePage.h** (header-only) - Custom QWebEnginePage for handling new window/tab creation requests
+- **src/DomPatch.h/.cpp** - DOM patch structures, JSON persistence helpers, and patch management dialog
+- **src/EscapeFilter.h** (header-only) - Event filter for handling Escape key during fullscreen mode
+- **src/SplitterDoubleClickFilter.h** (header-only) - Event filter for handling double-clicks on splitter handles to resize panes equally
+- **src/Utils.h/.cpp** - Shared utilities including GroupScope RAII helper, window menu icons, global window tracking, profile management, and legacy migration logic
+- **src/AppSettings.h** (header-only) - QSettings wrapper for all application persistence (MANDATORY for all settings access)
+- **src/UpdateChecker.h/.cpp** - GitHub API integration for checking application updates
+- **src/UpdateDialog.h/.cpp** - Update notification dialog UI
+- **src/MacSparkleUpdater.h/.mm** - macOS Sparkle framework integration for auto-updates (Objective-C++)
+- **src/WinSparkleUpdater.h/.cpp** - Windows WinSparkle library integration for auto-updates
+- **src/version.h.in** - Template for CMake-generated version.h containing version constants and project URL
+- **src/UpdateConfig.h.in** - Template for CMake-generated UpdateConfig.h containing appcast URL
+- **resources/** - Application resources (icons, Qt resource files, Info.plist templates, resource scripts)
+- **ci/** - Continuous integration scripts for building and packaging on macOS and Windows
 
-For simple classes like `EscapeFilter`, `MyWebEngineView`, and `SplitterDoubleClickFilter`, implementations are kept in the header as inline methods to reduce file count and keep code/comments together.
+For simple classes like `EscapeFilter`, `MyWebEngineView`, `MyWebEnginePage`, and `SplitterDoubleClickFilter`, implementations are kept in the header as inline methods to reduce file count and keep code/comments together.
 
 `CMakeLists.txt` configures the `Phraims` executable target and links Qt Widgets and WebEngine modules.
 Generated binaries and intermediates belong in `build/`; feel free to create
 parallel out-of-source build directories (`build-debug`, `build-release`) to keep artifacts separated.
 
 ### Versioning
-The application version is defined as a single source of truth in `CMakeLists.txt` via the `project()` VERSION parameter (currently 0.55). CMake generates `build/version.h` from `version.h.in` during configuration, exposing:
+The application version is defined as a single source of truth in `CMakeLists.txt` via the `project()` VERSION parameter (currently 0.56). CMake generates `build/version.h` from `src/version.h.in` during configuration, exposing:
 - `PHRAIMS_VERSION` - full version string (e.g., "0.55")
 - `PHRAIMS_VERSION_MAJOR`, `PHRAIMS_VERSION_MINOR`, `PHRAIMS_VERSION_PATCH` - individual version components
 - `PHRAIMS_HOMEPAGE_URL` - GitHub repository URL

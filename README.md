@@ -4,7 +4,7 @@
 
 # phraims
 
-**Current Version: 0.55**
+**Current Version: 0.56**
 
 Phraims is a web browser that divides each window into multiple resizable web page frames.
 
@@ -309,15 +309,27 @@ Update checks connect to GitHub's API to fetch release information. No personal 
 - messenger.com page not loading
 
 ## Code
-- **main.cpp** - Application entry point and initialization
-- **SplitWindow** - Main window class with menu bar and splitter management
-- **SplitFrameWidget** - Individual web view frame with navigation controls
-- **MyWebEngineView** (header-only) - Custom QWebEngineView with context menu support
-- **DomPatch** - DOM patching system for CSS customizations
-- **EscapeFilter** (header-only) - Fullscreen escape key handler
-- **Utils** - Shared utilities and helper functions
 
-Simple classes like `EscapeFilter` and `MyWebEngineView` use header-only implementations for easier maintenance.
+### Project Structure
+The source code is organized in a dedicated `src/` directory for better organization:
+- **src/main.cpp** - Application entry point and initialization
+- **src/SplitWindow** - Main window class with menu bar and splitter management
+- **src/SplitFrameWidget** - Individual web view frame with navigation controls
+- **src/MyWebEngineView** (header-only) - Custom QWebEngineView with context menu support
+- **src/MyWebEnginePage** - Custom QWebEnginePage for handling new window/tab requests
+- **src/DomPatch** - DOM patching system for CSS customizations
+- **src/EscapeFilter** (header-only) - Fullscreen escape key handler
+- **src/SplitterDoubleClickFilter** (header-only) - Splitter double-click handler
+- **src/Utils** - Shared utilities, profile management, and helper functions
+- **src/AppSettings** (header-only) - QSettings wrapper for all persistence
+- **src/UpdateChecker** - GitHub API integration for update checking
+- **src/UpdateDialog** - Update notification UI
+- **src/MacSparkleUpdater** - macOS Sparkle framework integration (Objective-C++)
+- **src/WinSparkleUpdater** - Windows WinSparkle library integration
+- **resources/** - Application resources (icons, Qt resource files, Info.plist templates)
+- **ci/** - Continuous integration build and deployment scripts
+
+Simple classes like `EscapeFilter`, `MyWebEngineView`, and `SplitterDoubleClickFilter` use header-only implementations for easier maintenance.
 
 ### Build
 Build (requires CMake + Qt 6 + WebEngine w/ proprietary codecs enabled; the Homebrew `qt6` package is confirmed to ship with `-DFEATURE_webengine_proprietary_codecs=ON`):
